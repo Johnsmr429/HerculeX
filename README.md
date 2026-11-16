@@ -132,19 +132,19 @@ Eight scrolls were unwrapped and read end to end on 13-14 November 2026, one aft
 | Known letters reached by the surface | 91% of the nodes of PHerc0343's published First Letters; ≥ 80% of 29 and ≥ 50% of about 56 hand-labelled letters | PHerc0343; 14 labelled cases | |
 | Ink read through the surface, against the published mesh with the same reader | correlation 0.571 against 0.642 (89%) | the PHerc0343 First Letters crop | earlier version of the route |
 
-### 4.3 Ink on holdouts and known scrolls
+### 4.3 Ink through HerculeX surfaces
 
-AUC of ink against hand labels, read on HerculeX's own surfaces unless the column says published.
+HerculeX reads ink with stock Reader v3 and ships no ink model of its own, so these numbers measure what the surfaces keep: the same reader on HerculeX's pieces and, where they exist, on the published expert meshes. AUC of ink against hand labels.
 
-| Test | Stock Reader v3 | Reader v3 post-trained on HerculeX surfaces | Status |
-| --- | --- | --- | --- |
-| PHerc0814, 52 letters | **0.870**; 6.6% of nearby blank called ink | 0.840-0.851; 14.7-25.9% | held out of post-training |
-| Second tier: PHerc0814, 22 letters / PHerc0841, 6 letters | **0.935** / **0.926** | 0.887-0.930 / 0.873-0.889 | held out of post-training |
-| PHerc0841, 31 labelled cases | 0.792 at one depth, 0.817 averaged over depths, 0.829 at the best depth in -4..+4 | | never seen by Reader v3 |
-| PHerc0841, where hand label and fine-scan map agree: published / HerculeX | 0.955 / 0.922 | 0.943 / 0.905 | post-training saw PHerc0841 |
-| 62 known letters: published / HerculeX | median 0.994 / 0.956 (0.969 averaged over five depths) | | includes PHerc0139, which Reader v3 has likely seen |
+| Test | Published mesh | HerculeX surface | Status |
+| --- | ---: | ---: | --- |
+| PHerc0841, where hand label and fine-scan map agree | 0.955 | 0.922 | never seen by Reader v3 |
+| PHerc0841, 31 labelled cases: one depth / mean over depths / best depth in -4..+4 | | 0.792 / 0.817 / 0.829 | never seen by Reader v3 |
+| 62 known letters, median (mean of five depths) | 0.994 | 0.956 (0.969) | includes PHerc0139, which Reader v3 has likely seen |
+| Letter shape: correlation with the published read, median (mean of five depths) | | 0.85 (0.88) | the same 62 letters |
+| PHerc0814, 52 letters; nearby blank papyrus called ink | | 0.870; 6.6% | Reader v3's own training set not audited |
 
-Stock Reader v3 beats every post-trained variant on the holdout and calls less than half as much blank papyrus ink, so the pipeline reads with it. Reads are also checked against invention: in a whole read of PHerc0211, the scrambled twins of 5,873 stacks (spectrum and depth profile kept, structure destroyed) gave no sure ink in 5,849.
+The gap between the two columns, 0.03 to 0.04 AUC, is what reading through HerculeX's own surfaces costs against expert meshes.
 
 ### 4.4 Limits
 
@@ -215,7 +215,19 @@ S=PHerc0826
 
 The last job reads every piece and publishes the scroll: its page appears on the start page with no further step. Any stage can be stopped and resumed. `./run.sh runner.pipeline run all $S` runs the same three stages without the board.
 
-### 6.5 Open the website
+### 6.5 Reading ink
+
+Ink is read with stock Reader v3, the only model HerculeX uses:
+
+```sh
+./run.sh ink.model.weights fetch                       # once: Reader v3 at its pinned revision, SHA-256 checked
+./run.sh runner.pipeline run ink PHerc0826             # read every laid-out piece, without publishing
+./run.sh ink.model.weights status                      # where the checkpoint is
+```
+
+The `sheet` stage of 6.4 runs the same read and then publishes. Each piece is read once, in a 17-layer window that starts 8 layers before its written face. To average several depths into a separate read, set `HERCULEX_FACES=depths HERCULEX_DEPTH_SHIFTS=-4,-2,0,2,4` on the read; circled spots are read at every depth from -15 to +15 by the spots sweep (section 8). `HERCULEX_WEIGHTS=/path/to/checkpoint.pth` reads with any other checkpoint of the same network.
+
+### 6.6 Open the website
 
 ```sh
 ./run.sh website.site_server            # http://localhost:8765/sheets/index.html
@@ -263,15 +275,15 @@ HerculeX is tuned for Apple silicon: 16 GB of unified memory, one Metal GPU and 
 Port HerculeX to Linux with one CUDA GPU. Keep every stage's output identical within the tolerances its tests use.
 1. unwrapping/detection: write a CUDA kernel for gpu_nodes.metal (one block per 8-voxel cell, the same Node record);
    cpu_nodes.py and node_kernels.c are the reference; tests/test_sheet_nodes_golden.py compares the two.
-2. ink/model: replace depth_stem.metal with the PyTorch stem it reproduces, and the Neural Engine body
-   (neural_engine.py, engine_calls.m, Core ML) with the PyTorch body in float16 on CUDA; keep tile_reader.py's
-   tiling, norms and blending. Change device "mps" to "cuda".
+2. ink/model: portable_reader.py already reads Reader v3 in PyTorch with tile_reader.py's tiling, norms and
+   blending; run it on "cuda" (float16 or bfloat16) in place of the Metal stem (depth_stem.metal) and the Neural
+   Engine body (neural_engine.py, engine_calls.m), and change device "mps" to "cuda" elsewhere.
 3. runner/compiled_kernels.py already builds the C kernels with cc on Linux; drop the Objective-C sources.
 4. runner/job_board.py: one GPU slot, no engine slot; raise memory sizes to the new machine.
 5. Run ./run.sh check, then one scroll end to end, and compare its record.json files and page with a Mac run.
 ```
 
-MLX and Core ML appear only in optional readers (`hecate_mlx.py`, `hecate_engine.py`) and can be dropped.
+Core ML is used only by `neural_engine.py`, which a CUDA port replaces.
 
 ## 10. Repository Layout
 
@@ -279,13 +291,13 @@ MLX and Core ML appear only in optional readers (`hecate_mlx.py`, `hecate_engine
 scans/            scan catalogue of the open data, byte-range fetches into brick stores
 unwrapping/       detection (sheet nodes), level (pieces, frame, layout), layout (mosaics, tifxyz export)
 sampling/         layer stacks along normals, the written face from fibres
-ink/              model (Reader v3, tile reader, Neural Engine), reading, datasets, training
+ink/              Reader v3: fetch, tile reader, Neural Engine body, portable reader; the ink stage
 website/          tile pyramids, viewer, start page, local server, hand marks, overview pictures
 spots/            circled spots to depth sweeps, verdicts and a submission
-calibration/      every stage scored on controls with known truth
+calibration/      unwrapping scored on published meshes and a synthetic scroll of known windings
 runner/           pipeline route, job board, compiled kernels
 storage/          data folders and binary formats
-records/          measured results the calibration studies write and read
+records/          measured results of the unwrapping controls
 tests/            end-to-end tests on synthetic scrolls, and golden tests of fast paths against references
 docs/             images and the generator of the title art
 ```

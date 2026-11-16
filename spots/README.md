@@ -9,7 +9,7 @@ can be found and judged.
 sources.py     which scroll, scan, route, page and pieces each marks log belongs to
 catalogue.py   every standing Spot circle located on its pieces and in the scan, as the spots table
 surfaces.py    narrowing, the m7 snap (the PHerc0343 First Letters rule), the 67-layer render with d = layer - 33
-sweep.py       Reader v3 and its descendants at every depth, both stack orders
+sweep.py       Reader v3 (and any listed readers) at every depth, both stack orders
 images.py      the sweep laid out as the page showed it, one stretch per model, z-score ensemble, a page per spot
 pilot.py       one spot through build, render, read and images, each stage resumable
 database.py    Parquet tables spots, surfaces, reads, verdicts under SPOT_CANDIDATES/db; the verdict command
@@ -45,8 +45,9 @@ axis, read a 17-layer window centred on every d from -15 to +15 in both stack or
 stretch each model once over all depths, never per depth, ensemble by z-scores, then choose the depth where the
 letters are. Here 67 layers are rendered so d = 0 is the surface node itself.
 
-The models are Reader v3 and versions taught from it; the ink_9um networks and their descendants read poorly on these
-scrolls. The original surface is read by stock Reader v3 alone, as the baseline for the m7 rebuild.
+The sweep reads with stock Reader v3, and with any other checkpoints of the same network listed in the library's
+`weights/sweep-readers.json` as `{"name": "path under weights/"}`. The original surface is read by stock Reader v3
+alone, as the baseline for the m7 rebuild.
 
 A third surface, `grown`, carries the m7 surface past its edges and into its holes on the prediction (`grow` stage):
 two cells a round, a new node kept only where m7 sheet lies within 6 voxels along its normal, then the winners' snap

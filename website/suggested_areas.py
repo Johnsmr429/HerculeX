@@ -4,10 +4,11 @@ import json
 
 from PIL import Image
 
-from calibration.text.blind_pairs import FIELD, SAMPLE, VOLUME
 from sampling.sheet_images import MARGIN_CELLS
 from storage.data_roots import INK_RECORDS, ROUTE_OUTPUTS, stage_folder
 
+SAMPLE, VOLUME = "PHerc0211", "20250821151803"  # the scan of the blind pairs, whose best squares are suggested
+FIELD = 1440  # a square's side in pixels of the piece's stack
 PAIRS = (29, 21, 17, 14, 25)
 Image.MAX_IMAGE_PIXELS = None
 

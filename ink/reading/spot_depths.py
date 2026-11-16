@@ -12,9 +12,9 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 from ink.model import tile_reader
+from ink.model.input_stack import DEPTH, PAST_FACE, face_layer_of
 from ink.model.stock_model import SURE
 from ink.reading.piece_reading import WEIGHTS, digest
-from ink.training.model_training import DEPTH, PAST_FACE, face_layer_of
 from sampling import column_sampling as sampler
 from sampling.piece_images import (
     axis_of_pieces,

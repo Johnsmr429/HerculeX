@@ -8,7 +8,7 @@ silicon only. Here the same arithmetic runs in PyTorch, in float32:
 - the whole network (neural_engine.whole_network: the stem expressed in 2-D over the 17 layers, its attention pool and
   peak, then the body) on 512-pixel tiles every 384, one at a time on a CPU (BATCH);
 - tiles blended by a Hann window (tile_reader.Sums).
-TurnedPortableReader reads the eight turns and flips of a stack, each turned back, as TurnedReader does.
+TurnedPortableReader reads the eight turns and flips of a stack, each turned back, and averages them.
 """
 
 import numpy as np
@@ -92,7 +92,7 @@ class PortableReader:
 
 
 class TurnedPortableReader:
-    """A portable reader asked eight times, each read turned back before the mean (as turned_reader.TurnedReader)."""
+    """A portable reader asked eight times, each read turned back before the mean."""
 
     def __init__(self, weights, device="cpu"):
         self.reader = PortableReader(weights, device)

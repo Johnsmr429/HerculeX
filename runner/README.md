@@ -8,7 +8,6 @@ sheet_stage.py        pieces to the website: layout, every piece read, then the 
 review_page.py        a read scan published as its whole-scroll page with its card on the start page
 stage_queue.py        method digests, atomic units, claims and stage locks
 job_board.py          one queue for every long job: slots, memory, priorities, swap guard; state in runtime/board/
-fetch_ahead.py        survey fetches split from reads
 wait_for_queue.py     a gate that ends when named jobs can no longer run
 memory_trace.py       true footprint by source line, C and GPU included
 compiled_kernels.py   C and Objective-C compiled once per source digest into runtime/kernels/
@@ -49,4 +48,4 @@ S=PHerc0826
 
 Every stage resumes from what is finished: `./run.sh board retry NAME` after a failure, and a failed read keeps the CT it fetched. `--scan ID` picks a scan other than the survey scan. `./run.sh runner.pipeline status [SCROLL]` lists what is done.
 
-The read uses stock Reader v3; `HERCULEX_WEIGHTS=/path/to/checkpoint.pth` reads with another (its page is labelled `HERCULEX_MODEL_NAME`, default "post-trained Reader v3"). `HERCULEX_BRICKS` puts the CT cache on another drive, and `HERCULEX_KEEP_STACKS=0` skips keeping each piece's layer stack (about 20 GB per 1,000 cm² of sheet). The `sheet` stage ends in `runner.review_page SCROLL SCAN`: tiles of the scan and the ink, the viewer page, its card on the start page, and a check of tiles and marks over HTTP when the site is running. Run it alone to republish a read scan.
+The read uses stock Reader v3; `HERCULEX_WEIGHTS=/path/to/checkpoint.pth` reads with another checkpoint of the same network, named on its page by `HERCULEX_MODEL_NAME`. `HERCULEX_BRICKS` puts the CT cache on another drive, and `HERCULEX_KEEP_STACKS=0` skips keeping each piece's layer stack (about 20 GB per 1,000 cm² of sheet). The `sheet` stage ends in `runner.review_page SCROLL SCAN`: tiles of the scan and the ink, the viewer page, its card on the start page, and a check of tiles and marks over HTTP when the site is running. Run it alone to republish a read scan.

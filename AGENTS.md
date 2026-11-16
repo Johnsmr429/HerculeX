@@ -39,7 +39,7 @@ the cause and `./run.sh board retry NAME`. When it is done, check the page loads
 | --- | --- |
 | Republish a read scan | `./run.sh runner.review_page SCROLL SCAN` |
 | Put another published page on the start page | `./run.sh website.site_pages card PAGE [SCROLL] [--surface WORD]` (`--remove` takes it off) |
-| Read with another checkpoint | `HERCULEX_WEIGHTS=/path.pth HERCULEX_MODEL_NAME="name"` on the `sheet` job |
+| Read with another checkpoint of the Reader v3 network | `HERCULEX_WEIGHTS=/path.pth HERCULEX_MODEL_NAME="name"` on the `sheet` job |
 | Read apart from production, e.g. several depths | `HERCULEX_FACES=NAME HERCULEX_DEPTH_SHIFTS=-4,-2,0,2,4`, then `website.sheet_tiles` and `website.site_pages part` |
 | A top-down picture of a scroll | `./run.sh website.overview PAGE OUT.jpg [--width 2400]` |
 | The site | `./run.sh website.site_server`, http://localhost:8765/sheets/index.html |
@@ -57,7 +57,7 @@ Spot circles (viewer key `C`) are candidate letters. Work on them while the pers
 4. For a First Letters submission (10 legible letters in 4 cm²), package the chosen spot's surface, image, depth and
    the commands that reproduce them. Keep it plain and say what was not run.
 
-Ink strokes (`G`) and blank strokes (the Blank tool) are hand labels; `ink/datasets/hand_mark_strokes.py` carries them into training data.
+Ink strokes (`G`) and blank strokes (the Blank tool) are hand labels, kept in the same logs.
 
 ## Where things are
 

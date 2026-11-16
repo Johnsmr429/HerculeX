@@ -6,15 +6,8 @@ outward, away from the scroll axis; a model is shown the window in that order ("
 ("inward", villa's "reverse", the reading side of the PHerc0343 meshes). Which side holds the writing is decided
 from the images, both kept.
 
-Models, all Reader v3 or taught from it (the ink_9um networks and anything taught from them read badly on these
-scrolls, so none is used):
-
-    reader-v3          Reader v3 as published, on the tile reader
-    own-mesh           Reader v3 taught further on labels carried onto the pipeline's own surfaces
-    student            Reader v3's depth mean taught to one read (PHerc0841 held out), the best single read on the
-                       pipeline's own surfaces in a depth study
-
-The reviewed-marks rounds are left out: on PHerc0814 they called 23-26% of nearby blank papyrus sure ink, stock 6.6%.
+The models are stock Reader v3 ("reader-v3") and any other checkpoints of the same network listed in the library's
+weights/sweep-readers.json as {"name": "path under weights/"}; the original surface is read by stock Reader v3 alone.
 
 Maps are kept as float16 (side, depth, row, column) under spots/SPOT/reads/SURFACE/MODEL/PIECE.npy.
 """
@@ -25,18 +18,24 @@ import time
 import numpy as np
 
 from ink.model import tile_reader
+from ink.model.weights import STOCK_READER
 from spots.surfaces import LAYERS, MIDDLE, work_of
-from storage.data_roots import PRETRAINED_WEIGHTS, PRODUCTION_WEIGHTS, TRAINED_WEIGHTS
+from storage.data_roots import MODEL_WEIGHTS
 
 DEPTHS = tuple(range(-15, 16))
 SIDES = ("inward", "outward")
 WINDOW = 17
 HALF = WINDOW // 2
-WEIGHTS = {
-    "reader-v3": PRETRAINED_WEIGHTS / "reader_v3" / "reader-v3-tile-reader-state.pth",
-    "own-mesh": PRODUCTION_WEIGHTS / "reader-own-mesh-all-scrolls.pth",
-    "student": TRAINED_WEIGHTS / "reader-depth-mean-student-without-0841.pth",
-}
+SWEEP_READERS = MODEL_WEIGHTS / "sweep-readers.json"
+
+
+def listed_readers():
+    """Stock Reader v3, then the checkpoints listed in weights/sweep-readers.json, by name."""
+    listed = json.loads(SWEEP_READERS.read_text()) if SWEEP_READERS.is_file() else {}
+    return {"reader-v3": STOCK_READER} | {name: MODEL_WEIGHTS / path for name, path in listed.items()}
+
+
+WEIGHTS = listed_readers()
 MODELS = tuple(WEIGHTS)
 SURFACES = ("grown", "m7", "original")
 READ_BY = {

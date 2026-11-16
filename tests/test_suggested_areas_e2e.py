@@ -1,7 +1,6 @@
 """A suggested square lands where the viewer draws that part of the piece, turned or not."""
 
-from calibration.text.blind_pairs import FIELD
-from website.suggested_areas import square_on_sheet
+from website.suggested_areas import FIELD, square_on_sheet
 
 
 def piece(**turned):
