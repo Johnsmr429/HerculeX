@@ -58,11 +58,17 @@ Every stage writes atomic units with a record of the code that made them, so any
 
 ## 3. How It Works
 
-**Sheet nodes.** At about 19 µm per voxel (level 1 of a 9.4 µm scan) the scan is cut into 8-voxel cells. In each cell the structure tensor of the CT over a 24-voxel window gives the local sheet normal *n*, and the CT profile along *n* gives one peak per sheet crossing the cell. Each peak with a prominence of at least 3 grey levels becomes a node: position, normal, prominence, width and coherence. One Metal threadgroup handles one cell; a C implementation of the same arithmetic is the reference the GPU is tested against.
+### 3.1 Sheet nodes
 
-**The sheet graph.** Nodes of neighbouring cells whose normals agree within 30° and that lie on one surface (within 4 voxels along the normal) are joined by *sheet edges*: they are the same sheet. From every node a *ray* runs along its normal through a 6-voxel tube for up to 40 voxels; the first sheet it meets lies one turn further out. Normals are first made to agree along sheet edges, then the whole graph is turned to face out of the body by one minimum cut.
+At about 19 µm per voxel (level 1 of a 9.4 µm scan) the scan is cut into 8-voxel cells. In each cell the structure tensor of the CT over a 24-voxel window gives the local sheet normal *n*, and the CT profile along *n* gives one peak per sheet crossing the cell. Each peak with a prominence of at least 3 grey levels becomes a node: position, normal, prominence, width and coherence. One Metal threadgroup handles one cell; a C implementation of the same arithmetic is the reference the GPU is tested against.
 
-**Exact integer levels.** Unwrapping is the assignment of an integer winding level $f$ to every patch of nodes: the turn of the spiral it lies on. Patches merge on the evidence summed between them (sheet edges attract, rays repel), and the levels then solve
+### 3.2 The sheet graph
+
+Nodes of neighbouring cells whose normals agree within 30° and that lie on one surface (within 4 voxels along the normal) are joined by *sheet edges*: they are the same sheet. From every node a *ray* runs along its normal through a 6-voxel tube for up to 40 voxels; the first sheet it meets lies one turn further out. Normals are first made to agree along sheet edges, then the whole graph is turned to face out of the body by one minimum cut.
+
+### 3.3 Exact integer levels
+
+Unwrapping is the assignment of an integer winding level $f$ to every patch of nodes: the turn of the spiral it lies on. Patches merge on the evidence summed between them (sheet edges attract, rays repel), and the levels then solve
 
 $$
 \min_{f \in \mathbb{Z}^{P}} \sum_{(a,b,k)} w_{ab}\,\rho\left(f_b - f_a - k\right)
@@ -70,15 +76,25 @@ $$
 
 with $k = 0$ for a sheet edge and $k$ the number of sheets crossed for a ray. $\rho$ is the absolute value, except that a ray only bounds the gap from below (it can miss a faint sheet), so a residual on its permitted side costs half. The objective is L1 over differences, so its linear program is the dual of a minimum-cost flow and has integral optima: a network simplex in C solves it exactly and certifies the optimum. The sense of winding (the curl) is chosen by solving both senses and keeping the cheaper. Eight solves with randomly reweighted votes follow; a piece is a region joined only by edges that all eight keep.
 
-**Isometric pieces.** Each piece is laid flat in frames carried along its own sheet and written as a [tifxyz](https://github.com/ScrollPrize/villa) grid at the node spacing, each grid node the sheet point at its cell's centre, so neighbouring nodes lie one grid step apart in 3D. Holes up to 3 cells from their edge are bridged by a harmonic fill. A piece passes when at least 70% of its measured neighbour pairs are within 10% of a grid step.
+### 3.4 Isometric pieces
 
-**One frame per scan.** A scan is processed in units of brick rows. Pieces of neighbouring units are joined across each seam by the sheet edges that cross it, unless certain rays say they lie stacked. One more exact level solve over every piece of the scan gives each piece its turn, and the layout places it along the roll by its turn and its angle about the scroll axis; joined pieces are held rigid as mosaics.
+Each piece is laid flat in frames carried along its own sheet and written as a [tifxyz](https://github.com/ScrollPrize/villa) grid at the node spacing, each grid node the sheet point at its cell's centre, so neighbouring nodes lie one grid step apart in 3D. Holes up to 3 cells from their edge are bridged by a harmonic fill. A piece passes when at least 70% of its measured neighbour pairs are within 10% of a grid step.
 
-**Layer stacks and the written face.** Each piece's mesh is smoothed by 1.5 cells and sampled along its normals into a stack of 31 layers, read straight from CT bricks fetched by HTTP range requests. Papyrus is two crossed plies of fibres, so the grain of the near face's outer ply less that of the far face (the log ratio of gradient energy across and along the rows) names the recto: 13 of 14 labelled cases right, none wrong.
+### 3.5 One frame per scan
 
-**Ink.** Reader v3 (34.5 M parameters) is a 3D stem over 17 CT layers feeding a 2D residual U-Net. The window starts 8 layers before the steepest fall of the stack's mean profile, the written face. Pieces are read in 512-pixel tiles every 384 pixels; the stem runs as one Metal kernel and the body is compiled once for the Neural Engine in half precision, at 37 ms a tile.
+A scan is processed in units of brick rows. Pieces of neighbouring units are joined across each seam by the sheet edges that cross it, unless certain rays say they lie stacked. One more exact level solve over every piece of the scan gives each piece its turn, and the layout places it along the roll by its turn and its angle about the scroll axis; joined pieces are held rigid as mosaics.
 
-**The website.** Every layer of a scroll (the scan at the mesh, the brightest voxels across the sheet, the ink) is a tile pyramid packed into one file with an index; the browser reads tiles by byte range and decodes them in WebGL. Level 0 keeps the scan's own values without loss.
+### 3.6 Layer stacks and the written face
+
+Each piece's mesh is smoothed by 1.5 cells and sampled along its normals into a stack of 31 layers, read straight from CT bricks fetched by HTTP range requests. Papyrus is two crossed plies of fibres, so the grain of the near face's outer ply less that of the far face (the log ratio of gradient energy across and along the rows) names the recto: 13 of 14 labelled cases right, none wrong.
+
+### 3.7 Ink
+
+Reader v3 (34.5 M parameters) is a 3D stem over 17 CT layers feeding a 2D residual U-Net. The window starts 8 layers before the steepest fall of the stack's mean profile, the written face. Pieces are read in 512-pixel tiles every 384 pixels; the stem runs as one Metal kernel and the body is compiled once for the Neural Engine in half precision, at 37 ms a tile.
+
+### 3.8 The website
+
+Every layer of a scroll (the scan at the mesh, the brightest voxels across the sheet, the ink) is a tile pyramid packed into one file with an index; the browser reads tiles by byte range and decodes them in WebGL. Level 0 keeps the scan's own values without loss.
 
 ## 4. Results
 
@@ -88,17 +104,17 @@ All measurements on one MacBook Pro M1 Pro (10 cores, 16 GB). Where a number was
 
 Eight scrolls were unwrapped and read end to end on 13-14 November 2026, one after another on the job board, with stock Reader v3. None of them has published meshes or letters.
 
-| Scroll | Scan | Laid out | In mosaics ≥ 4 cm² | Laid length | CT to laid-out sheet | Ink read, CT download included | Page |
+| Scroll | Voxel (µm) | Laid out (cm²) | In mosaics ≥ 4 cm² (cm²) | Laid length (m) | CT to laid-out sheet (h) | Ink read with CT download (h) | Page (min) |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| PHerc0358 | 9.36 µm | 8,507 cm² | 4,991 cm² | 8.9 m | 2.0 h | 2.6 h | 59 min |
-| PHerc0813 | 9.36 µm | 8,849 cm² | 4,665 cm² | 7.4 m | 2.4 h | 3.3 h | 63 min |
-| PHerc0826 | 9.36 µm | 5,720 cm² | 3,323 cm² | 12.1 m | 1.7 h | 1.6 h | 33 min |
-| PHerc0846B | 9.36 µm | 6,064 cm² | 3,521 cm² | 8.9 m | 2.0 h | 2.4 h | 41 min |
-| PHerc1203 | 9.36 µm | 7,750 cm² | 4,490 cm² | 6.6 m | 2.1 h | 2.5 h | 51 min |
-| PHerc0175B | 8.64 µm | 10,824 cm² | 5,359 cm² | 12.4 m | 4.7 h | 4.8 h | 65 min |
-| PHerc0125 | 9.36 µm | 9,801 cm² | 6,631 cm² | 8.7 m | 1.3 h¹ | 4.7 h | 41 min |
-| PHerc0191 | 9.36 µm | 11,775 cm² | 6,450 cm² | 9.1 m | 1.7 h¹ | 5.0 h | 46 min |
-| **Total** | | **69,290 cm²** | **39,428 cm²** | | | | |
+| PHerc0358 | 9.36 | 8,507 | 4,991 | 8.9 | 2.0 | 2.6 | 59 |
+| PHerc0813 | 9.36 | 8,849 | 4,665 | 7.4 | 2.4 | 3.3 | 63 |
+| PHerc0826 | 9.36 | 5,720 | 3,323 | 12.1 | 1.7 | 1.6 | 33 |
+| PHerc0846B | 9.36 | 6,064 | 3,521 | 8.9 | 2.0 | 2.4 | 41 |
+| PHerc1203 | 9.36 | 7,750 | 4,490 | 6.6 | 2.1 | 2.5 | 51 |
+| PHerc0175B | 8.64 | 10,824 | 5,359 | 12.4 | 4.7 | 4.8 | 65 |
+| PHerc0125 | 9.36 | 9,801 | 6,631 | 8.7 | 1.3¹ | 4.7 | 41 |
+| PHerc0191 | 9.36 | 11,775 | 6,450 | 9.1 | 1.7¹ | 5.0 | 46 |
+| **Total** | | **69,290** | **39,428** | | | | |
 
 ¹ Sheet detection of these two ran before the run and is not included.
 
@@ -234,10 +250,10 @@ Move with `W` `A` `S` `D`, zoom with `E` `R`, or drag; `?` lists every key. Mark
 
 HerculeX is built to be driven by a coding agent while you read. [`AGENTS.md`](AGENTS.md) is the agent's page: commands, rules and recipes in one screen, with the module READMEs one level down. The loop:
 
-1. **Unwrap.** Ask the agent to unwrap a scroll ("unwrap PHerc0826"). It queues the three jobs of 6.4.
-2. **The scroll appears.** When the read finishes, the pipeline publishes the scroll's page and adds its card to the start page. Pages made any other way (a rebuilt surface, a read by another model) are added with one command, `./run.sh website.site_pages card PAGE`, which labels the card from the page itself; nobody edits the website by hand.
-3. **Inspect and mark.** Read the scroll in the viewer. Circle places that may hold letters with the Spot tool (`C`); mark ink (`G`) and blank papyrus (the Blank tool) where you are sure.
-4. **Work on a submission while you keep reading.** Ask the agent to work on your circles. It builds the spots table from your marks, rebuilds each spot as a continuous surface, reads it at every depth from -15 to +15 with several models, and publishes a sweep page per spot at `/sheets/spot-candidates/` where you choose the depth and record a verdict ([spots/README.md](spots/README.md)). The jobs queue behind each other on the board, so you can keep marking.
+1. Ask the agent to unwrap a scroll ("unwrap PHerc0826"). It queues the three jobs of 6.4.
+2. When the read finishes, the pipeline publishes the scroll's page and adds its card to the start page. Pages made any other way (a rebuilt surface, a read by another model) are added with one command, `./run.sh website.site_pages card PAGE`, which labels the card from the page itself; nobody edits the website by hand.
+3. Read the scroll in the viewer. Circle places that may hold letters with the Spot tool (`C`); mark ink (`G`) and blank papyrus (the Blank tool) where you are sure.
+4. Ask the agent to work on your circles, and keep reading. It builds the spots table from your marks, rebuilds each spot as a continuous surface, reads it at every depth from -15 to +15 with several models, and publishes a sweep page per spot at `/sheets/spot-candidates/` where you choose the depth and record a verdict ([spots/README.md](spots/README.md)). The jobs queue behind each other on the board, so you can keep marking.
 
 ## 9. Porting to CUDA
 
