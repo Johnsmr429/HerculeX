@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#000;color:#8a8a8a;font:10pt Calibri,Carlito,sans-serif}
+a{color:inherit;text-decoration:none}
+canvas{position:fixed;inset:0;width:100vw;height:100vh;touch-action:none}
+#view{cursor:grab}
+#view.drag{cursor:grabbing}
+nav{position:fixed;top:0;left:0;right:0;z-index:5;display:flex;align-items:center;gap:20px;padding:8px 14px;background:#000;white-space:nowrap}
+nav a:hover,nav a.here{color:#fff}
+#tools{margin-left:auto;display:flex;align-items:center;gap:14px;font-variant-numeric:tabular-nums}
+select,button{background:#000;color:#8a8a8a;border:0;padding:0;font:inherit;cursor:pointer;outline:0;appearance:none}
+#levels{display:flex;gap:10px}
+select:hover,button:hover,button[aria-pressed=true]{color:#fff}
+.group{display:flex;align-items:center;gap:12px;padding-left:16px;border-left:1px solid #222}
+.menu{position:relative}.menu>.items{display:none;position:absolute;top:20px;left:-10px;flex-direction:column;align-items:flex-start;gap:8px;padding:8px 12px;background:#000;border:1px solid #222}.menu.right>.items{left:auto;right:-10px;align-items:flex-end}.menu.open>.items{display:flex}.menu.open>.opener{color:#fff}
+#marking{display:flex;gap:12px}
+#marking[hidden]{display:none}
+#status{position:fixed;left:0;bottom:0;z-index:4;max-width:100%;pointer-events:none}
+#bar{height:1px;margin:0 0 3px 10px;background:#8a8a8a}
+#readout{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 14px;padding:2px 10px;background:#000;pointer-events:auto}
+#label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#spot-coordinates{display:flex;flex-wrap:wrap;gap:2px 10px;min-width:0;color:#e0e0e0;font:12px/1.4 ui-monospace,monospace;overflow-wrap:anywhere}
+#spot-coordinates[hidden]{display:none}
+#letters{position:fixed;right:10px;bottom:10px;width:min(600px,48vw);z-index:4;background:#000;pointer-events:none}
+#letters[hidden]{display:none}
+@media(max-width:1000px){.group{padding-left:8px}}
+nav{min-height:40px;gap:16px;flex-wrap:wrap}
+nav>*{flex-shrink:0}
+#tools{gap:10px;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+#tools>.group{flex-shrink:0;gap:10px;padding-left:12px}
+#yellow{width:44px;text-align:left}
+#heat{text-align:left}
+#heatkey{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+#heatkey[hidden]{display:none}
+#heatkey i{width:90px;height:8px;background:linear-gradient(90deg,rgb(0,0,128),rgb(0,0,255),rgb(0,128,255),rgb(20,255,240),rgb(125,255,122),rgb(230,255,26),rgb(255,153,0),rgb(255,38,0),rgb(179,0,0))}
+select{field-sizing:fixed;width:160px;text-overflow:ellipsis}
+button,select{min-height:24px}
+button:disabled{visibility:visible;opacity:.35;cursor:default}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:1px solid #aaa;outline-offset:3px}
+input[type=range]{appearance:none;-webkit-appearance:none;width:64px;height:24px;margin:0 0 0 6px;vertical-align:middle;background:transparent;border:0;padding:0;cursor:pointer}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:#666;border-radius:1px}
+input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:12px;height:12px;margin-top:-5px;border:0;border-radius:50%;background:#ccc}
+input[type=range]::-moz-range-track{height:2px;background:#666;border-radius:1px}
+input[type=range]::-moz-range-thumb{width:12px;height:12px;border:0;border-radius:50%;background:#ccc}
+input[type=range]:disabled{opacity:.35;cursor:default}
+#levels{display:flex;gap:10px}
+#levels label,#tools>.group>label{display:inline-flex;align-items:center}
+#labelling{position:relative}
+#marking{position:fixed;top:calc(var(--toolbar-height,40px) + 4px);right:14px;z-index:6;display:none;flex-wrap:wrap;align-items:center;gap:14px;width:max-content;max-width:calc(100vw - 28px);padding:10px 14px;background:#000;border:1px solid #333}
+#labelling.open #marking:not([hidden]){display:flex}
+#marking[hidden]{display:none}
+#showmarks{width:72px;text-align:left}
+#region,#where{display:inline-block;width:17ch;height:24px;line-height:24px;text-align:center;font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis}
+#previous,#next{width:22px}
+.menu>.items{top:calc(100% + 4px);z-index:6;max-height:calc(100vh - var(--toolbar-height,40px) - 12px);overflow-y:auto}
+@media(max-width:1279px){#tools{flex-basis:100%;margin-left:0;justify-content:flex-start}nav{column-gap:16px;row-gap:4px}#tools>.group:first-child{border-left:0;padding-left:0}}
+</style></head><body>
+<canvas id="tiles"></canvas><canvas id="view"></canvas>
+<nav><a class="here" id="back" href="../index.html">HerculeX</a>
+<span class="menu"><button class="opener">Pages</button><span class="items"><a href="../../atlas/index.html">Atlas</a><a href="../../atlas/alphabet.html">Alphabet</a><a href="../../atlas/fragments.html">Infrared</a><a href="../../atlas/published.html">Published</a><a href="../../atlas/windows.html">Lines</a><a href="../../atlas/letters.html">Letters</a><a href="../../atlas/compare.html">Scans</a></span></span>
+<span id="tools">
+<span class="group"><select id="layers" aria-label="Layer"></select><button id="yellow" aria-pressed="false" title="Y">Yellow</button><button id="heat" aria-pressed="false" title="Ink in colours by its strength (I)">Heat</button></span><span class="group" id="levels"><label>Ink<input id="floor" type="range" min="0" max="240" step="4" aria-label="Weakest ink shown"></label><label>Scan<input id="scan" type="range" min="0" max="100" step="5" aria-label="Brightness of the scan under the ink"></label></span><span class="group"><button id="swap" disabled title="No alternative ink layer on this page">Swap ink</button><button id="suggested" disabled title="No suggested areas on this page">Suggested</button></span>
+<span class="group" id="labelling"><button id="labelopen" disabled aria-expanded="false" aria-controls="marking" aria-pressed="false" title="Mark ink or blank, circle spots">Label</button><span id="marking" role="group" aria-label="Labeling tools" hidden><button id="mark" aria-pressed="false" title="G">Mark</button><button id="blank" aria-pressed="false">Blank</button><button id="spotmark" aria-pressed="false" title="C">Spot</button><button id="erase" aria-pressed="false" title="X">Erase</button><button id="undo" title="Z">Undo</button><button id="showmarks" title="L">Hide marks</button></span></span>
+<span class="group"><button id="previous" aria-label="Previous area" title="P">←</button><span id="region"></span><button id="next" aria-label="Next area" title="N">→</button></span>
+<span class="menu right"><button class="opener">View</button><span class="items"><button id="fit">Fit</button><button id="native">1:1</button><button id="minus" aria-label="Zoom out">Zoom out −</button><button id="plus" aria-label="Zoom in">Zoom in +</button><button id="mirror" aria-pressed="false" title="H">Mirror</button><button id="paper" aria-pressed="false">Invert</button><button id="greek" aria-pressed="false" title="K">Greek letters</button><button id="fullscreen" title="F">Full screen</button><button id="keyhelp" title="?">Keyboard shortcuts</button></span></span>
+</span></nav>
+<img id="letters" src="../../atlas/alphabet/strip.png" alt="The Greek alphabet in real letters of the scrolls" hidden>
+<footer id="status"><div id="bar"></div><div id="readout"><output id="spot-coordinates" aria-label="Spot bounds" aria-live="off" hidden><span></span> <span></span> <span></span></output><span id="heatkey" hidden>weak <i></i> strong</span><span id="label"></span></div></footer>
+<script src="../../website/shortcuts.js"></script>
+<script src="../../website/spot_coordinates.js"></script>
+<script src="../../website/tile_store.js"></script>
+<script src="../../website/mark_writes.js"></script>
+<script>
+const M=__META__,TOP=32,TEXTURES=1500,LOADS=8,PAN_SPEED=.9,ZOOM_SPEED=1.6,el=id=>document.getElementById(id),cv=el('view'),cx=cv.getContext('2d'),label=el('label'),bar=el('bar'),selector=el('layers');
+M.suggested??=[];
+const shelves=M.shelves.length?M.shelves:[{x:0,y:0,w:1e9,h:1e9}],onShelf=b=>{const s=shelves.find(s=>b.x+b.w/2<s.x+s.w)||shelves[shelves.length-1];return{...b,x:b.x-s.x,y:b.y+s.y}};M.boxes=M.boxes.map(onShelf);M.places=M.places.map(onShelf);M.suggested=M.suggested.map(onShelf);M.outlines=(M.outlines||[]).map(o=>{const runs=[];let at=null,run=null;for(const p of o.points){const h=shelves.find(h=>p[0]<h.x+h.w)||shelves[shelves.length-1];if(h!==at){run=[];runs.push(run);at=h}run.push([p[0]-h.x,p[1]+h.y])}return{...o,runs}});
+const spots=M.boxes.length?M.boxes:M.places;
+const under=M.layers.find(L=>L.path.endsWith('taught-scan')),sheetLayer=M.layers.find(L=>L.path.endsWith('sheet'));M.layers=M.layers.filter(L=>L!==under);
+const taught=M.layers.findIndex(L=>L.path.endsWith('taught')),stock=M.layers.findIndex(L=>L.path.endsWith('ink'));
+const kept=(()=>{try{return JSON.parse(localStorage.inkLook||'{}')}catch(_){return{}}})();
+let layer=taught>=0?taught:Math.max(0,stock,stock>=0?0:M.layers.findIndex(L=>L.path.endsWith('layer0'))),zoom=1,ox=0,oy=0,mirror=false,turn=false,boxes=true,showMarks=true,spot=-1,pick=-1,dirty=false,dn=null,invert=false,tool=null,brush=.4,marks=[],drawing=null,panning=false;
+// View changes redraw the tiles; pen/tool changes only redraw the overlay.
+let tilesDirty=true,scheduled=0;
+function invalidate(overlayOnly=false){dirty=true;if(!overlayOnly)tilesDirty=true;if(!scheduled)scheduled=requestAnimationFrame(loop)}
+function loop(now){scheduled=0;move(now);if(dirty)draw();if(held_keys.size)invalidate()}
+// Heat colours the ink by its strength; it keeps its own weakest ink and scan brightness, so the yellow and purple looks are left as they were.
+let yellow=kept.yellow??true,heat=yellow&&!!kept.heat,heatFloor=kept.heatFloor??0,heatScan=kept.heatScan??.9,floor=kept.floor??__FLOOR__,scan=kept.scan??__SCAN__;
+if(taught>=0&&stock>=0){el('swap').disabled=false;el('swap').title='Swap ink (T)';el('swap').onclick=()=>setLayer(layer==taught?stock:taught)}
+el('back').href=M.back;M.layers.forEach((L,i)=>{const o=document.createElement('option');o.value=i;o.textContent=L.name;o.title=L.name;selector.append(o)});
+function setLayer(k){layer=(Number(k)+M.layers.length)%M.layers.length;selector.value=layer;selector.title=M.layers[layer].name;updateLevels();invalidate()}setLayer(layer);
+function full(){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen().catch(()=>{})}
+selector.onchange=()=>{setLayer(selector.value);selector.blur()};el('fullscreen').onclick=full;
+el('paper').onclick=()=>{invert=!invert;el('paper').setAttribute('aria-pressed',invert);invalidate()};el('mirror').onclick=()=>{mirror=!mirror;el('mirror').setAttribute('aria-pressed',mirror);invalidate()};
+el('previous').disabled=el('next').disabled=spots.length<2;el('previous').onclick=()=>go(Math.max(spot,0)-1);el('next').onclick=()=>go(spot+1);el('fit').onclick=()=>{spot=-1;fit(M.area)};el('native').onclick=voxel;
+const zoomLimit=()=>8/(M.layers[layer].mm*devicePixelRatio);
+function zoomBy(f){const x=ox+innerWidth/zoom/2,y=oy+innerHeight/zoom/2;zoom=Math.min(zoomLimit(),Math.max(.03,zoom*f));ox=x-innerWidth/zoom/2;oy=y-innerHeight/zoom/2;invalidate()}el('plus').onclick=()=>zoomBy(1.6);el('minus').onclick=()=>zoomBy(1/1.6);
+function updateLevels(){const L=M.layers[layer];el('floor').disabled=!(baseOf(L)||heat&&isInk(L));el('scan').disabled=!baseOf(L)}
+function look(){invalidate();el('yellow').setAttribute('aria-pressed',yellow&&!heat);el('heat').setAttribute('aria-pressed',heat);el('heatkey').hidden=!heat;updateLevels();el('floor').value=heat?heatFloor:floor;el('scan').value=(heat?heatScan:scan)*100;try{localStorage.inkLook=JSON.stringify({yellow,heat,floor,heatFloor,scan,heatScan})}catch(_){}}
+const isInk=L=>L.path.endsWith('taught')||L.path.endsWith('ink');
+function baseOf(L){return !yellow?null:L.path.endsWith('taught')?(under||sheetLayer):L.path.endsWith('ink')?sheetLayer:null}
+function tinted(){if(heat)heat=false;else yellow=!yellow;look()}
+function heated(){heat=!heat;if(heat)yellow=true;look()}
+function weakestBy(d){const v=Math.min(240,Math.max(0,(heat?heatFloor:floor)+d));heat?heatFloor=v:floor=v;look()}
+function scanBy(d){const v=Math.min(1,Math.max(0,(heat?heatScan:scan)+d));heat?heatScan=v:scan=v;look()}
+el('yellow').onclick=tinted;el('heat').onclick=heated;if(M.tint=='purple')el('yellow').textContent='Purple';el('floor').oninput=e=>{const v=Number(e.target.value);heat?heatFloor=v:floor=v;look()};el('scan').oninput=e=>{const v=e.target.value/100;heat?heatScan=v:scan=v;look()};look();
+for(const id of ['floor','scan'])el(id).onchange=e=>e.target.blur();
+function letters(){const on=el('letters').hidden;el('letters').hidden=!on;el('greek').setAttribute('aria-pressed',on)}el('greek').onclick=letters;
+
+// The stencil marks where the scan has papyrus, so heat tints the papyrus and never the empty space around it.
+const gl=el('tiles').getContext('webgl2',{alpha:false,antialias:false,depth:false,stencil:true,powerPreference:'high-performance'});
+gl.pixelStorei(gl.UNPACK_ALIGNMENT,1);
+const shader=(type,text)=>{const s=gl.createShader(type);gl.shaderSource(s,text);gl.compileShader(s);return s};
+const program=gl.createProgram();
+gl.attachShader(program,shader(gl.VERTEX_SHADER,`#version 300 es
+in vec2 unit;uniform vec4 rect,part;uniform vec2 screen;out vec2 at;
+void main(){vec2 p=rect.xy+unit*rect.zw;gl_Position=vec4(p.x/screen.x*2.-1.,1.-p.y/screen.y*2.,0,1);at=part.xy+unit*part.zw;}`));
+gl.attachShader(program,shader(gl.FRAGMENT_SHADER,`#version 300 es
+precision mediump float;in vec2 at;uniform sampler2D tile;uniform float weakest,brightness,inverted;uniform vec2 shown;uniform int ink;out vec4 colour;
+const vec3 HEAT[9]=vec3[9](vec3(0.,0.,.5),vec3(0.,0.,1.),vec3(0.,.5,1.),vec3(.08,1.,.94),vec3(.49,1.,.48),vec3(.9,1.,.1),vec3(1.,.6,0.),vec3(1.,.15,0.),vec3(.7,0.,0.));
+void main(){float raw=texture(tile,at).r,v=clamp((raw-shown.x)*shown.y,0.,1.);vec3 c=vec3(v*brightness);float a=1.;
+if(ink==1){float t=clamp((v-weakest)/(1.-weakest),0.,1.);c=${M.tint=='purple'?'mix(vec3(.33,.1,.62),vec3(.82,.55,1.),t)':'mix(vec3(.69,.44,.06),vec3(1.,.957,.376),t)'};a=min(1.,t*3.);}
+// Heat: jet colours by the ink's own strength, from dark blue where there is none through cyan, green and yellow to red,
+// laid evenly over all the papyrus with the scan showing through. With a weakest ink set, weaker ink is left uncoloured.
+else if(ink==2){float x=v*8.;int i=min(int(x),7);c=mix(HEAT[i],HEAT[i+1],x-float(i));a=.45*clamp((v-weakest)*16.+step(weakest,0.),0.,1.);}
+// The scan under heat: lighter and flatter, and only where there is papyrus (scan tiles are 0 outside it).
+else if(ink==3){if(raw<.05)discard;c=vec3((.45+.55*v)*brightness);}
+colour=vec4(mix(c,1.-c,inverted),a);}`));
+gl.bindAttribLocation(program,0,'unit');gl.linkProgram(program);gl.useProgram(program);
+const uniform=Object.fromEntries(['rect','part','screen','weakest','brightness','inverted','shown','ink','tile'].map(n=>[n,gl.getUniformLocation(program,n)]));
+gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([0,0,1,0,0,1,1,1]),gl.STATIC_DRAW);
+gl.enableVertexAttribArray(0);gl.vertexAttribPointer(0,2,gl.FLOAT,false,0,0);
+gl.blendFunc(gl.SRC_ALPHA,gl.ONE_MINUS_SRC_ALPHA);gl.enable(gl.SCISSOR_TEST);gl.stencilOp(gl.KEEP,gl.KEEP,gl.REPLACE);
+
+function size(){const d=devicePixelRatio;for(const c of [cv,el('tiles')]){c.width=innerWidth*d;c.height=innerHeight*d}invalidate()}
+addEventListener('resize',size);size();
+
+let tileDecoder=null,decodeID=0,uploadSamples=0,uploadCost=0,decoderTried=false;const decodeJobs=new Map();
+function startDecoder(){decoderTried=true;try{if(location.protocol.startsWith('http')){
+  tileDecoder=new Worker('../../website/tile_decoder.js');
+  tileDecoder.onmessage=({data})=>{const job=decodeJobs.get(data.id);if(!job)return;decodeJobs.delete(data.id);data.error?job.reject(data.error):job.resolve(data)};
+  tileDecoder.onerror=e=>{e.preventDefault();tileDecoder.terminate();tileDecoder=null;for(const job of decodeJobs.values())job.reject();decodeJobs.clear()};
+}}catch(_){}}
+function decodeTile(blob){
+  const fallback=()=>createImageBitmap(blob,{colorSpaceConversion:'none'});
+  if(!tileDecoder)return fallback();
+  return new Promise((resolve,reject)=>{const id=++decodeID;decodeJobs.set(id,{resolve,reject});tileDecoder.postMessage({id,blob})}).catch(fallback)
+}
+
+const tiles=new Map(),queued=new Set();let frame=0,wanted=[],loading=0,held=0;
+function tile(L,l,c,r){const k=L.path+'/'+l+'/'+c+'_'+r;let t=tiles.get(k);if(!t){t={k,L,l,c,r};tiles.set(k,t)}t.seen=frame;return t}
+function missing(t){if(t.texture||t.bad||t.busy||queued.has(t.k))return;for(let up=1;up<=3&&t.l+up<t.L.levels;up++){const p=tiles.get(t.L.path+'/'+(t.l+up)+'/'+(t.c>>up)+'_'+(t.r>>up));if(p&&p.bad){t.bad=true;return}}queued.add(t.k);wanted.push(t)}
+function upload(t,image){const started=performance.now(),texture=gl.createTexture();gl.bindTexture(gl.TEXTURE_2D,texture);if(image.data)gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,image.width,image.height,0,gl.RED,gl.UNSIGNED_BYTE,image.data);else gl.texImage2D(gl.TEXTURE_2D,0,gl.R8,gl.RED,gl.UNSIGNED_BYTE,image);
+  // A worker has a startup cost. Use it only when measured uploads are slow.
+  if(!image.data&&!decoderTried){uploadCost+=performance.now()-started;if(++uploadSamples===4){if(uploadCost/uploadSamples>2)startDecoder();else decoderTried=true}}
+  for(const [k,v] of [[gl.TEXTURE_MIN_FILTER,gl.LINEAR],[gl.TEXTURE_MAG_FILTER,gl.LINEAR],[gl.TEXTURE_WRAP_S,gl.CLAMP_TO_EDGE],[gl.TEXTURE_WRAP_T,gl.CLAMP_TO_EDGE]])gl.texParameteri(gl.TEXTURE_2D,k,v);
+  t.texture=texture;held++;if(image.close)image.close();invalidate()}
+function evict(){if(held<=TEXTURES)return;const old=[...tiles.values()].filter(t=>t.texture&&t.seen<frame).sort((a,b)=>a.seen-b.seen);for(const t of old.slice(0,held-TEXTURES+100)){gl.deleteTexture(t.texture);t.texture=null;held--}}
+function pump(){while(loading<LOADS&&wanted.length){const t=wanted.shift();if(t.texture||t.bad||t.busy)continue;t.busy=true;loading++;
+  sheetTiles.blob(t.L,t.l,t.c,t.r).then(b=>b?decodeTile(b):Promise.reject()).then(i=>upload(t,i)).catch(()=>{t.bad=true;invalidate()}).finally(()=>{t.busy=false;loading--;pump()})}}
+
+function quad(t,up,x,y,w,h,L,c,r){const n=1/(1<<up);gl.bindTexture(gl.TEXTURE_2D,t.texture);gl.uniform4f(uniform.part,(c%(1<<up))*n,(r%(1<<up))*n,n,n);gl.uniform4f(uniform.rect,x,y,w,h);gl.drawArrays(gl.TRIANGLE_STRIP,0,4)}
+function paint(L,lvl,c,r,x,y,w,h){const t=tile(L,lvl,c,r);missing(t);if(t.texture)return quad(t,0,x,y,w,h,L,c,r);
+  for(let up=1;up<=4&&lvl+up<L.levels;up++){const p=tile(L,lvl+up,c>>up,r>>up);if(t.bad)missing(p);if(p.texture)return quad(p,up,x,y,w,h,L,c,r)}
+  // One preview while loading; missing fine tiles still seek the best available parent.
+  const up=Math.min(2,L.levels-1-lvl);if(!t.bad&&up>0)missing(tile(L,lvl+up,c>>up,r>>up))}
+
+function draw(){
+  dirty=false;const d=devicePixelRatio,W=cv.width,H=cv.height,s=zoom*d,L=M.layers[layer],base=baseOf(L),fx=mirror!==turn,fy=turn,vw=W/s,vh=H/s;
+  const renderTiles=tilesDirty;tilesDirty=false;
+  if(renderTiles){
+  frame++;wanted=[];queued.clear();
+  gl.viewport(0,0,W,H);gl.uniform2f(uniform.screen,W,H);gl.uniform1f(uniform.inverted,invert?1:0);gl.uniform1f(uniform.weakest,(heat?heatFloor:floor)/255);gl.disable(gl.SCISSOR_TEST);
+  gl.clearColor(invert?1:0,invert?1:0,invert?1:0,1);gl.clear(gl.COLOR_BUFFER_BIT|gl.STENCIL_BUFFER_BIT);gl.enable(gl.SCISSOR_TEST);
+  let lvl=0;while(lvl<L.levels-1&&L.mm*2**(lvl+1)*s<=1)lvl++;
+  const ts=M.tile*L.mm*2**lvl,place=(x,y,w,h)=>[fx?W-x:x,fy?H-y:y,fx?-w:w,fy?-h:h];
+  for(const h of shelves){const sx=ox+h.x,sy=oy-h.y;
+    if(sy+vh<0||sy>h.h||sx+vw<h.x||sx>h.x+h.w)continue;
+    const a=Math.max((h.x-sx)*s,0),b=Math.max(-sy*s,0),e=Math.min((h.x+h.w-sx)*s,W),f=Math.min((h.h-sy)*s,H);
+    gl.scissor(Math.round(fx?W-e:a),Math.round(fy?b:H-f),Math.round(e-a),Math.round(f-b));
+    const rows=[Math.max(0,Math.floor(sy/ts)),Math.floor(Math.min(sy+vh,h.h)/ts)],columns=[Math.max(0,Math.floor(Math.max(sx,h.x)/ts)),Math.floor(Math.min(sx+vw,h.x+h.w)/ts)];
+    const pass=(layerNow,ink,brightness)=>{gl.uniform1i(uniform.ink,ink);gl.uniform2f(uniform.shown,...sheetTiles.shown(layerNow));gl.uniform1f(uniform.brightness,brightness);ink?gl.enable(gl.BLEND):gl.disable(gl.BLEND);
+      for(let r=rows[0];r<=rows[1];r++)for(let c=columns[0];c<=columns[1];c++){const x=Math.round((c*ts-sx)*s),y=Math.round((r*ts-sy)*s);
+        paint(layerNow,lvl,c,r,...place(x,y,Math.round(((c+1)*ts-sx)*s)-x,Math.round(((r+1)*ts-sy)*s)-y))}};
+    if(base&&heat){gl.enable(gl.STENCIL_TEST);gl.stencilFunc(gl.ALWAYS,1,255);pass(base,3,heatScan);gl.stencilFunc(gl.EQUAL,1,255);pass(L,2,1);gl.disable(gl.STENCIL_TEST)}
+    else if(base){pass(base,0,scan);pass(L,1,1)}else pass(L,heat&&isInk(L)?2:0,1)}
+  const middle=(t,S=2**(t.l-lvl))=>Math.hypot(t.c*S-(ox+vw/2)/ts,t.r*S-(oy+vh/2)/ts);wanted.sort((a,b)=>b.l-a.l||middle(a)-middle(b));pump();evict();
+  }
+  cx.setTransform(1,0,0,1,0,0);cx.clearRect(0,0,W,H);
+  cx.setTransform(fx?-s:s,0,0,fy?-s:s,fx?W+ox*s:-ox*s,fy?H+oy*s:-oy*s);
+  for(const k of drawing?[...marks,drawing]:marks)if(seen(k)&&k.box[0]<ox+vw&&k.box[2]>ox&&k.box[1]<oy+vh&&k.box[3]>oy)ink(k,s);
+  if(boxes&&M.boxes.length){cx.shadowColor='#f00';cx.shadowBlur=6*d;cx.strokeStyle='#f00';cx.lineWidth=d/s;
+    for(const b of M.boxes)if(b.x<ox+vw&&b.x+b.w>ox&&b.y<oy+vh&&b.y+b.h>oy)cx.strokeRect(b.x,b.y,b.w,b.h);
+    cx.shadowBlur=0}
+  if(boxes&&M.outlines.length){cx.shadowColor='#ffd60a';cx.shadowBlur=8*d;cx.strokeStyle='#ffd60a';cx.lineWidth=2*d/s;cx.lineJoin='round';cx.beginPath();
+    for(const o of M.outlines)for(const r of o.runs){cx.moveTo(r[0][0],r[0][1]);for(let i=1;i<r.length;i++)cx.lineTo(r[i][0],r[i][1])}
+    cx.stroke();cx.shadowBlur=0}
+  if(boxes&&M.suggested.length){cx.shadowColor='#0ff';cx.shadowBlur=6*d;cx.strokeStyle='#0ff';cx.lineWidth=2*d/s;
+    for(const b of M.suggested)if(b.x<ox+vw&&b.x+b.w>ox&&b.y<oy+vh&&b.y+b.h>oy)cx.strokeRect(b.x,b.y,b.w,b.h);
+    cx.shadowBlur=0;cx.setTransform(1,0,0,1,0,0);cx.fillStyle='#0ff';cx.font=13*d+'px Calibri';
+    for(const b of M.suggested)if(b.x<ox+vw&&b.x+b.w>ox&&b.y<oy+vh&&b.y+b.h>oy){const at=(v,o,flip,size)=>flip?size+(o-v)*s:(v-o)*s;
+      const lx=Math.min(at(b.x,ox,fx,W),at(b.x+b.w,ox,fx,W)),ly=Math.min(at(b.y,oy,fy,H),at(b.y+b.h,oy,fy,H))-5*d;
+      cx.fillStyle='#000';cx.fillRect(lx-2*d,ly-13*d,cx.measureText(b.label).width+4*d,17*d);cx.fillStyle='#0ff';cx.fillText(b.label,lx,ly)}}
+  const nice=[.1,.2,.5,1,2,5,10,20,50,100,200,500,1000].find(v=>v>=100/zoom)||1000;
+  bar.style.width=nice*zoom+'px';
+  label.textContent=(nice>=10?nice/10+' cm':nice+' mm')+' · '+M.title+' · '+L.name+(M.tint=='purple'&&L.path.endsWith('taught')&&!M.title.includes(L.model||'post-trained Reader v3')?' · '+(L.model||'post-trained Reader v3')+' model':'')+(tool&&tool!='erase'?' · marker '+brush.toFixed(2)+' mm':'')+writes.status();
+  updateSpotReadout(marks,seen,{ox,oy,zoom,flipX:fx,flipY:fy});
+  el('region').textContent=pick>=0?'Suggested '+(pick+1)+' / '+M.suggested.length:spot<0?'':(spot+1)+' / '+spots.length;
+}
+const held_keys=Shortcuts.held;let then=performance.now();
+function move(now){const dt=Math.min(.05,(now-then)/1000);then=now;if(!held_keys.size)return;const m=mirror!==turn?-1:1,n=turn?-1:1,sx=PAN_SPEED*innerWidth/zoom*dt,sy=PAN_SPEED*innerHeight/zoom*dt;
+  if(held_keys.has('a'))ox-=m*sx;if(held_keys.has('d'))ox+=m*sx;if(held_keys.has('w'))oy-=n*sy;if(held_keys.has('s'))oy+=n*sy;
+  if(held_keys.has('e'))zoomBy(Math.exp(-ZOOM_SPEED*dt));if(held_keys.has('r'))zoomBy(Math.exp(ZOOM_SPEED*dt));invalidate()}
+
+function fit(b,margin){const top=document.querySelector('nav').offsetHeight||TOP,m=margin||1.02;zoom=Math.min(innerWidth/(b.w*m),Math.max(100,innerHeight-top)/(b.h*m));
+  ox=b.x+b.w/2-innerWidth/zoom/2;oy=b.y+b.h/2-(innerHeight+top)/zoom/2;invalidate()}
+function go(k){pick=-1;spot=(k+spots.length)%spots.length;fit(spots[spot],M.boxes.length?1.25:1.06)}
+function suggest(){spot=-1;pick=(pick+1)%M.suggested.length;fit(M.suggested[pick],1.25)}
+function voxel(){const cxm=ox+innerWidth/zoom/2,cym=oy+innerHeight/zoom/2;zoom=1/(M.layers[layer].mm*devicePixelRatio);ox=cxm-innerWidth/zoom/2;oy=cym-innerHeight/zoom/2;invalidate()}
+
+if(M.boxes.length)go(0);else fit(M.area);
+if(M.suggested.length){el('suggested').disabled=false;el('suggested').title='Next suggested area (J)';el('suggested').onclick=suggest}
+cv.onpointerdown=e=>{cv.setPointerCapture(e.pointerId);
+  if(tool&&!panning){const p=sheetAt(e);if(tool=='erase'){if(p)wipe(p)}else if(p){drawing=placed({kind:tool,width_mm:tool=='spot'?SPOT_MM:brush,points:[p]});invalidate(true)}return}
+  dn=[e.clientX,e.clientY,ox,oy];cv.classList.add('drag')};
+cv.onpointermove=e=>{if(drawing){const p=sheetAt(e),q=drawing.points[drawing.points.length-1];if(p&&Math.hypot(p[0]-q[0],p[1]-q[1])*zoom>=1){drawing.points.push(p);placed(drawing);invalidate(true)}return}
+  if(tool=='erase'&&e.buttons&&!panning){const p=sheetAt(e);if(p)wipe(p);return}
+  if(!dn)return;const m=mirror!==turn?-1:1,n=turn?-1:1;ox=dn[2]-m*(e.clientX-dn[0])/zoom;oy=dn[3]-n*(e.clientY-dn[1])/zoom;invalidate()};
+cv.onpointerup=()=>{dn=null;cv.classList.remove('drag');if(drawing){const k=drawing;drawing=null;marks.push(k);writes.add(k,M.layers[layer].name)}};
+cv.onpointercancel=cv.onpointerup;
+cv.addEventListener('wheel',e=>{e.preventDefault();
+  const px=mirror!==turn?innerWidth-e.clientX:e.clientX,py=turn?innerHeight-e.clientY:e.clientY,a=ox+px/zoom,b=oy+py/zoom;
+  zoom=Math.min(zoomLimit(),Math.max(.03,zoom*Math.exp(-e.deltaY*.0022)));ox=a-px/zoom;oy=b-py/zoom;invalidate()},{passive:false});
+const lab=f=>()=>{if(!el('marking').hidden)f()},nudge=(dx,dy)=>()=>{ox+=dx*innerWidth*.6/zoom;oy+=dy*innerHeight*.6/zoom;invalidate()};
+Shortcuts.bind({wake:invalidate,start:()=>{then=performance.now()},move:true,
+  panLeft:nudge(-1,0),panRight:nudge(1,0),panUp:nudge(0,-1),panDown:nudge(0,1),
+  grab:()=>{panning=true;cv.style.cursor='grab'},grabEnd:()=>{panning=false;cv.style.cursor=tool?'crosshair':''},
+  layerUp:()=>setLayer(layer+1),layerDown:()=>setLayer(layer-1),
+  next:spots.length?()=>go(spot+1):null,previous:spots.length?()=>go(Math.max(spot,0)-1):null,
+  voxel,boxes:()=>{boxes=!boxes;invalidate()},suggest:M.suggested.length?suggest:null,
+  mark:lab(()=>useTool('ink')),erase:lab(()=>useTool('erase')),spot:lab(()=>useTool('spot')),undo:lab(undo),marks:lab(toggleMarks),greek:letters,
+  brushDown:()=>{brush=Math.max(.02,brush/1.25);invalidate()},brushUp:()=>{brush=Math.min(20,brush*1.25);invalidate()},
+  swap:()=>{if(taught>=0&&stock>=0)setLayer(layer==taught?stock:taught)},yellow:tinted,heat:heated,
+  floorDown:()=>weakestBy(-8),floorUp:()=>weakestBy(8),
+  scanDown:()=>scanBy(-.05),scanUp:()=>scanBy(.05),
+  mirror:()=>el('mirror').click(),turn:()=>{turn=!turn;invalidate()},full,
+  back:()=>{if(!document.fullscreenElement)location.href=M.back}});
+el('keyhelp').onclick=()=>Shortcuts.help(true);
+
+const colour={ink:'#ff3b30',blank:'#3a8dff',spot:'#39ff14'},SPOT_MM=.3;
+function sheetToScreen(p){const s=shelves.find(s=>p[0]<s.x+s.w)||shelves[shelves.length-1];return[p[0]-s.x,p[1]+s.y]}
+const updateSpotReadout=spotReadout(el('spot-coordinates'),M.scan,sheetToScreen);
+function placed(k){const shown=k.points.map(sheetToScreen),path=new Path2D(),xs=shown.map(p=>p[0]),ys=shown.map(p=>p[1]),m=k.width_mm;shown.forEach(([x,y],i)=>i?path.lineTo(x,y):path.moveTo(x,y));if(shown.length==1)path.lineTo(shown[0][0]+.001,shown[0][1]);
+  k.path=path;k.box=[Math.min(...xs)-m,Math.min(...ys)-m,Math.max(...xs)+m,Math.max(...ys)+m];return k}
+function sheetAt(e){const px=mirror!==turn?innerWidth-e.clientX:e.clientX,py=turn?innerHeight-e.clientY:e.clientY,X=ox+px/zoom,Y=oy+py/zoom,s=shelves.find(s=>Y>=s.y&&Y<s.y+s.h&&X>=0&&X<s.w);
+  return s?[+(X+s.x).toFixed(3),+(Y-s.y).toFixed(3)]:null}
+function ink(k,s){cx.globalAlpha=.6;cx.strokeStyle=colour[k.kind];cx.lineWidth=Math.max(1/s,k.width_mm);cx.lineCap=cx.lineJoin='round';cx.stroke(k.path);cx.globalAlpha=1}
+const writes=markWrites(M.scan,invalidate);
+const discard=k=>{marks=marks.filter(m=>m!==k)};
+function seen(k){return !k.removing&&(showMarks||!k.old)}
+function toggleMarks(){showMarks=!showMarks;el('showmarks').textContent=showMarks?'Hide marks':'Show marks';invalidate(true)}
+el('showmarks').onclick=toggleMarks;
+function wipe(p){const k=marks.find(k=>seen(k)&&k.points.some(q=>Math.hypot(p[0]-q[0],p[1]-q[1])<=k.width_mm/2+3/zoom));if(k)writes.remove(k,discard)}
+function undo(){const k=marks.filter(seen).pop();if(k)writes.remove(k,discard)}
+function useTool(t){tool=tool==t?null:t;if(tool){el('labelling').classList.add('open');el('labelopen').setAttribute('aria-pressed',true);el('labelopen').setAttribute('aria-expanded',true)}for(const [id,name] of [['mark','ink'],['blank','blank'],['spotmark','spot'],['erase','erase']])el(id).setAttribute('aria-pressed',tool==name);cv.style.cursor=tool?'crosshair':'';invalidate(true)}
+el('mark').onclick=()=>useTool('ink');el('spotmark').onclick=()=>useTool('spot');el('blank').onclick=()=>useTool('blank');el('erase').onclick=()=>useTool('erase');el('undo').onclick=undo;
+function closeMenus(){for(const o of document.querySelectorAll('.menu.open')){o.classList.remove('open');o.querySelector('.opener').setAttribute('aria-expanded','false')}}
+for(const m of document.querySelectorAll('.menu'))m.querySelector('.opener').onclick=e=>{e.stopPropagation();const open=!m.classList.contains('open');closeMenus();if(open&&el('labelling').classList.contains('open'))el('labelopen').click();m.classList.toggle('open',open);m.querySelector('.opener').setAttribute('aria-expanded',open)};
+addEventListener('pointerdown',e=>{if(!e.target.closest('.menu'))closeMenus()});
+for(const b of document.querySelectorAll('.menu .items button'))b.addEventListener('click',()=>closeMenus());
+el('labelopen').onclick=()=>{closeMenus();const open=el('labelling').classList.toggle('open');el('labelopen').setAttribute('aria-pressed',open);el('labelopen').setAttribute('aria-expanded',open);if(!open&&tool)useTool(tool)};
+if(M.scan&&location.protocol.startsWith('http'))fetch('/marks?scan='+M.scan).then(r=>r.ok?r.json():Promise.reject()).then(all=>{marks=all.map(k=>placed({...k,old:true}));el('marking').hidden=false;el('labelopen').disabled=false;invalidate(true)}).catch(()=>{});
+const nav=document.querySelector('nav');
+new ResizeObserver(()=>document.documentElement.style.setProperty('--toolbar-height',nav.offsetHeight+'px')).observe(nav);
+for(const button of document.querySelectorAll('.menu>.opener'))button.setAttribute('aria-expanded','false');
+addEventListener('keydown',e=>{if(e.key!=='Escape')return;const open=document.querySelector('.menu.open');if(open){open.classList.remove('open');open.querySelector('.opener').setAttribute('aria-expanded','false');open.querySelector('.opener').focus();e.stopImmediatePropagation()}else if(el('labelling').classList.contains('open')){el('labelopen').click();el('labelopen').focus();e.stopImmediatePropagation()}},true);
+</script></body></html>

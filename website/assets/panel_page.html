@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>__TITLE__</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;background:#000;color:#8a8a8a;font:10pt Calibri,Carlito,sans-serif}
+a{color:inherit;text-decoration:none}
+nav{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:20px;padding:8px 14px;background:#000;white-space:nowrap}
+nav a:hover{color:#fff}
+section{padding:0 14px 18px}
+.bar{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;padding:4px 0 6px}
+.bar span{color:#8a8a8a}
+button{background:#000;color:#8a8a8a;border:0;padding:0;font:inherit;cursor:pointer;outline:0;appearance:none}
+button:hover,button[aria-pressed=true]{color:#fff}
+button:focus-visible{outline:1px solid #aaa;outline-offset:3px}
+img{display:block;max-width:100%;background:#000;cursor:zoom-in}
+img.full{max-width:none;cursor:zoom-out}
+</style></head><body>
+<nav><a id="back" href="../index.html">HerculeX</a><span id="title"></span></nav>
+<main id="places"></main>
+<script src="../../website/shortcuts.js"></script>
+<script>
+const M=__META__,main=document.getElementById('places'),blocks=[];
+let hovered=null;
+document.getElementById('title').textContent=M.title;
+document.getElementById('back').href=M.back;
+for(const place of M.places){
+  const section=document.createElement('section'),bar=document.createElement('div'),img=document.createElement('img'),name=document.createElement('span');
+  bar.className='bar';name.textContent=place.name;bar.append(name);img.alt='';img.loading='lazy';
+  let at=place.shown??Math.min(1,place.pictures.length-1),buttons=[];
+  const show=(k)=>{at=(k+place.pictures.length)%place.pictures.length;img.src=place.pictures[at].src;buttons.forEach((b,i)=>b.setAttribute('aria-pressed',String(i===at)))};
+  buttons=place.pictures.map((picture,k)=>{const b=document.createElement('button');b.textContent=picture.title;b.onclick=()=>show(k);bar.append(b);return b});
+  img.onclick=()=>img.classList.toggle('full');
+  section.append(bar,img);main.append(section);
+  const block={section,step:(d)=>show(at+d)};
+  section.addEventListener('mouseenter',()=>{hovered=block});
+  blocks.push(block);show(at);
+}
+const current=()=>hovered??blocks[0];
+const go=(d)=>{const i=Math.max(0,Math.min(blocks.length-1,blocks.indexOf(current())+d));hovered=blocks[i];blocks[i].section.scrollIntoView({block:'start'})};
+Shortcuts.bind({
+  layerUp:blocks.length?()=>current().step(1):null,layerDown:blocks.length?()=>current().step(-1):null,
+  next:blocks.length>1?()=>go(1):null,previous:blocks.length>1?()=>go(-1):null,
+  full:()=>document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen(),
+  back:()=>{if(!document.fullscreenElement)location.href=M.back}});
+</script></body></html>

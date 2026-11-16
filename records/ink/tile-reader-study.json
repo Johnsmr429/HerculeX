@@ -1,0 +1,123 @@
+{
+ "crops": [
+  {
+   "sample": "PHerc0841",
+   "case": "PHerc0841-20260220213127-9.366um-1.2m-113keV",
+   "auc": 0.8542826594951138,
+   "patch_auc": 0.8488845538238483,
+   "sure": 0.244,
+   "far": 0.0308,
+   "scrambled": 0.0,
+   "blank": 0.1351,
+   "patch_sure": 0.1778,
+   "patch_far": 0.025,
+   "patch_scrambled": 0.0,
+   "patch_blank": 0.0765
+  },
+  {
+   "sample": "PHerc0841",
+   "case": "PHerc0841-20260220214732-9.366um-1.2m-113keV",
+   "auc": 0.8319134768226247,
+   "patch_auc": 0.8072810458796114,
+   "sure": 0.2181,
+   "far": 0.023,
+   "scrambled": 0.0,
+   "blank": 0.1603,
+   "patch_sure": 0.1569,
+   "patch_far": 0.0268,
+   "patch_scrambled": 0.0,
+   "patch_blank": 0.0873
+  },
+  {
+   "sample": "PHerc0841",
+   "case": "PHerc0841-20260221022814-9.366um-1.2m-113keV",
+   "auc": 0.8209322539062441,
+   "patch_auc": 0.8257658635817894,
+   "sure": 0.1811,
+   "far": 0.1739,
+   "scrambled": 0.0,
+   "blank": 0.1107,
+   "patch_sure": 0.123,
+   "patch_far": 0.1169,
+   "patch_scrambled": 0.0,
+   "patch_blank": 0.0706
+  },
+  {
+   "sample": "PHerc0500P2",
+   "case": "PHerc0500P2-20250825181859-9.362um-1.2m-113keV",
+   "auc": 0.8848467291182808,
+   "patch_auc": 0.8860063582195963,
+   "sure": 0.1739,
+   "far": 0.0012,
+   "scrambled": 0.0,
+   "blank": 0.1006,
+   "patch_sure": 0.1121,
+   "patch_far": 0.0035,
+   "patch_scrambled": 0.0,
+   "patch_blank": 0.0419
+  },
+  {
+   "sample": "PHerc0009B",
+   "case": "PHerc0009B-20250919125754-8.64um-1.2m-116keV",
+   "auc": 0.9020387180261351,
+   "patch_auc": 0.8913104773141358,
+   "sure": 0.1793,
+   "far": 0.0057,
+   "scrambled": 0.0,
+   "blank": 0.0491,
+   "patch_sure": 0.137,
+   "patch_far": 0.0053,
+   "patch_scrambled": 0.0,
+   "patch_blank": 0.0265
+  }
+ ],
+ "target": [
+  {
+   "unit": "rows-0022-0034",
+   "piece": 39,
+   "sure": 0.2104,
+   "far": 0.0118,
+   "scrambled": 0.0
+  },
+  {
+   "unit": "rows-0022-0034",
+   "piece": 45,
+   "sure": 0.1961,
+   "far": 0.0066,
+   "scrambled": 0.0
+  },
+  {
+   "unit": "rows-0022-0034",
+   "piece": 47,
+   "sure": 0.0141,
+   "far": 0.2289,
+   "scrambled": 0.0
+  },
+  {
+   "unit": "rows-0022-0034",
+   "piece": 5,
+   "sure": 0.0243,
+   "far": 0.0499,
+   "scrambled": 0.0
+  },
+  {
+   "unit": "rows-0033-0045",
+   "piece": 1,
+   "sure": 0.0061,
+   "far": 0.0631,
+   "scrambled": 0.0
+  }
+ ],
+ "means": {
+  "auc": 0.8588027674736797,
+  "patch_auc": 0.8518496597637963,
+  "sure": 0.19927999999999998,
+  "far": 0.04692,
+  "scrambled": 0.0,
+  "blank": 0.11116000000000001,
+  "patch_sure": 0.14135999999999999,
+  "patch_far": 0.035500000000000004,
+  "patch_scrambled": 0.0,
+  "patch_blank": 0.06056
+ }
+}

@@ -1,0 +1,690 @@
+[
+ {
+  "piece": "band-0012-0024/piece-0000",
+  "mm2": 553,
+  "on_published": 0.679,
+  "known_cm2": 4.4,
+  "auc": {
+   "class": 0.619,
+   "PHerc1667": 0.654
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0001",
+  "mm2": 543,
+  "on_published": 0.796,
+  "known_cm2": 4.7,
+  "auc": {
+   "class": 0.581,
+   "PHerc1667": 0.645
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0002",
+  "mm2": 507,
+  "on_published": 0.741,
+  "known_cm2": 4.2,
+  "auc": {
+   "class": 0.535,
+   "PHerc1667": 0.541
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0003",
+  "mm2": 425,
+  "on_published": 0.676,
+  "known_cm2": 3.4,
+  "auc": {
+   "class": 0.588,
+   "PHerc1667": 0.644
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0004",
+  "mm2": 396,
+  "on_published": 0.0,
+  "known_cm2": 0.0
+ },
+ {
+  "piece": "band-0012-0024/piece-0005",
+  "mm2": 414,
+  "on_published": 0.0,
+  "known_cm2": 0.0
+ },
+ {
+  "piece": "band-0012-0024/piece-0006",
+  "mm2": 390,
+  "on_published": 0.615,
+  "known_cm2": 2.8,
+  "auc": {
+   "class": 0.549,
+   "PHerc1667": 0.476
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0007",
+  "mm2": 388,
+  "on_published": 0.62,
+  "known_cm2": 2.5,
+  "auc": {
+   "class": 0.695,
+   "PHerc1667": 0.647
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0008",
+  "mm2": 390,
+  "on_published": 0.702,
+  "known_cm2": 3.1,
+  "auc": {
+   "class": 0.645,
+   "PHerc1667": 0.638
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0009",
+  "mm2": 367,
+  "on_published": 0.625,
+  "known_cm2": 2.6,
+  "auc": {
+   "class": 0.661,
+   "PHerc1667": 0.678
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0010",
+  "mm2": 359,
+  "on_published": 0.599,
+  "known_cm2": 2.3,
+  "auc": {
+   "class": 0.611,
+   "PHerc1667": 0.659
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0011",
+  "mm2": 355,
+  "on_published": 0.54,
+  "known_cm2": 2.1,
+  "auc": {
+   "class": 0.504,
+   "PHerc1667": 0.516
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0012",
+  "mm2": 312,
+  "on_published": 0.527,
+  "known_cm2": 1.6,
+  "auc": {
+   "class": 0.655,
+   "PHerc1667": 0.667
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0013",
+  "mm2": 175,
+  "on_published": 0.554,
+  "known_cm2": 0.8,
+  "auc": {
+   "class": 0.564,
+   "PHerc1667": 0.595
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0014",
+  "mm2": 293,
+  "on_published": 0.66,
+  "known_cm2": 2.0,
+  "auc": {
+   "class": 0.501,
+   "PHerc1667": 0.527
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0015",
+  "mm2": 288,
+  "on_published": 0.449,
+  "known_cm2": 1.6,
+  "auc": {
+   "class": 0.614,
+   "PHerc1667": 0.593
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0016",
+  "mm2": 277,
+  "on_published": 0.518,
+  "known_cm2": 1.6,
+  "auc": {
+   "class": 0.515,
+   "PHerc1667": 0.518
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0017",
+  "mm2": 275,
+  "on_published": 0.091,
+  "known_cm2": 0.3
+ },
+ {
+  "piece": "band-0012-0024/piece-0018",
+  "mm2": 259,
+  "on_published": 0.762,
+  "known_cm2": 2.2,
+  "auc": {
+   "class": 0.441,
+   "PHerc1667": 0.584
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0019",
+  "mm2": 255,
+  "on_published": 0.691,
+  "known_cm2": 2.1,
+  "auc": {
+   "class": 0.587,
+   "PHerc1667": 0.673
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0020",
+  "mm2": 253,
+  "on_published": 0.394,
+  "known_cm2": 1.1,
+  "auc": {
+   "class": 0.512,
+   "PHerc1667": 0.481
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0021",
+  "mm2": 243,
+  "on_published": 0.679,
+  "known_cm2": 2.0,
+  "auc": {
+   "class": 0.566,
+   "PHerc1667": 0.597
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0022",
+  "mm2": 232,
+  "on_published": 0.618,
+  "known_cm2": 1.7,
+  "auc": {
+   "class": 0.452,
+   "PHerc1667": 0.527
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0023",
+  "mm2": 234,
+  "on_published": 0.603,
+  "known_cm2": 1.7,
+  "auc": {
+   "class": 0.641,
+   "PHerc1667": 0.537
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0024",
+  "mm2": 226,
+  "on_published": 0.223,
+  "known_cm2": 0.6,
+  "auc": {
+   "class": 0.47,
+   "PHerc1667": 0.438
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0025",
+  "mm2": 224,
+  "on_published": 0.563,
+  "known_cm2": 1.5,
+  "auc": {
+   "class": 0.626,
+   "PHerc1667": 0.626
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0026",
+  "mm2": 217,
+  "on_published": 0.571,
+  "known_cm2": 1.5,
+  "auc": {
+   "class": 0.546,
+   "PHerc1667": 0.546
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0027",
+  "mm2": 213,
+  "on_published": 0.0,
+  "known_cm2": 0.0
+ },
+ {
+  "piece": "band-0012-0024/piece-0028",
+  "mm2": 202,
+  "on_published": 0.541,
+  "known_cm2": 1.3,
+  "auc": {
+   "class": 0.608,
+   "PHerc1667": 0.585
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0029",
+  "mm2": 194,
+  "on_published": 0.588,
+  "known_cm2": 1.3,
+  "auc": {
+   "class": 0.675,
+   "PHerc1667": 0.639
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0030",
+  "mm2": 198,
+  "on_published": 0.656,
+  "known_cm2": 1.4,
+  "auc": {
+   "class": 0.674,
+   "PHerc1667": 0.633
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0031",
+  "mm2": 190,
+  "on_published": 0.363,
+  "known_cm2": 0.4,
+  "auc": {
+   "class": 0.355,
+   "PHerc1667": 0.419
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0032",
+  "mm2": 193,
+  "on_published": 0.154,
+  "known_cm2": 0.3,
+  "auc": {
+   "class": 0.479,
+   "PHerc1667": 0.372
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0033",
+  "mm2": 181,
+  "on_published": 0.471,
+  "known_cm2": 0.9,
+  "auc": {
+   "class": 0.627,
+   "PHerc1667": 0.655
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0034",
+  "mm2": 178,
+  "on_published": 0.594,
+  "known_cm2": 1.3,
+  "auc": {
+   "class": 0.595,
+   "PHerc1667": 0.599
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0035",
+  "mm2": 180,
+  "on_published": 0.651,
+  "known_cm2": 1.0,
+  "auc": {
+   "class": 0.554,
+   "PHerc1667": 0.56
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0036",
+  "mm2": 166,
+  "on_published": 0.0,
+  "known_cm2": 0.0
+ },
+ {
+  "piece": "band-0012-0024/piece-0037",
+  "mm2": 175,
+  "on_published": 0.668,
+  "known_cm2": 1.3,
+  "auc": {
+   "class": 0.546,
+   "PHerc1667": 0.563
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0038",
+  "mm2": 177,
+  "on_published": 0.529,
+  "known_cm2": 1.2,
+  "auc": {
+   "class": 0.529,
+   "PHerc1667": 0.5
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0039",
+  "mm2": 164,
+  "on_published": 0.617,
+  "known_cm2": 1.2,
+  "auc": {
+   "class": 0.364,
+   "PHerc1667": 0.558
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0040",
+  "mm2": 168,
+  "on_published": 0.693,
+  "known_cm2": 1.3,
+  "auc": {
+   "class": 0.634,
+   "PHerc1667": 0.555
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0041",
+  "mm2": 166,
+  "on_published": 0.065,
+  "known_cm2": 0.1
+ },
+ {
+  "piece": "band-0012-0024/piece-0042",
+  "mm2": 161,
+  "on_published": 0.0,
+  "known_cm2": 0.0
+ },
+ {
+  "piece": "band-0012-0024/piece-0043",
+  "mm2": 155,
+  "on_published": 0.624,
+  "known_cm2": 1.2,
+  "auc": {
+   "class": 0.585,
+   "PHerc1667": 0.442
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0044",
+  "mm2": 160,
+  "on_published": 0.5,
+  "known_cm2": 0.9,
+  "auc": {
+   "class": 0.741,
+   "PHerc1667": 0.574
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0045",
+  "mm2": 152,
+  "on_published": 0.71,
+  "known_cm2": 1.1,
+  "auc": {
+   "class": 0.64,
+   "PHerc1667": 0.681
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0046",
+  "mm2": 146,
+  "on_published": 0.755,
+  "known_cm2": 1.3,
+  "auc": {
+   "class": 0.714,
+   "PHerc1667": 0.743
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0047",
+  "mm2": 145,
+  "on_published": 0.516,
+  "known_cm2": 0.9,
+  "auc": {
+   "class": 0.58,
+   "PHerc1667": 0.523
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0048",
+  "mm2": 143,
+  "on_published": 0.567,
+  "known_cm2": 1.1,
+  "auc": {
+   "class": 0.597,
+   "PHerc1667": 0.655
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0049",
+  "mm2": 150,
+  "on_published": 0.483,
+  "known_cm2": 0.8,
+  "auc": {
+   "class": 0.625,
+   "PHerc1667": 0.641
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0050",
+  "mm2": 142,
+  "on_published": 0.525,
+  "known_cm2": 0.9,
+  "auc": {
+   "class": 0.623,
+   "PHerc1667": 0.513
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0051",
+  "mm2": 133,
+  "on_published": 0.704,
+  "known_cm2": 1.2,
+  "auc": {
+   "class": 0.531,
+   "PHerc1667": 0.509
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0052",
+  "mm2": 131,
+  "on_published": 0.803,
+  "known_cm2": 1.2,
+  "auc": {
+   "class": 0.686,
+   "PHerc1667": 0.721
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0053",
+  "mm2": 127,
+  "on_published": 0.739,
+  "known_cm2": 1.1,
+  "auc": {
+   "class": 0.676,
+   "PHerc1667": 0.664
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0054",
+  "mm2": 129,
+  "on_published": 0.382,
+  "known_cm2": 0.6,
+  "auc": {
+   "class": 0.533,
+   "PHerc1667": 0.529
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0055",
+  "mm2": 121,
+  "on_published": 0.004,
+  "known_cm2": 0.0
+ },
+ {
+  "piece": "band-0012-0024/piece-0056",
+  "mm2": 122,
+  "on_published": 0.642,
+  "known_cm2": 1.0,
+  "auc": {
+   "class": 0.548,
+   "PHerc1667": 0.55
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0057",
+  "mm2": 126,
+  "on_published": 0.563,
+  "known_cm2": 1.0,
+  "auc": {
+   "class": 0.636,
+   "PHerc1667": 0.631
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0058",
+  "mm2": 117,
+  "on_published": 0.706,
+  "known_cm2": 1.0,
+  "auc": {
+   "class": 0.455,
+   "PHerc1667": 0.471
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0059",
+  "mm2": 117,
+  "on_published": 0.65,
+  "known_cm2": 1.0,
+  "auc": {
+   "class": 0.704,
+   "PHerc1667": 0.627
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0060",
+  "mm2": 121,
+  "on_published": 0.547,
+  "known_cm2": 0.6,
+  "auc": {
+   "class": 0.596,
+   "PHerc1667": 0.567
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0061",
+  "mm2": 114,
+  "on_published": 0.477,
+  "known_cm2": 0.8,
+  "auc": {
+   "class": 0.675,
+   "PHerc1667": 0.632
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0062",
+  "mm2": 112,
+  "on_published": 0.278,
+  "known_cm2": 0.4,
+  "auc": {
+   "class": 0.688,
+   "PHerc1667": 0.616
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0063",
+  "mm2": 109,
+  "on_published": 0.51,
+  "known_cm2": 0.7,
+  "auc": {
+   "class": 0.637,
+   "PHerc1667": 0.612
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0064",
+  "mm2": 112,
+  "on_published": 0.471,
+  "known_cm2": 0.7,
+  "auc": {
+   "class": 0.671,
+   "PHerc1667": 0.661
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0065",
+  "mm2": 102,
+  "on_published": 0.357,
+  "known_cm2": 0.5,
+  "auc": {
+   "class": 0.566,
+   "PHerc1667": 0.577
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0066",
+  "mm2": 106,
+  "on_published": 0.621,
+  "known_cm2": 0.8,
+  "auc": {
+   "class": 0.594,
+   "PHerc1667": 0.638
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0067",
+  "mm2": 104,
+  "on_published": 0.531,
+  "known_cm2": 0.7,
+  "auc": {
+   "class": 0.674,
+   "PHerc1667": 0.67
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0068",
+  "mm2": 104,
+  "on_published": 0.499,
+  "known_cm2": 0.6,
+  "auc": {
+   "class": 0.519,
+   "PHerc1667": 0.65
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0069",
+  "mm2": 108,
+  "on_published": 0.658,
+  "known_cm2": 0.8,
+  "auc": {
+   "class": 0.498,
+   "PHerc1667": 0.673
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0071",
+  "mm2": 103,
+  "on_published": 0.405,
+  "known_cm2": 0.5,
+  "auc": {
+   "class": 0.502,
+   "PHerc1667": 0.534
+  }
+ },
+ {
+  "piece": "band-0012-0024/piece-0074",
+  "mm2": 101,
+  "on_published": 0.316,
+  "known_cm2": 0.4,
+  "auc": {
+   "class": 0.635,
+   "PHerc1667": 0.69
+  }
+ }
+]

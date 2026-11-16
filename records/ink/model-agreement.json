@@ -1,0 +1,111 @@
+{
+ "PHerc0841": {
+  "first model": {
+   "own_mesh": 0.8489,
+   "own_mesh_all": 0.8083,
+   "own_mesh_windows": [
+    0.853,
+    0.836,
+    0.896,
+    0.438,
+    0.834,
+    0.837
+   ]
+  },
+  "models averaged": {
+   "own_mesh": 0.8599,
+   "own_mesh_all": 0.8235,
+   "own_mesh_windows": [
+    0.855,
+    0.838,
+    0.908,
+    0.492,
+    0.867,
+    0.843
+   ]
+  },
+  "first two multiplied": {
+   "own_mesh": 0.8538,
+   "own_mesh_all": 0.818,
+   "own_mesh_windows": [
+    0.863,
+    0.835,
+    0.888,
+    0.491,
+    0.866,
+    0.837
+   ]
+  },
+  "depths averaged": {
+   "own_mesh": 0.8497,
+   "own_mesh_all": 0.8076,
+   "own_mesh_windows": [
+    0.849,
+    0.832,
+    0.895,
+    0.423,
+    0.849,
+    0.835
+   ]
+  },
+  "models and depths averaged": {
+   "own_mesh": 0.8577,
+   "own_mesh_all": 0.822,
+   "own_mesh_windows": [
+    0.858,
+    0.835,
+    0.905,
+    0.496,
+    0.863,
+    0.841
+   ]
+  }
+ },
+ "PHerc0500P2": {
+  "first model": {
+   "own_mesh": 0.8616,
+   "own_mesh_all": 0.8616,
+   "own_mesh_windows": [
+    0.559,
+    0.815,
+    0.881
+   ]
+  },
+  "models averaged": {
+   "own_mesh": 0.8747,
+   "own_mesh_all": 0.8747,
+   "own_mesh_windows": [
+    0.594,
+    0.823,
+    0.893
+   ]
+  },
+  "first two multiplied": {
+   "own_mesh": 0.8744,
+   "own_mesh_all": 0.8744,
+   "own_mesh_windows": [
+    0.594,
+    0.822,
+    0.893
+   ]
+  },
+  "depths averaged": {
+   "own_mesh": 0.8668,
+   "own_mesh_all": 0.8668,
+   "own_mesh_windows": [
+    0.577,
+    0.829,
+    0.885
+   ]
+  },
+  "models and depths averaged": {
+   "own_mesh": 0.8774,
+   "own_mesh_all": 0.8774,
+   "own_mesh_windows": [
+    0.596,
+    0.837,
+    0.895
+   ]
+  }
+ }
+}

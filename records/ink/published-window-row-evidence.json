@@ -1,0 +1,2171 @@
+[
+{
+"sample": "PHerc0009B",
+"segment": "20250919132115",
+"y": 1920,
+"x": 2432,
+"ink_share": 0.169,
+"tiles": 25,
+"row_evidence": 3.773
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919064353",
+"y": 4480,
+"x": 0,
+"ink_share": 0.094,
+"tiles": 9,
+"row_evidence": 3.589
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131352",
+"y": 2432,
+"x": 2432,
+"ink_share": 0.157,
+"tiles": 25,
+"row_evidence": 3.41
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131352",
+"y": 4992,
+"x": 2432,
+"ink_share": 0.208,
+"tiles": 25,
+"row_evidence": 3.137
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131352",
+"y": 4992,
+"x": 0,
+"ink_share": 0.105,
+"tiles": 12,
+"row_evidence": 3.125
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919132115",
+"y": 4480,
+"x": 1920,
+"ink_share": 0.207,
+"tiles": 25,
+"row_evidence": 2.663
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131352",
+"y": 2432,
+"x": 0,
+"ink_share": 0.059,
+"tiles": 10,
+"row_evidence": 2.145
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125754",
+"y": 896,
+"x": 2944,
+"ink_share": 0.158,
+"tiles": 25,
+"row_evidence": 2.105
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125605",
+"y": 2432,
+"x": 1408,
+"ink_share": 0.169,
+"tiles": 14,
+"row_evidence": 2.065
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125754",
+"y": 3456,
+"x": 2432,
+"ink_share": 0.195,
+"tiles": 25,
+"row_evidence": 2.053
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919123506",
+"y": 384,
+"x": 2944,
+"ink_share": 0.13,
+"tiles": 13,
+"row_evidence": 1.398
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131352",
+"y": 0,
+"x": 1408,
+"ink_share": 0.062,
+"tiles": 10,
+"row_evidence": 1.195
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125754",
+"y": 4480,
+"x": 0,
+"ink_share": 0.067,
+"tiles": 15,
+"row_evidence": 1.154
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919140325",
+"y": 4480,
+"x": 384,
+"ink_share": 0.229,
+"tiles": 25,
+"row_evidence": 0.845
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919130642",
+"y": 2432,
+"x": 1920,
+"ink_share": 0.139,
+"tiles": 17,
+"row_evidence": 0.805
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919133208",
+"y": 896,
+"x": 384,
+"ink_share": 0.141,
+"tiles": 17,
+"row_evidence": 0.571
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919132115",
+"y": 384,
+"x": 0,
+"ink_share": 0.07,
+"tiles": 19,
+"row_evidence": 0.348
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919123506",
+"y": 1408,
+"x": 0,
+"ink_share": 0.069,
+"tiles": 14,
+"row_evidence": 0.22
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919124722",
+"y": 3456,
+"x": 384,
+"ink_share": 0.098,
+"tiles": 17,
+"row_evidence": 0.193
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919123506",
+"y": 4480,
+"x": 0,
+"ink_share": 0.118,
+"tiles": 13,
+"row_evidence": 0.108
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135915",
+"y": 1920,
+"x": 2432,
+"ink_share": 0.099,
+"tiles": 21,
+"row_evidence": -0.065
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919124722",
+"y": 896,
+"x": 1408,
+"ink_share": 0.123,
+"tiles": 25,
+"row_evidence": -0.084
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919140325",
+"y": 0,
+"x": 1408,
+"ink_share": 0.15,
+"tiles": 13,
+"row_evidence": -0.119
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135433",
+"y": 4480,
+"x": 3968,
+"ink_share": 0.211,
+"tiles": 11,
+"row_evidence": -0.316
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131642",
+"y": 3968,
+"x": 1408,
+"ink_share": 0.184,
+"tiles": 25,
+"row_evidence": -0.409
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919124917",
+"y": 384,
+"x": 896,
+"ink_share": 0.078,
+"tiles": 14,
+"row_evidence": -0.472
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250510172804",
+"y": 896,
+"x": 1920,
+"ink_share": 0.154,
+"tiles": 25,
+"row_evidence": -0.651
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135915",
+"y": 3968,
+"x": 0,
+"ink_share": 0.066,
+"tiles": 16,
+"row_evidence": -0.665
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125754",
+"y": 1920,
+"x": 0,
+"ink_share": 0.067,
+"tiles": 15,
+"row_evidence": -0.933
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250511200236",
+"y": 0,
+"x": 0,
+"ink_share": 0.042,
+"tiles": 10,
+"row_evidence": -0.95
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919123506",
+"y": 3456,
+"x": 2944,
+"ink_share": 0.156,
+"tiles": 25,
+"row_evidence": -1.814
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919133208",
+"y": 4480,
+"x": 384,
+"ink_share": 0.227,
+"tiles": 25,
+"row_evidence": -2.282
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919064353",
+"y": 3456,
+"x": 2432,
+"ink_share": 0.169,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919130642",
+"y": 4992,
+"x": 1920,
+"ink_share": 0.165,
+"tiles": 2,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125302",
+"y": 0,
+"x": 2432,
+"ink_share": 0.162,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919064353",
+"y": 896,
+"x": 2944,
+"ink_share": 0.13,
+"tiles": 7,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919131642",
+"y": 384,
+"x": 1408,
+"ink_share": 0.106,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125302",
+"y": 2432,
+"x": 2432,
+"ink_share": 0.105,
+"tiles": 5,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919130642",
+"y": 0,
+"x": 0,
+"ink_share": 0.101,
+"tiles": 7,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135433",
+"y": 1920,
+"x": 3456,
+"ink_share": 0.074,
+"tiles": 4,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919124917",
+"y": 4480,
+"x": 1408,
+"ink_share": 0.069,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125605",
+"y": 0,
+"x": 0,
+"ink_share": 0.066,
+"tiles": 2,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919125302",
+"y": 2432,
+"x": 0,
+"ink_share": 0.061,
+"tiles": 4,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250510172639",
+"y": 2432,
+"x": 1920,
+"ink_share": 0.06,
+"tiles": 7,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135915",
+"y": 1408,
+"x": 0,
+"ink_share": 0.058,
+"tiles": 7,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135433",
+"y": 3968,
+"x": 0,
+"ink_share": 0.055,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919064353",
+"y": 0,
+"x": 384,
+"ink_share": 0.036,
+"tiles": 4,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250510172639",
+"y": 0,
+"x": 1920,
+"ink_share": 0.034,
+"tiles": 1,
+"row_evidence": null
+},
+{
+"sample": "PHerc0009B",
+"segment": "20250919135433",
+"y": 1408,
+"x": 0,
+"ink_share": 0.029,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0139",
+"segment": "20260115000000",
+"y": 3456,
+"x": 2432,
+"ink_share": 0.151,
+"tiles": 36,
+"row_evidence": 5.378
+},
+{
+"sample": "PHerc0139",
+"segment": "20260112000000",
+"y": 3456,
+"x": 2944,
+"ink_share": 0.192,
+"tiles": 36,
+"row_evidence": 4.615
+},
+{
+"sample": "PHerc0139",
+"segment": "20260325000000",
+"y": 0,
+"x": 3456,
+"ink_share": 0.191,
+"tiles": 27,
+"row_evidence": 4.574
+},
+{
+"sample": "PHerc0139",
+"segment": "20260115000001",
+"y": 4992,
+"x": 6528,
+"ink_share": 0.221,
+"tiles": 36,
+"row_evidence": 4.425
+},
+{
+"sample": "PHerc0139",
+"segment": "20260126000000",
+"y": 0,
+"x": 3456,
+"ink_share": 0.178,
+"tiles": 27,
+"row_evidence": 4.4
+},
+{
+"sample": "PHerc0139",
+"segment": "20260115000000",
+"y": 2944,
+"x": 0,
+"ink_share": 0.168,
+"tiles": 30,
+"row_evidence": 4.224
+},
+{
+"sample": "PHerc0139",
+"segment": "20260317000000",
+"y": 3456,
+"x": 1920,
+"ink_share": 0.138,
+"tiles": 36,
+"row_evidence": 4.163
+},
+{
+"sample": "PHerc0139",
+"segment": "20260210000000",
+"y": 1408,
+"x": 2944,
+"ink_share": 0.294,
+"tiles": 36,
+"row_evidence": 4.148
+},
+{
+"sample": "PHerc0139",
+"segment": "20260210000000",
+"y": 1408,
+"x": 384,
+"ink_share": 0.183,
+"tiles": 33,
+"row_evidence": 4.049
+},
+{
+"sample": "PHerc0139",
+"segment": "20260210000000",
+"y": 3456,
+"x": 3456,
+"ink_share": 0.141,
+"tiles": 36,
+"row_evidence": 3.716
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000000",
+"y": 3456,
+"x": 2944,
+"ink_share": 0.163,
+"tiles": 36,
+"row_evidence": 3.597
+},
+{
+"sample": "PHerc0139",
+"segment": "20260303000000",
+"y": 896,
+"x": 3968,
+"ink_share": 0.197,
+"tiles": 36,
+"row_evidence": 3.578
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000001",
+"y": 384,
+"x": 2944,
+"ink_share": 0.172,
+"tiles": 36,
+"row_evidence": 3.27
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000001",
+"y": 0,
+"x": 384,
+"ink_share": 0.217,
+"tiles": 30,
+"row_evidence": 3.255
+},
+{
+"sample": "PHerc0139",
+"segment": "20250223000000",
+"y": 2432,
+"x": 1920,
+"ink_share": 0.181,
+"tiles": 36,
+"row_evidence": 3.254
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000005",
+"y": 1408,
+"x": 3456,
+"ink_share": 0.163,
+"tiles": 36,
+"row_evidence": 3.226
+},
+{
+"sample": "PHerc0139",
+"segment": "20260318000000",
+"y": 896,
+"x": 1920,
+"ink_share": 0.187,
+"tiles": 35,
+"row_evidence": 3.219
+},
+{
+"sample": "PHerc0139",
+"segment": "20260303000000",
+"y": 4480,
+"x": 3456,
+"ink_share": 0.145,
+"tiles": 36,
+"row_evidence": 3.214
+},
+{
+"sample": "PHerc0139",
+"segment": "20260108000000",
+"y": 896,
+"x": 0,
+"ink_share": 0.143,
+"tiles": 32,
+"row_evidence": 3.129
+},
+{
+"sample": "PHerc0139",
+"segment": "20250223000000",
+"y": 896,
+"x": 4480,
+"ink_share": 0.277,
+"tiles": 36,
+"row_evidence": 3.025
+},
+{
+"sample": "PHerc0139",
+"segment": "20260126000000",
+"y": 1920,
+"x": 896,
+"ink_share": 0.151,
+"tiles": 36,
+"row_evidence": 3.018
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000000",
+"y": 1408,
+"x": 2432,
+"ink_share": 0.137,
+"tiles": 36,
+"row_evidence": 3.011
+},
+{
+"sample": "PHerc0139",
+"segment": "20260115000001",
+"y": 4480,
+"x": 3968,
+"ink_share": 0.184,
+"tiles": 36,
+"row_evidence": 2.98
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000000",
+"y": 3456,
+"x": 0,
+"ink_share": 0.182,
+"tiles": 30,
+"row_evidence": 2.964
+},
+{
+"sample": "PHerc0139",
+"segment": "20260325000000",
+"y": 1920,
+"x": 896,
+"ink_share": 0.154,
+"tiles": 36,
+"row_evidence": 2.964
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000001",
+"y": 2944,
+"x": 3456,
+"ink_share": 0.164,
+"tiles": 36,
+"row_evidence": 2.919
+},
+{
+"sample": "PHerc0139",
+"segment": "20260310000000",
+"y": 3968,
+"x": 4480,
+"ink_share": 0.18,
+"tiles": 24,
+"row_evidence": 2.908
+},
+{
+"sample": "PHerc0139",
+"segment": "20250831000000",
+"y": 1920,
+"x": 2432,
+"ink_share": 0.233,
+"tiles": 36,
+"row_evidence": 2.772
+},
+{
+"sample": "PHerc0139",
+"segment": "20260115000001",
+"y": 896,
+"x": 4992,
+"ink_share": 0.168,
+"tiles": 33,
+"row_evidence": 2.731
+},
+{
+"sample": "PHerc0139",
+"segment": "20260325000000",
+"y": 3456,
+"x": 3456,
+"ink_share": 0.158,
+"tiles": 36,
+"row_evidence": 2.717
+},
+{
+"sample": "PHerc0139",
+"segment": "20260306000001",
+"y": 4992,
+"x": 6016,
+"ink_share": 0.142,
+"tiles": 35,
+"row_evidence": 2.564
+},
+{
+"sample": "PHerc0139",
+"segment": "20260203000000",
+"y": 896,
+"x": 3968,
+"ink_share": 0.251,
+"tiles": 36,
+"row_evidence": 2.559
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000005",
+"y": 384,
+"x": 896,
+"ink_share": 0.294,
+"tiles": 36,
+"row_evidence": 2.445
+},
+{
+"sample": "PHerc0139",
+"segment": "20260302000000",
+"y": 3968,
+"x": 5504,
+"ink_share": 0.162,
+"tiles": 36,
+"row_evidence": 2.419
+},
+{
+"sample": "PHerc0139",
+"segment": "20251226000000",
+"y": 5504,
+"x": 7040,
+"ink_share": 0.274,
+"tiles": 30,
+"row_evidence": 2.385
+},
+{
+"sample": "PHerc0139",
+"segment": "20260108000000",
+"y": 3968,
+"x": 2944,
+"ink_share": 0.182,
+"tiles": 36,
+"row_evidence": 2.345
+},
+{
+"sample": "PHerc0139",
+"segment": "20260126000000",
+"y": 3456,
+"x": 3456,
+"ink_share": 0.162,
+"tiles": 36,
+"row_evidence": 2.241
+},
+{
+"sample": "PHerc0139",
+"segment": "20260108000000",
+"y": 3456,
+"x": 0,
+"ink_share": 0.162,
+"tiles": 30,
+"row_evidence": 2.211
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000000",
+"y": 0,
+"x": 2432,
+"ink_share": 0.179,
+"tiles": 29,
+"row_evidence": 2.186
+},
+{
+"sample": "PHerc0139",
+"segment": "20260318000000",
+"y": 3456,
+"x": 1920,
+"ink_share": 0.177,
+"tiles": 36,
+"row_evidence": 2.16
+},
+{
+"sample": "PHerc0139",
+"segment": "20260219000001",
+"y": 0,
+"x": 2432,
+"ink_share": 0.151,
+"tiles": 30,
+"row_evidence": 2.15
+},
+{
+"sample": "PHerc0139",
+"segment": "20251226000000",
+"y": 5504,
+"x": 4480,
+"ink_share": 0.177,
+"tiles": 36,
+"row_evidence": 2.127
+},
+{
+"sample": "PHerc0139",
+"segment": "20260311000000",
+"y": 1408,
+"x": 0,
+"ink_share": 0.223,
+"tiles": 31,
+"row_evidence": 2.11
+},
+{
+"sample": "PHerc0139",
+"segment": "20260310000000",
+"y": 896,
+"x": 0,
+"ink_share": 0.147,
+"tiles": 30,
+"row_evidence": 1.952
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000000",
+"y": 1408,
+"x": 0,
+"ink_share": 0.156,
+"tiles": 32,
+"row_evidence": 1.833
+},
+{
+"sample": "PHerc0139",
+"segment": "20251226000000",
+"y": 2944,
+"x": 7040,
+"ink_share": 0.17,
+"tiles": 35,
+"row_evidence": 1.796
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000004",
+"y": 0,
+"x": 3456,
+"ink_share": 0.181,
+"tiles": 29,
+"row_evidence": 1.792
+},
+{
+"sample": "PHerc0139",
+"segment": "20260306000000",
+"y": 1920,
+"x": 4992,
+"ink_share": 0.178,
+"tiles": 36,
+"row_evidence": 1.754
+},
+{
+"sample": "PHerc0139",
+"segment": "20260227000000",
+"y": 2944,
+"x": 3456,
+"ink_share": 0.205,
+"tiles": 36,
+"row_evidence": 1.752
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000002",
+"y": 4480,
+"x": 6528,
+"ink_share": 0.139,
+"tiles": 35,
+"row_evidence": 1.716
+},
+{
+"sample": "PHerc0139",
+"segment": "20260227000000",
+"y": 5504,
+"x": 3968,
+"ink_share": 0.274,
+"tiles": 36,
+"row_evidence": 1.68
+},
+{
+"sample": "PHerc0139",
+"segment": "20260108000000",
+"y": 1408,
+"x": 2432,
+"ink_share": 0.141,
+"tiles": 36,
+"row_evidence": 1.57
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000002",
+"y": 4480,
+"x": 3968,
+"ink_share": 0.155,
+"tiles": 36,
+"row_evidence": 1.479
+},
+{
+"sample": "PHerc0139",
+"segment": "20260112000000",
+"y": 1920,
+"x": 0,
+"ink_share": 0.172,
+"tiles": 31,
+"row_evidence": 1.474
+},
+{
+"sample": "PHerc0139",
+"segment": "20260317000000",
+"y": 0,
+"x": 2432,
+"ink_share": 0.139,
+"tiles": 26,
+"row_evidence": 1.398
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000002",
+"y": 0,
+"x": 2432,
+"ink_share": 0.461,
+"tiles": 29,
+"row_evidence": 1.326
+},
+{
+"sample": "PHerc0139",
+"segment": "20250223000000",
+"y": 896,
+"x": 7552,
+"ink_share": 0.143,
+"tiles": 19,
+"row_evidence": 1.188
+},
+{
+"sample": "PHerc0139",
+"segment": "20260219000000",
+"y": 896,
+"x": 3968,
+"ink_share": 0.194,
+"tiles": 36,
+"row_evidence": 1.15
+},
+{
+"sample": "PHerc0139",
+"segment": "20260215000000",
+"y": 4480,
+"x": 2432,
+"ink_share": 0.144,
+"tiles": 36,
+"row_evidence": 1.146
+},
+{
+"sample": "PHerc0139",
+"segment": "20260210000000",
+"y": 1920,
+"x": 6016,
+"ink_share": 0.172,
+"tiles": 36,
+"row_evidence": 1.121
+},
+{
+"sample": "PHerc0139",
+"segment": "20260306000000",
+"y": 1920,
+"x": 0,
+"ink_share": 0.156,
+"tiles": 28,
+"row_evidence": 1.076
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000000",
+"y": 4992,
+"x": 3456,
+"ink_share": 0.306,
+"tiles": 36,
+"row_evidence": 1.03
+},
+{
+"sample": "PHerc0139",
+"segment": "20260316000000",
+"y": 3456,
+"x": 4480,
+"ink_share": 0.148,
+"tiles": 31,
+"row_evidence": 0.911
+},
+{
+"sample": "PHerc0139",
+"segment": "20260422000000",
+"y": 0,
+"x": 0,
+"ink_share": 0.162,
+"tiles": 23,
+"row_evidence": 0.867
+},
+{
+"sample": "PHerc0139",
+"segment": "20260203000000",
+"y": 896,
+"x": 1408,
+"ink_share": 0.276,
+"tiles": 36,
+"row_evidence": 0.851
+},
+{
+"sample": "PHerc0139",
+"segment": "20260215000000",
+"y": 1920,
+"x": 1920,
+"ink_share": 0.177,
+"tiles": 36,
+"row_evidence": 0.749
+},
+{
+"sample": "PHerc0139",
+"segment": "20260206000002",
+"y": 384,
+"x": 4992,
+"ink_share": 0.208,
+"tiles": 36,
+"row_evidence": 0.443
+},
+{
+"sample": "PHerc0139",
+"segment": "20260227000000",
+"y": 384,
+"x": 4480,
+"ink_share": 0.162,
+"tiles": 33,
+"row_evidence": 0.239
+},
+{
+"sample": "PHerc0139",
+"segment": "20260310000000",
+"y": 384,
+"x": 4992,
+"ink_share": 0.144,
+"tiles": 36,
+"row_evidence": 0.228
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000002",
+"y": 0,
+"x": 384,
+"ink_share": 0.356,
+"tiles": 31,
+"row_evidence": 0.059
+},
+{
+"sample": "PHerc0139",
+"segment": "20260215000000",
+"y": 4480,
+"x": 0,
+"ink_share": 0.21,
+"tiles": 23,
+"row_evidence": -0.077
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000004",
+"y": 896,
+"x": 896,
+"ink_share": 0.318,
+"tiles": 36,
+"row_evidence": -0.183
+},
+{
+"sample": "PHerc0139",
+"segment": "20260130000000",
+"y": 0,
+"x": 384,
+"ink_share": 0.411,
+"tiles": 32,
+"row_evidence": -0.188
+},
+{
+"sample": "PHerc0139",
+"segment": "20260311000000",
+"y": 3968,
+"x": 0,
+"ink_share": 0.154,
+"tiles": 24,
+"row_evidence": -0.204
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000003",
+"y": 0,
+"x": 384,
+"ink_share": 0.218,
+"tiles": 31,
+"row_evidence": -0.224
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000002",
+"y": 0,
+"x": 4480,
+"ink_share": 0.21,
+"tiles": 23,
+"row_evidence": -0.528
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000001",
+"y": 0,
+"x": 0,
+"ink_share": 0.3,
+"tiles": 31,
+"row_evidence": -0.532
+},
+{
+"sample": "PHerc0139",
+"segment": "20260219000000",
+"y": 0,
+"x": 1408,
+"ink_share": 0.262,
+"tiles": 30,
+"row_evidence": -0.721
+},
+{
+"sample": "PHerc0139",
+"segment": "20250108000003",
+"y": 0,
+"x": 2944,
+"ink_share": 0.298,
+"tiles": 30,
+"row_evidence": -1.071
+},
+{
+"sample": "PHerc0139",
+"segment": "20260311000000",
+"y": 1920,
+"x": 2944,
+"ink_share": 0.156,
+"tiles": 36,
+"row_evidence": -1.22
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055229",
+"y": 1408,
+"x": 0,
+"ink_share": 0.119,
+"tiles": 23,
+"row_evidence": 3.728
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611171745",
+"y": 1408,
+"x": 0,
+"ink_share": 0.111,
+"tiles": 23,
+"row_evidence": 3.059
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250628074500",
+"y": 2432,
+"x": 0,
+"ink_share": 0.135,
+"tiles": 28,
+"row_evidence": 2.922
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181917",
+"y": 896,
+"x": 896,
+"ink_share": 0.125,
+"tiles": 23,
+"row_evidence": 2.71
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181928",
+"y": 384,
+"x": 0,
+"ink_share": 0.141,
+"tiles": 19,
+"row_evidence": 2.644
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181859",
+"y": 1920,
+"x": 0,
+"ink_share": 0.134,
+"tiles": 28,
+"row_evidence": 2.575
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055230",
+"y": 384,
+"x": 896,
+"ink_share": 0.115,
+"tiles": 16,
+"row_evidence": 2.224
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181922",
+"y": 3456,
+"x": 384,
+"ink_share": 0.142,
+"tiles": 35,
+"row_evidence": 1.877
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181934",
+"y": 0,
+"x": 384,
+"ink_share": 0.106,
+"tiles": 13,
+"row_evidence": 1.627
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055227",
+"y": 0,
+"x": 0,
+"ink_share": 0.108,
+"tiles": 11,
+"row_evidence": 1.556
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055232",
+"y": 0,
+"x": 0,
+"ink_share": 0.133,
+"tiles": 16,
+"row_evidence": 1.496
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181907",
+"y": 1408,
+"x": 896,
+"ink_share": 0.084,
+"tiles": 19,
+"row_evidence": 1.355
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611132918",
+"y": 2432,
+"x": 896,
+"ink_share": 0.172,
+"tiles": 33,
+"row_evidence": 1.308
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181939",
+"y": 2432,
+"x": 896,
+"ink_share": 0.112,
+"tiles": 33,
+"row_evidence": 1.266
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055236",
+"y": 2944,
+"x": 896,
+"ink_share": 0.145,
+"tiles": 29,
+"row_evidence": 1.096
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181939",
+"y": 0,
+"x": 0,
+"ink_share": 0.103,
+"tiles": 12,
+"row_evidence": 1.089
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055235",
+"y": 896,
+"x": 3456,
+"ink_share": 0.107,
+"tiles": 21,
+"row_evidence": 1.026
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055228",
+"y": 0,
+"x": 0,
+"ink_share": 0.091,
+"tiles": 22,
+"row_evidence": 0.947
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055234",
+"y": 0,
+"x": 0,
+"ink_share": 0.103,
+"tiles": 18,
+"row_evidence": 0.898
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055235",
+"y": 3456,
+"x": 1920,
+"ink_share": 0.07,
+"tiles": 13,
+"row_evidence": 0.895
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250628074500",
+"y": 0,
+"x": 896,
+"ink_share": 0.047,
+"tiles": 11,
+"row_evidence": 0.882
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611134135",
+"y": 2944,
+"x": 896,
+"ink_share": 0.149,
+"tiles": 30,
+"row_evidence": 0.723
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611132918",
+"y": 0,
+"x": 0,
+"ink_share": 0.057,
+"tiles": 13,
+"row_evidence": 0.704
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055232",
+"y": 1920,
+"x": 384,
+"ink_share": 0.106,
+"tiles": 33,
+"row_evidence": 0.677
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181934",
+"y": 2432,
+"x": 384,
+"ink_share": 0.072,
+"tiles": 30,
+"row_evidence": 0.651
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055231",
+"y": 2944,
+"x": 896,
+"ink_share": 0.179,
+"tiles": 30,
+"row_evidence": 0.571
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611133823",
+"y": 2944,
+"x": 0,
+"ink_share": 0.14,
+"tiles": 19,
+"row_evidence": 0.57
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181928",
+"y": 2944,
+"x": 0,
+"ink_share": 0.102,
+"tiles": 33,
+"row_evidence": 0.487
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611172135",
+"y": 1408,
+"x": 384,
+"ink_share": 0.123,
+"tiles": 32,
+"row_evidence": 0.473
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611161415",
+"y": 1408,
+"x": 0,
+"ink_share": 0.137,
+"tiles": 34,
+"row_evidence": 0.372
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055231",
+"y": 896,
+"x": 896,
+"ink_share": 0.073,
+"tiles": 32,
+"row_evidence": 0.356
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055230",
+"y": 2944,
+"x": 384,
+"ink_share": 0.098,
+"tiles": 35,
+"row_evidence": 0.347
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250825181922",
+"y": 896,
+"x": 0,
+"ink_share": 0.111,
+"tiles": 20,
+"row_evidence": 0.257
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055233",
+"y": 1920,
+"x": 896,
+"ink_share": 0.069,
+"tiles": 27,
+"row_evidence": 0.218
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611173014",
+"y": 384,
+"x": 1920,
+"ink_share": 0.117,
+"tiles": 20,
+"row_evidence": 0.199
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611153347",
+"y": 1920,
+"x": 0,
+"ink_share": 0.072,
+"tiles": 16,
+"row_evidence": 0.061
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611173014",
+"y": 2432,
+"x": 1408,
+"ink_share": 0.104,
+"tiles": 23,
+"row_evidence": 0.023
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611153346",
+"y": 1920,
+"x": 384,
+"ink_share": 0.069,
+"tiles": 14,
+"row_evidence": -0.088
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611154256",
+"y": 2944,
+"x": 896,
+"ink_share": 0.179,
+"tiles": 30,
+"row_evidence": -0.102
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611154256",
+"y": 896,
+"x": 0,
+"ink_share": 0.079,
+"tiles": 17,
+"row_evidence": -0.114
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611161023",
+"y": 2944,
+"x": 0,
+"ink_share": 0.12,
+"tiles": 14,
+"row_evidence": -0.116
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611170257",
+"y": 384,
+"x": 0,
+"ink_share": 0.058,
+"tiles": 17,
+"row_evidence": -0.141
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611171318",
+"y": 0,
+"x": 384,
+"ink_share": 0.059,
+"tiles": 8,
+"row_evidence": -0.241
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611170257",
+"y": 3456,
+"x": 1920,
+"ink_share": 0.205,
+"tiles": 20,
+"row_evidence": -0.488
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250716055236",
+"y": 896,
+"x": 896,
+"ink_share": 0.101,
+"tiles": 22,
+"row_evidence": -0.667
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611134135",
+"y": 384,
+"x": 896,
+"ink_share": 0.103,
+"tiles": 16,
+"row_evidence": -0.911
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250609204953",
+"y": 1408,
+"x": 896,
+"ink_share": 0.103,
+"tiles": 0,
+"row_evidence": null
+},
+{
+"sample": "PHerc0500P2",
+"segment": "20250611153340",
+"y": 1408,
+"x": 0,
+"ink_share": 0.097,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 896,
+"x": 42368,
+"ink_share": 0.165,
+"tiles": 11,
+"row_evidence": 3.464
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1408,
+"x": 48000,
+"ink_share": 0.155,
+"tiles": 9,
+"row_evidence": 2.922
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926203608",
+"y": 1920,
+"x": 0,
+"ink_share": 0.27,
+"tiles": 16,
+"row_evidence": 2.561
+},
+{
+"sample": "PHerc0814",
+"segment": "20251001060526",
+"y": 896,
+"x": 8064,
+"ink_share": 0.186,
+"tiles": 9,
+"row_evidence": 1.988
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925161630",
+"y": 1920,
+"x": 12672,
+"ink_share": 0.233,
+"tiles": 22,
+"row_evidence": 1.929
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1408,
+"x": 45440,
+"ink_share": 0.18,
+"tiles": 10,
+"row_evidence": 1.925
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1920,
+"x": 35712,
+"ink_share": 0.21,
+"tiles": 19,
+"row_evidence": 1.879
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925204843",
+"y": 2432,
+"x": 17280,
+"ink_share": 0.128,
+"tiles": 10,
+"row_evidence": 1.709
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1920,
+"x": 20352,
+"ink_share": 0.141,
+"tiles": 9,
+"row_evidence": 1.663
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926165636",
+"y": 2432,
+"x": 2432,
+"ink_share": 0.192,
+"tiles": 13,
+"row_evidence": 1.626
+},
+{
+"sample": "PHerc0814",
+"segment": "20251001060526",
+"y": 896,
+"x": 0,
+"ink_share": 0.214,
+"tiles": 9,
+"row_evidence": 1.62
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1408,
+"x": 6016,
+"ink_share": 0.165,
+"tiles": 15,
+"row_evidence": 1.59
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926165636",
+"y": 1920,
+"x": 22400,
+"ink_share": 0.132,
+"tiles": 18,
+"row_evidence": 1.588
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1408,
+"x": 50048,
+"ink_share": 0.152,
+"tiles": 10,
+"row_evidence": 1.586
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926203608",
+"y": 1920,
+"x": 15232,
+"ink_share": 0.136,
+"tiles": 11,
+"row_evidence": 1.477
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1920,
+"x": 29056,
+"ink_share": 0.283,
+"tiles": 15,
+"row_evidence": 1.362
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1408,
+"x": 1920,
+"ink_share": 0.194,
+"tiles": 24,
+"row_evidence": 1.329
+},
+{
+"sample": "PHerc0814",
+"segment": "20250929040153",
+"y": 896,
+"x": 4992,
+"ink_share": 0.159,
+"tiles": 12,
+"row_evidence": 1.278
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1920,
+"x": 13696,
+"ink_share": 0.14,
+"tiles": 13,
+"row_evidence": 1.264
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925204843",
+"y": 2432,
+"x": 27008,
+"ink_share": 0.187,
+"tiles": 16,
+"row_evidence": 1.213
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1408,
+"x": 9600,
+"ink_share": 0.128,
+"tiles": 23,
+"row_evidence": 1.17
+},
+{
+"sample": "PHerc0814",
+"segment": "20260226000000",
+"y": 0,
+"x": 0,
+"ink_share": 0.138,
+"tiles": 23,
+"row_evidence": 1.122
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925182632",
+"y": 1408,
+"x": 10624,
+"ink_share": 0.146,
+"tiles": 25,
+"row_evidence": 0.99
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1920,
+"x": 21376,
+"ink_share": 0.197,
+"tiles": 11,
+"row_evidence": 0.966
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925182632",
+"y": 1408,
+"x": 3456,
+"ink_share": 0.271,
+"tiles": 24,
+"row_evidence": 0.903
+},
+{
+"sample": "PHerc0814",
+"segment": "20251001060526",
+"y": 384,
+"x": 10624,
+"ink_share": 0.171,
+"tiles": 13,
+"row_evidence": 0.896
+},
+{
+"sample": "PHerc0814",
+"segment": "20250929040153",
+"y": 896,
+"x": 384,
+"ink_share": 0.155,
+"tiles": 16,
+"row_evidence": 0.708
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925204843",
+"y": 2432,
+"x": 6016,
+"ink_share": 0.234,
+"tiles": 14,
+"row_evidence": 0.677
+},
+{
+"sample": "PHerc0814",
+"segment": "20250930083742",
+"y": 1408,
+"x": 8576,
+"ink_share": 0.14,
+"tiles": 9,
+"row_evidence": 0.63
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925204843",
+"y": 2432,
+"x": 8064,
+"ink_share": 0.138,
+"tiles": 17,
+"row_evidence": 0.34
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926165636",
+"y": 2432,
+"x": 11648,
+"ink_share": 0.195,
+"tiles": 8,
+"row_evidence": 0.154
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925161630",
+"y": 1920,
+"x": 6528,
+"ink_share": 0.137,
+"tiles": 23,
+"row_evidence": 0.038
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 2432,
+"x": 19328,
+"ink_share": 0.143,
+"tiles": 10,
+"row_evidence": -0.406
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1920,
+"x": 22400,
+"ink_share": 0.18,
+"tiles": 17,
+"row_evidence": -0.631
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926203608",
+"y": 1408,
+"x": 9088,
+"ink_share": 0.137,
+"tiles": 25,
+"row_evidence": -1.29
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926203608",
+"y": 1920,
+"x": 17280,
+"ink_share": 0.261,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1408,
+"x": 36736,
+"ink_share": 0.207,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1920,
+"x": 17280,
+"ink_share": 0.207,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 2432,
+"x": 39296,
+"ink_share": 0.202,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20251001060526",
+"y": 1408,
+"x": 2944,
+"ink_share": 0.201,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250930083742",
+"y": 1408,
+"x": 13184,
+"ink_share": 0.198,
+"tiles": 5,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925222237",
+"y": 1408,
+"x": 1408,
+"ink_share": 0.193,
+"tiles": 0,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926165636",
+"y": 2432,
+"x": 384,
+"ink_share": 0.179,
+"tiles": 0,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925161630",
+"y": 2432,
+"x": 3968,
+"ink_share": 0.177,
+"tiles": 5,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 896,
+"x": 8064,
+"ink_share": 0.163,
+"tiles": 2,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250930083742",
+"y": 384,
+"x": 3968,
+"ink_share": 0.161,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250930083742",
+"y": 1920,
+"x": 1408,
+"ink_share": 0.157,
+"tiles": 7,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 384,
+"x": 34688,
+"ink_share": 0.153,
+"tiles": 3,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925204843",
+"y": 1408,
+"x": 20864,
+"ink_share": 0.149,
+"tiles": 0,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1408,
+"x": 3456,
+"ink_share": 0.149,
+"tiles": 7,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926165636",
+"y": 1408,
+"x": 6016,
+"ink_share": 0.145,
+"tiles": 4,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925182632",
+"y": 384,
+"x": 6016,
+"ink_share": 0.144,
+"tiles": 4,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 896,
+"x": 5504,
+"ink_share": 0.14,
+"tiles": 5,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925222237",
+"y": 384,
+"x": 3968,
+"ink_share": 0.137,
+"tiles": 5,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925161630",
+"y": 1920,
+"x": 10624,
+"ink_share": 0.136,
+"tiles": 6,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250928235953",
+"y": 1408,
+"x": 26496,
+"ink_share": 0.135,
+"tiles": 0,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1920,
+"x": 44416,
+"ink_share": 0.133,
+"tiles": 1,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925212701",
+"y": 896,
+"x": 896,
+"ink_share": 0.131,
+"tiles": 2,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250925204843",
+"y": 1408,
+"x": 1920,
+"ink_share": 0.129,
+"tiles": 2,
+"row_evidence": null
+},
+{
+"sample": "PHerc0814",
+"segment": "20250926051122",
+"y": 1408,
+"x": 10624,
+"ink_share": 0.126,
+"tiles": 1,
+"row_evidence": null
+},
+{
+"sample": "PHerc0841",
+"segment": "20260221022814",
+"y": 896,
+"x": 1920,
+"ink_share": 0.155,
+"tiles": 36,
+"row_evidence": 3.299
+},
+{
+"sample": "PHerc0841",
+"segment": "20260220214732",
+"y": 1408,
+"x": 1408,
+"ink_share": 0.15,
+"tiles": 36,
+"row_evidence": 1.194
+},
+{
+"sample": "PHerc0841",
+"segment": "20260220213127",
+"y": 384,
+"x": 0,
+"ink_share": 0.062,
+"tiles": 19,
+"row_evidence": 0.985
+},
+{
+"sample": "PHerc0841",
+"segment": "20260220213127",
+"y": 0,
+"x": 2432,
+"ink_share": 0.168,
+"tiles": 28,
+"row_evidence": -0.365
+}
+]

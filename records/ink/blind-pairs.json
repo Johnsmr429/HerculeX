@@ -1,0 +1,836 @@
+{
+ "known_text": {
+  "right": 2,
+  "of": 4
+ },
+ "eye_passes": false,
+ "scroll_picks": {
+  "forward tail": {
+   "forward": 5,
+   "reversed": 1,
+   "both": 0,
+   "neither": 2
+  },
+  "named": {
+   "forward": 1,
+   "reversed": 0,
+   "both": 0,
+   "neither": 0
+  },
+  "random": {
+   "forward": 0,
+   "reversed": 1,
+   "both": 1,
+   "neither": 6
+  },
+  "reversed tail": {
+   "forward": 0,
+   "reversed": 2,
+   "both": 0,
+   "neither": 6
+  }
+ },
+ "fibres": {
+  "agree": 5,
+  "of": 7,
+  "p": 0.2265625
+ },
+ "ranked": [
+  {
+   "number": 29,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 26,
+   "x_mm": 8509.842100178143,
+   "y_mm": 73.73221752783203,
+   "corner": [
+    0,
+    192
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.2943401336669922,
+    0.015027999877929688
+   ],
+   "open": 0.7044881869638248,
+   "forward": 0.2748082249357555,
+   "reversed": 0.01748668219212966,
+   "band_ratio": 2.2958383440317975,
+   "picked": "near"
+  },
+  {
+   "number": 21,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 22,
+   "x_mm": 7714.777152104279,
+   "y_mm": 74.90525076464844,
+   "corner": [
+    64,
+    1792
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.172637939453125,
+    0.0003948211669921875
+   ],
+   "open": 0.7497832211742034,
+   "forward": 0.32737937116125415,
+   "reversed": 0.08317708738688383,
+   "band_ratio": 1.444840829173463,
+   "picked": "near"
+  },
+  {
+   "number": 17,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "named",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 74,
+   "x_mm": 6001.8152521649445,
+   "y_mm": 47.36337826391602,
+   "corner": [
+    256,
+    64
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.10887718200683594,
+    0.011518478393554688
+   ],
+   "open": 0.10798273533950617,
+   "forward": 0.19503557185156736,
+   "reversed": 0.003800583262249177,
+   "band_ratio": 3.113838283134028,
+   "picked": "near"
+  },
+  {
+   "number": 28,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "known text",
+   "scan": "PHerc0500P2",
+   "window": "PHerc0500P2-20250825181859-9.362um-1.2m-113keV-0026",
+   "corner": [
+    320,
+    0
+   ],
+   "forward_face": "far",
+   "auc": {
+    "near": 0.5199950269353492,
+    "far": 0.8812889733346095
+   },
+   "open": 0.9508021851329074,
+   "forward": 0.1762567121769611,
+   "reversed": 0.008645385320559197,
+   "band_ratio": 2.5207848619395845,
+   "picked": "far"
+  },
+  {
+   "number": 4,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "known text",
+   "scan": "PHerc0500P2",
+   "window": "PHerc0500P2-20250825181859-9.362um-1.2m-113keV-0006",
+   "corner": [
+    0,
+    256
+   ],
+   "forward_face": "far",
+   "auc": {
+    "near": 0.692939693694669,
+    "far": 0.727039128656659
+   },
+   "open": 0.9305688367260433,
+   "forward": 0.11095880861926607,
+   "reversed": 0.0005168002134505067,
+   "band_ratio": 3.112413904990985,
+   "picked": "far"
+  },
+  {
+   "number": 14,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 56,
+   "x_mm": 2635.970566331992,
+   "y_mm": 46.73510400000001,
+   "corner": [
+    384,
+    1216
+   ],
+   "forward_face": "far",
+   "fibres": "far",
+   "looks": [
+    0.18233299255371094,
+    0.0
+   ],
+   "open": 0.9881220663842905,
+   "forward": 0.11217869722391278,
+   "reversed": 0.003313383404190315,
+   "band_ratio": 1.9927501754427375,
+   "picked": "neither"
+  },
+  {
+   "number": 25,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 9,
+   "x_mm": 5771.306583201846,
+   "y_mm": 47.344243742431644,
+   "corner": [
+    1280,
+    2496
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.1929035186767578,
+    0.015100479125976562
+   ],
+   "open": 0.2233613040123457,
+   "forward": 0.13018339155630212,
+   "reversed": 0.04129656578043967,
+   "band_ratio": 1.4457867523382866,
+   "picked": "near"
+  },
+  {
+   "number": 13,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 0,
+   "x_mm": 5224.407188000322,
+   "y_mm": 47.31078121801758,
+   "corner": [
+    704,
+    896
+   ],
+   "forward_face": "near",
+   "fibres": "unknown",
+   "looks": [
+    0.2245330810546875,
+    0.04765892028808594
+   ],
+   "open": 0.2663850308641975,
+   "forward": 0.15648760988891625,
+   "reversed": 0.096267759641983,
+   "band_ratio": 1.2338129582659385,
+   "picked": "near"
+  },
+  {
+   "number": 16,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 27,
+   "x_mm": 3976.773009854108,
+   "y_mm": 48.10984585424805,
+   "corner": [
+    256,
+    896
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.3266487121582031,
+    0.08279037475585938
+   ],
+   "open": 0.20149257330246914,
+   "forward": 0.2879216878283451,
+   "reversed": 0.23258858585737707,
+   "band_ratio": 1.1163947065067614,
+   "picked": "neither"
+  },
+  {
+   "number": 6,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0055-0067",
+   "piece": 19,
+   "x_mm": 2563.8060104846827,
+   "y_mm": 129.10637066503907,
+   "corner": [
+    1024,
+    1088
+   ],
+   "forward_face": "far",
+   "fibres": "far",
+   "looks": [
+    0.06961631774902344,
+    0.05304908752441406
+   ],
+   "open": 0.37422290381151485,
+   "forward": 0.1405559142403893,
+   "reversed": 0.09565157999595351,
+   "band_ratio": 1.086805453964091,
+   "picked": "near"
+  },
+  {
+   "number": 24,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 32,
+   "x_mm": 6781.21812551897,
+   "y_mm": 73.67805645605469,
+   "corner": [
+    1472,
+    640
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.0055484771728515625,
+    0.30319786071777344
+   ],
+   "open": 0.1800181752160359,
+   "forward": 0.09791072640413724,
+   "reversed": 0.06363043810637618,
+   "band_ratio": 1.0893593440698104,
+   "picked": "neither"
+  },
+  {
+   "number": 20,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "known text",
+   "scan": "PHerc0841",
+   "window": "PHerc0841-20260221022814-9.366um-1.2m-113keV-0002",
+   "corner": [
+    0,
+    0
+   ],
+   "forward_face": "near",
+   "auc": {
+    "near": 0.8367240414837436,
+    "far": 0.5217611552085436
+   },
+   "open": 0.8836145511470475,
+   "forward": 0.170345009390294,
+   "reversed": 0.1379093346781566,
+   "band_ratio": 1.2120276507644892,
+   "picked": "both"
+  },
+  {
+   "number": 23,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0055-0067",
+   "piece": 7,
+   "x_mm": 2796.936320375248,
+   "y_mm": 126.67221233984375,
+   "corner": [
+    576,
+    2496
+   ],
+   "forward_face": "far",
+   "fibres": "far",
+   "looks": [
+    0.17424583435058594,
+    0.07408523559570312
+   ],
+   "open": 0.3740841247649577,
+   "forward": 0.1466545139985587,
+   "reversed": 0.12908170434724314,
+   "band_ratio": 1.0090603406471417,
+   "picked": "neither"
+  },
+  {
+   "number": 11,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 28,
+   "x_mm": 3693.7399132807277,
+   "y_mm": 47.334207273925784,
+   "corner": [
+    128,
+    896
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.0718994140625,
+    0.023256301879882812
+   ],
+   "open": 0.2259834719990432,
+   "forward": 0.060096928464573734,
+   "reversed": 0.048468500383061636,
+   "band_ratio": 0.9397838047593325,
+   "picked": "neither"
+  },
+  {
+   "number": 3,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0011-0023",
+   "piece": 7,
+   "x_mm": 6194.832193100852,
+   "y_mm": 20.955608107055667,
+   "corner": [
+    64,
+    1088
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.17359542846679688,
+    0.011781692504882812
+   ],
+   "open": 0.3322472978114841,
+   "forward": 0.15170107424809165,
+   "reversed": 0.1412155071435103,
+   "band_ratio": 0.9124736259636553,
+   "picked": "near"
+  },
+  {
+   "number": 27,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "known text",
+   "scan": "PHerc0500P2",
+   "window": "PHerc0500P2-20250825181859-9.362um-1.2m-113keV-0005",
+   "corner": [
+    0,
+    0
+   ],
+   "forward_face": "near",
+   "auc": {
+    "near": 0.6316819427147018,
+    "far": 0.5614369166989001
+   },
+   "open": 0.9108245080358265,
+   "forward": 0.05752818329452402,
+   "reversed": 0.05839065225423394,
+   "band_ratio": 1.0221277112264533,
+   "picked": "neither"
+  },
+  {
+   "number": 22,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0055-0067",
+   "piece": 20,
+   "x_mm": 3245.9547844528697,
+   "y_mm": 126.40521404882813,
+   "corner": [
+    1344,
+    1536
+   ],
+   "forward_face": "near",
+   "fibres": "unknown",
+   "looks": [
+    0.13570213317871094,
+    0.3823089599609375
+   ],
+   "open": 0.3376229666924864,
+   "forward": 0.20667226847377523,
+   "reversed": 0.21623644596884975,
+   "band_ratio": 1.1301345606762119,
+   "picked": "far"
+  },
+  {
+   "number": 8,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 14,
+   "x_mm": 8162.699992264616,
+   "y_mm": 46.76362267675782,
+   "corner": [
+    640,
+    640
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.025531768798828125,
+    0.14499473571777344
+   ],
+   "open": 0.4987128665123457,
+   "forward": 0.020210205476868984,
+   "reversed": 0.04176840264918081,
+   "band_ratio": 0.8615888487273792,
+   "picked": "neither"
+  },
+  {
+   "number": 26,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0011-0023",
+   "piece": 10,
+   "x_mm": 5600.562773373403,
+   "y_mm": 20.985654570068363,
+   "corner": [
+    832,
+    1024
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.03877830505371094,
+    0.06869697570800781
+   ],
+   "open": 0.35199981481410036,
+   "forward": 0.08716351739406826,
+   "reversed": 0.11077758170937547,
+   "band_ratio": 0.9256410922477951,
+   "picked": "neither"
+  },
+  {
+   "number": 12,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 18,
+   "x_mm": 2698.883206331992,
+   "y_mm": 74.896,
+   "corner": [
+    0,
+    1536
+   ],
+   "forward_face": "near",
+   "fibres": "unknown",
+   "looks": [
+    0.01537322998046875,
+    0.1022796630859375
+   ],
+   "open": 0.9467486958849533,
+   "forward": 0.007406097892749391,
+   "reversed": 0.03249675725300355,
+   "band_ratio": 0.6367008546584911,
+   "picked": "neither"
+  },
+  {
+   "number": 15,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 27,
+   "x_mm": 6548.116609981638,
+   "y_mm": 73.72738049169922,
+   "corner": [
+    1216,
+    768
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.03643989562988281,
+    0.41329002380371094
+   ],
+   "open": 0.4880553086686481,
+   "forward": 0.03450882433443244,
+   "reversed": 0.11652607479415156,
+   "band_ratio": 0.7275702560563196,
+   "picked": "far"
+  },
+  {
+   "number": 9,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "forward tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0055-0067",
+   "piece": 4,
+   "x_mm": 3927.2909506035376,
+   "y_mm": 126.40724346777344,
+   "corner": [
+    384,
+    1792
+   ],
+   "forward_face": "near",
+   "fibres": "unknown",
+   "looks": [
+    0.4108543395996094,
+    0.1582489013671875
+   ],
+   "open": 0.35638120618422964,
+   "forward": 0.20718384932969414,
+   "reversed": 0.2903513033311637,
+   "band_ratio": 1.1332037430962676,
+   "picked": "far"
+  },
+  {
+   "number": 7,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0055-0067",
+   "piece": 21,
+   "x_mm": 2386.208160817435,
+   "y_mm": 128.87944195410157,
+   "corner": [
+    960,
+    768
+   ],
+   "forward_face": "near",
+   "fibres": "unknown",
+   "looks": [
+    0.05681037902832031,
+    0.1454944610595703
+   ],
+   "open": 0.2163621698997498,
+   "forward": 0.13129472241874962,
+   "reversed": 0.28077171080323476,
+   "band_ratio": 0.7752081540773148,
+   "picked": "both"
+  },
+  {
+   "number": 10,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 12,
+   "x_mm": 3901.7519222293386,
+   "y_mm": 73.73140881201172,
+   "corner": [
+    448,
+    1408
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.00251007080078125,
+    0.28568267822265625
+   ],
+   "open": 0.3138122106481481,
+   "forward": 0.12058470527307402,
+   "reversed": 0.28566928069018827,
+   "band_ratio": 0.7532097654711567,
+   "picked": "neither"
+  },
+  {
+   "number": 1,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0011-0023",
+   "piece": 5,
+   "x_mm": 5329.744660986429,
+   "y_mm": 20.94709942480469,
+   "corner": [
+    192,
+    1344
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.0024089813232421875,
+    0.272552490234375
+   ],
+   "open": 0.2850533227751956,
+   "forward": 0.03238276663632703,
+   "reversed": 0.26713540838389,
+   "band_ratio": 0.49220453687714927,
+   "picked": "neither"
+  },
+  {
+   "number": 5,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "random",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 6,
+   "x_mm": 4833.088570096283,
+   "y_mm": 48.58062908789063,
+   "corner": [
+    1216,
+    2624
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.07672500610351562,
+    0.1908702850341797
+   ],
+   "open": 0.15237145887074488,
+   "forward": 0.017078273309342726,
+   "reversed": 0.2750564159046959,
+   "band_ratio": 0.302225445847508,
+   "picked": "neither"
+  },
+  {
+   "number": 18,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0022-0034",
+   "piece": 18,
+   "x_mm": 7050.340810564367,
+   "y_mm": 47.34020779272461,
+   "corner": [
+    320,
+    2880
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.00098419189453125,
+    0.3189105987548828
+   ],
+   "open": 0.3204039387336225,
+   "forward": 0.006109750688144471,
+   "reversed": 0.2853125968415232,
+   "band_ratio": 0.25188604501918926,
+   "picked": "neither"
+  },
+  {
+   "number": 19,
+   "sides": {
+    "a": "far",
+    "b": "near"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0033-0045",
+   "piece": 11,
+   "x_mm": 4834.286906096282,
+   "y_mm": 75.69298108789063,
+   "corner": [
+    1024,
+    2112
+   ],
+   "forward_face": "near",
+   "fibres": "near",
+   "looks": [
+    0.05078125,
+    0.2750434875488281
+   ],
+   "open": 0.30677627457533446,
+   "forward": 0.05408073595829737,
+   "reversed": 0.34637483631310295,
+   "band_ratio": 0.44413884078648663,
+   "picked": "neither"
+  },
+  {
+   "number": 2,
+   "sides": {
+    "a": "near",
+    "b": "far"
+   },
+   "kind": "reversed tail",
+   "scan": "PHerc0211",
+   "unit": "rows-0055-0067",
+   "piece": 17,
+   "x_mm": 4329.456762212926,
+   "y_mm": 126.40588543554688,
+   "corner": [
+    64,
+    1728
+   ],
+   "forward_face": "far",
+   "fibres": "far",
+   "looks": [
+    0.017152786254882812,
+    0.3331890106201172
+   ],
+   "open": 0.3289875229556012,
+   "forward": 0.09093374456520145,
+   "reversed": 0.3918170917267927,
+   "band_ratio": 0.6559662972258857,
+   "picked": "neither"
+  }
+ ]
+}

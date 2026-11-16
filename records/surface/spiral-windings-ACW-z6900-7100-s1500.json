@@ -1,0 +1,4847 @@
+{
+ "summary": {
+  "fit": "ACW-z6900-7100-s1500",
+  "unit": "rows-0022-0034",
+  "pieces": 537,
+  "cells": 405259,
+  "near": 0.801,
+  "pure": 0.542,
+  "pieces on one winding": 28,
+  "median_voxels": 4.8
+ },
+ "pieces": [
+  {
+   "piece": "piece-0000",
+   "cells": 4073,
+   "near": 0.879,
+   "median_voxels": 4.2,
+   "winding": 83,
+   "on_winding": 0.323,
+   "windings": 18
+  },
+  {
+   "piece": "piece-0001",
+   "cells": 3517,
+   "near": 0.847,
+   "median_voxels": 4.4,
+   "winding": 86,
+   "on_winding": 0.237,
+   "windings": 20
+  },
+  {
+   "piece": "piece-0002",
+   "cells": 4859,
+   "near": 0.817,
+   "median_voxels": 5.0,
+   "winding": 94,
+   "on_winding": 0.265,
+   "windings": 18
+  },
+  {
+   "piece": "piece-0003",
+   "cells": 3074,
+   "near": 0.81,
+   "median_voxels": 5.2,
+   "winding": 92,
+   "on_winding": 0.299,
+   "windings": 17
+  },
+  {
+   "piece": "piece-0004",
+   "cells": 2391,
+   "near": 0.878,
+   "median_voxels": 4.1,
+   "winding": 79,
+   "on_winding": 0.307,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0005",
+   "cells": 3615,
+   "near": 0.766,
+   "median_voxels": 4.2,
+   "winding": 100,
+   "on_winding": 0.253,
+   "windings": 13
+  },
+  {
+   "piece": "piece-0006",
+   "cells": 3425,
+   "near": 0.836,
+   "median_voxels": 4.7,
+   "winding": 83,
+   "on_winding": 0.309,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0007",
+   "cells": 2746,
+   "near": 0.8,
+   "median_voxels": 4.7,
+   "winding": 65,
+   "on_winding": 0.367,
+   "windings": 21
+  },
+  {
+   "piece": "piece-0008",
+   "cells": 1590,
+   "near": 0.786,
+   "median_voxels": 4.9,
+   "winding": 96,
+   "on_winding": 0.767,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0009",
+   "cells": 3072,
+   "near": 0.885,
+   "median_voxels": 4.2,
+   "winding": 86,
+   "on_winding": 0.288,
+   "windings": 17
+  },
+  {
+   "piece": "piece-0010",
+   "cells": 2324,
+   "near": 0.87,
+   "median_voxels": 4.3,
+   "winding": 37,
+   "on_winding": 0.539,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0011",
+   "cells": 1991,
+   "near": 0.693,
+   "median_voxels": 5.8,
+   "winding": 48,
+   "on_winding": 0.367,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0012",
+   "cells": 2570,
+   "near": 0.849,
+   "median_voxels": 4.3,
+   "winding": 89,
+   "on_winding": 0.336,
+   "windings": 18
+  },
+  {
+   "piece": "piece-0013",
+   "cells": 2415,
+   "near": 0.834,
+   "median_voxels": 4.8,
+   "winding": 78,
+   "on_winding": 0.552,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0014",
+   "cells": 2356,
+   "near": 0.844,
+   "median_voxels": 3.9,
+   "winding": 40,
+   "on_winding": 0.873,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0015",
+   "cells": 2874,
+   "near": 0.714,
+   "median_voxels": 6.0,
+   "winding": 44,
+   "on_winding": 0.666,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0016",
+   "cells": 1825,
+   "near": 0.837,
+   "median_voxels": 4.1,
+   "winding": 61,
+   "on_winding": 0.577,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0017",
+   "cells": 1314,
+   "near": 0.511,
+   "median_voxels": 7.8,
+   "winding": 51,
+   "on_winding": 0.381,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0018",
+   "cells": 1909,
+   "near": 0.68,
+   "median_voxels": 6.1,
+   "winding": 51,
+   "on_winding": 0.477,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0019",
+   "cells": 2260,
+   "near": 0.837,
+   "median_voxels": 4.2,
+   "winding": 86,
+   "on_winding": 0.386,
+   "windings": 18
+  },
+  {
+   "piece": "piece-0020",
+   "cells": 2054,
+   "near": 0.864,
+   "median_voxels": 4.0,
+   "winding": 36,
+   "on_winding": 0.857,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0021",
+   "cells": 2038,
+   "near": 0.71,
+   "median_voxels": 5.5,
+   "winding": 43,
+   "on_winding": 0.506,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0022",
+   "cells": 2026,
+   "near": 0.879,
+   "median_voxels": 3.7,
+   "winding": 35,
+   "on_winding": 0.798,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0023",
+   "cells": 2660,
+   "near": 0.894,
+   "median_voxels": 4.0,
+   "winding": 88,
+   "on_winding": 0.64,
+   "windings": 15
+  },
+  {
+   "piece": "piece-0024",
+   "cells": 2048,
+   "near": 0.869,
+   "median_voxels": 4.3,
+   "winding": 33,
+   "on_winding": 0.541,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0025",
+   "cells": 2409,
+   "near": 0.821,
+   "median_voxels": 4.7,
+   "winding": 77,
+   "on_winding": 0.456,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0026",
+   "cells": 2224,
+   "near": 0.811,
+   "median_voxels": 4.8,
+   "winding": 109,
+   "on_winding": 0.678,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0027",
+   "cells": 2195,
+   "near": 0.806,
+   "median_voxels": 4.3,
+   "winding": 82,
+   "on_winding": 0.67,
+   "windings": 15
+  },
+  {
+   "piece": "piece-0028",
+   "cells": 1502,
+   "near": 0.622,
+   "median_voxels": 6.9,
+   "winding": 93,
+   "on_winding": 0.457,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0029",
+   "cells": 501,
+   "near": 0.884,
+   "median_voxels": 4.1,
+   "winding": 47,
+   "on_winding": 0.747,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0030",
+   "cells": 1502,
+   "near": 0.726,
+   "median_voxels": 6.0,
+   "winding": 48,
+   "on_winding": 0.802,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0031",
+   "cells": 2314,
+   "near": 0.842,
+   "median_voxels": 4.7,
+   "winding": 85,
+   "on_winding": 0.35,
+   "windings": 19
+  },
+  {
+   "piece": "piece-0032",
+   "cells": 2177,
+   "near": 0.858,
+   "median_voxels": 4.7,
+   "winding": 41,
+   "on_winding": 0.655,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0033",
+   "cells": 2026,
+   "near": 0.829,
+   "median_voxels": 4.3,
+   "winding": 74,
+   "on_winding": 0.507,
+   "windings": 15
+  },
+  {
+   "piece": "piece-0034",
+   "cells": 1631,
+   "near": 0.858,
+   "median_voxels": 4.1,
+   "winding": 31,
+   "on_winding": 0.791,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0035",
+   "cells": 1693,
+   "near": 0.778,
+   "median_voxels": 5.5,
+   "winding": 46,
+   "on_winding": 0.772,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0036",
+   "cells": 1436,
+   "near": 0.838,
+   "median_voxels": 5.5,
+   "winding": 86,
+   "on_winding": 0.383,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0037",
+   "cells": 2117,
+   "near": 0.878,
+   "median_voxels": 4.0,
+   "winding": 39,
+   "on_winding": 0.689,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0038",
+   "cells": 1290,
+   "near": 0.705,
+   "median_voxels": 5.6,
+   "winding": 45,
+   "on_winding": 0.683,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0039",
+   "cells": 1988,
+   "near": 0.871,
+   "median_voxels": 3.7,
+   "winding": 32,
+   "on_winding": 0.79,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0040",
+   "cells": 2180,
+   "near": 0.816,
+   "median_voxels": 4.6,
+   "winding": 68,
+   "on_winding": 0.476,
+   "windings": 14
+  },
+  {
+   "piece": "piece-0041",
+   "cells": 1603,
+   "near": 0.854,
+   "median_voxels": 4.2,
+   "winding": 30,
+   "on_winding": 0.648,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0042",
+   "cells": 1519,
+   "near": 0.874,
+   "median_voxels": 3.3,
+   "winding": 25,
+   "on_winding": 0.736,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0043",
+   "cells": 1990,
+   "near": 0.791,
+   "median_voxels": 4.9,
+   "winding": 91,
+   "on_winding": 0.709,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0044",
+   "cells": 2222,
+   "near": 0.881,
+   "median_voxels": 4.5,
+   "winding": 90,
+   "on_winding": 0.58,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0045",
+   "cells": 1536,
+   "near": 0.87,
+   "median_voxels": 3.5,
+   "winding": 27,
+   "on_winding": 0.734,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0046",
+   "cells": 1578,
+   "near": 0.878,
+   "median_voxels": 4.0,
+   "winding": 89,
+   "on_winding": 0.779,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0047",
+   "cells": 2167,
+   "near": 0.879,
+   "median_voxels": 3.9,
+   "winding": 87,
+   "on_winding": 0.306,
+   "windings": 17
+  },
+  {
+   "piece": "piece-0048",
+   "cells": 1628,
+   "near": 0.856,
+   "median_voxels": 4.6,
+   "winding": 68,
+   "on_winding": 0.447,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0049",
+   "cells": 1317,
+   "near": 0.825,
+   "median_voxels": 5.3,
+   "winding": 58,
+   "on_winding": 0.461,
+   "windings": 12
+  },
+  {
+   "piece": "piece-0050",
+   "cells": 1360,
+   "near": 0.846,
+   "median_voxels": 4.4,
+   "winding": 24,
+   "on_winding": 0.474,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0051",
+   "cells": 2044,
+   "near": 0.851,
+   "median_voxels": 4.4,
+   "winding": 72,
+   "on_winding": 0.652,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0052",
+   "cells": 1596,
+   "near": 0.756,
+   "median_voxels": 5.3,
+   "winding": 65,
+   "on_winding": 0.48,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0053",
+   "cells": 2191,
+   "near": 0.573,
+   "median_voxels": 6.8,
+   "winding": 49,
+   "on_winding": 0.283,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0054",
+   "cells": 1467,
+   "near": 0.545,
+   "median_voxels": 7.6,
+   "winding": 45,
+   "on_winding": 0.604,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0055",
+   "cells": 1042,
+   "near": 0.749,
+   "median_voxels": 5.1,
+   "winding": 67,
+   "on_winding": 0.599,
+   "windings": 19
+  },
+  {
+   "piece": "piece-0056",
+   "cells": 2210,
+   "near": 0.8,
+   "median_voxels": 5.0,
+   "winding": 114,
+   "on_winding": 0.184,
+   "windings": 13
+  },
+  {
+   "piece": "piece-0057",
+   "cells": 1133,
+   "near": 0.819,
+   "median_voxels": 5.0,
+   "winding": 46,
+   "on_winding": 0.419,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0058",
+   "cells": 1949,
+   "near": 0.883,
+   "median_voxels": 3.6,
+   "winding": 84,
+   "on_winding": 0.686,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0059",
+   "cells": 1523,
+   "near": 0.812,
+   "median_voxels": 4.8,
+   "winding": 71,
+   "on_winding": 0.334,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0060",
+   "cells": 1841,
+   "near": 0.862,
+   "median_voxels": 4.2,
+   "winding": 81,
+   "on_winding": 0.732,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0061",
+   "cells": 1543,
+   "near": 0.861,
+   "median_voxels": 4.3,
+   "winding": 28,
+   "on_winding": 0.461,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0062",
+   "cells": 1321,
+   "near": 0.681,
+   "median_voxels": 6.0,
+   "winding": 52,
+   "on_winding": 0.801,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0063",
+   "cells": 1118,
+   "near": 0.777,
+   "median_voxels": 5.2,
+   "winding": 46,
+   "on_winding": 0.839,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0064",
+   "cells": 420,
+   "near": 0.812,
+   "median_voxels": 4.7,
+   "winding": 53,
+   "on_winding": 0.46,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0065",
+   "cells": 1540,
+   "near": 0.857,
+   "median_voxels": 3.8,
+   "winding": 57,
+   "on_winding": 0.508,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0066",
+   "cells": 1354,
+   "near": 0.869,
+   "median_voxels": 4.2,
+   "winding": 82,
+   "on_winding": 0.503,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0067",
+   "cells": 734,
+   "near": 0.868,
+   "median_voxels": 4.4,
+   "winding": 51,
+   "on_winding": 0.575,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0068",
+   "cells": 1270,
+   "near": 0.86,
+   "median_voxels": 3.7,
+   "winding": 32,
+   "on_winding": 0.705,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0069",
+   "cells": 1278,
+   "near": 0.823,
+   "median_voxels": 5.2,
+   "winding": 56,
+   "on_winding": 0.584,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0070",
+   "cells": 1736,
+   "near": 0.884,
+   "median_voxels": 4.2,
+   "winding": 77,
+   "on_winding": 0.489,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0071",
+   "cells": 1578,
+   "near": 0.825,
+   "median_voxels": 4.7,
+   "winding": 98,
+   "on_winding": 0.82,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0072",
+   "cells": 1689,
+   "near": 0.864,
+   "median_voxels": 3.9,
+   "winding": 70,
+   "on_winding": 0.544,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0073",
+   "cells": 362,
+   "near": 0.674,
+   "median_voxels": 5.4,
+   "winding": 66,
+   "on_winding": 0.418,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0074",
+   "cells": 1114,
+   "near": 0.732,
+   "median_voxels": 4.7,
+   "winding": 100,
+   "on_winding": 0.979,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0075",
+   "cells": 1199,
+   "near": 0.663,
+   "median_voxels": 6.7,
+   "winding": 95,
+   "on_winding": 0.538,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0076",
+   "cells": 1301,
+   "near": 0.573,
+   "median_voxels": 7.2,
+   "winding": 99,
+   "on_winding": 0.627,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0077",
+   "cells": 1752,
+   "near": 0.874,
+   "median_voxels": 4.6,
+   "winding": 73,
+   "on_winding": 0.577,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0078",
+   "cells": 1329,
+   "near": 0.795,
+   "median_voxels": 5.6,
+   "winding": 63,
+   "on_winding": 0.439,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0079",
+   "cells": 972,
+   "near": 0.859,
+   "median_voxels": 3.7,
+   "winding": 22,
+   "on_winding": 0.753,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0080",
+   "cells": 951,
+   "near": 0.664,
+   "median_voxels": 6.6,
+   "winding": 97,
+   "on_winding": 0.626,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0081",
+   "cells": 1189,
+   "near": 0.809,
+   "median_voxels": 4.7,
+   "winding": 69,
+   "on_winding": 0.659,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0082",
+   "cells": 1291,
+   "near": 0.799,
+   "median_voxels": 5.5,
+   "winding": 80,
+   "on_winding": 0.341,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0083",
+   "cells": 430,
+   "near": 0.877,
+   "median_voxels": 3.8,
+   "winding": 67,
+   "on_winding": 0.639,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0084",
+   "cells": 1373,
+   "near": 0.303,
+   "median_voxels": 10.7,
+   "winding": 101,
+   "on_winding": 0.661,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0085",
+   "cells": 1417,
+   "near": 0.819,
+   "median_voxels": 5.1,
+   "winding": 103,
+   "on_winding": 0.435,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0086",
+   "cells": 695,
+   "near": 0.855,
+   "median_voxels": 4.0,
+   "winding": 50,
+   "on_winding": 0.658,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0087",
+   "cells": 1179,
+   "near": 0.877,
+   "median_voxels": 4.7,
+   "winding": 34,
+   "on_winding": 0.347,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0088",
+   "cells": 839,
+   "near": 0.865,
+   "median_voxels": 4.0,
+   "winding": 65,
+   "on_winding": 0.382,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0089",
+   "cells": 508,
+   "near": 0.772,
+   "median_voxels": 5.4,
+   "winding": 97,
+   "on_winding": 0.707,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0090",
+   "cells": 811,
+   "near": 0.764,
+   "median_voxels": 5.4,
+   "winding": 96,
+   "on_winding": 0.545,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0091",
+   "cells": 748,
+   "near": 0.81,
+   "median_voxels": 5.8,
+   "winding": 79,
+   "on_winding": 0.389,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0092",
+   "cells": 1008,
+   "near": 0.871,
+   "median_voxels": 3.7,
+   "winding": 97,
+   "on_winding": 0.951,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0093",
+   "cells": 944,
+   "near": 0.87,
+   "median_voxels": 3.9,
+   "winding": 91,
+   "on_winding": 0.579,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0094",
+   "cells": 946,
+   "near": 0.79,
+   "median_voxels": 5.0,
+   "winding": 75,
+   "on_winding": 0.829,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0095",
+   "cells": 846,
+   "near": 0.831,
+   "median_voxels": 4.9,
+   "winding": 100,
+   "on_winding": 0.755,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0096",
+   "cells": 949,
+   "near": 0.818,
+   "median_voxels": 4.4,
+   "winding": 76,
+   "on_winding": 0.869,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0097",
+   "cells": 1599,
+   "near": 0.609,
+   "median_voxels": 6.8,
+   "winding": 50,
+   "on_winding": 0.866,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0098",
+   "cells": 1097,
+   "near": 0.851,
+   "median_voxels": 4.2,
+   "winding": 66,
+   "on_winding": 0.584,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0099",
+   "cells": 761,
+   "near": 0.859,
+   "median_voxels": 4.2,
+   "winding": 53,
+   "on_winding": 0.5,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0100",
+   "cells": 350,
+   "near": 0.409,
+   "median_voxels": 9.1,
+   "winding": 54,
+   "on_winding": 0.343,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0101",
+   "cells": 1043,
+   "near": 0.822,
+   "median_voxels": 4.1,
+   "winding": 48,
+   "on_winding": 0.397,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0102",
+   "cells": 1135,
+   "near": 0.837,
+   "median_voxels": 3.8,
+   "winding": 44,
+   "on_winding": 0.602,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0103",
+   "cells": 993,
+   "near": 0.876,
+   "median_voxels": 4.1,
+   "winding": 99,
+   "on_winding": 0.861,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0104",
+   "cells": 1322,
+   "near": 0.722,
+   "median_voxels": 6.0,
+   "winding": 97,
+   "on_winding": 0.692,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0105",
+   "cells": 1255,
+   "near": 0.865,
+   "median_voxels": 3.4,
+   "winding": 49,
+   "on_winding": 0.594,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0106",
+   "cells": 1225,
+   "near": 0.687,
+   "median_voxels": 6.2,
+   "winding": 98,
+   "on_winding": 0.562,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0107",
+   "cells": 1229,
+   "near": 0.825,
+   "median_voxels": 4.4,
+   "winding": 62,
+   "on_winding": 0.388,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0108",
+   "cells": 89,
+   "near": 0.899,
+   "median_voxels": 4.1,
+   "winding": 59,
+   "on_winding": 0.875,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0109",
+   "cells": 1038,
+   "near": 0.88,
+   "median_voxels": 3.2,
+   "winding": 18,
+   "on_winding": 0.782,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0110",
+   "cells": 804,
+   "near": 0.848,
+   "median_voxels": 4.3,
+   "winding": 90,
+   "on_winding": 0.485,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0111",
+   "cells": 1455,
+   "near": 0.855,
+   "median_voxels": 3.9,
+   "winding": 84,
+   "on_winding": 0.61,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0112",
+   "cells": 862,
+   "near": 0.855,
+   "median_voxels": 4.5,
+   "winding": 24,
+   "on_winding": 0.518,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0113",
+   "cells": 1520,
+   "near": 0.805,
+   "median_voxels": 5.2,
+   "winding": 61,
+   "on_winding": 0.409,
+   "windings": 21
+  },
+  {
+   "piece": "piece-0114",
+   "cells": 1264,
+   "near": 0.833,
+   "median_voxels": 5.1,
+   "winding": 98,
+   "on_winding": 0.429,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0115",
+   "cells": 1507,
+   "near": 0.845,
+   "median_voxels": 4.0,
+   "winding": 62,
+   "on_winding": 0.513,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0116",
+   "cells": 829,
+   "near": 0.838,
+   "median_voxels": 3.9,
+   "winding": 80,
+   "on_winding": 0.547,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0117",
+   "cells": 742,
+   "near": 0.72,
+   "median_voxels": 6.1,
+   "winding": 62,
+   "on_winding": 0.579,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0118",
+   "cells": 1011,
+   "near": 0.859,
+   "median_voxels": 4.1,
+   "winding": 20,
+   "on_winding": 0.449,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0119",
+   "cells": 1051,
+   "near": 0.713,
+   "median_voxels": 6.1,
+   "winding": 57,
+   "on_winding": 0.47,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0120",
+   "cells": 658,
+   "near": 0.878,
+   "median_voxels": 4.1,
+   "winding": 23,
+   "on_winding": 0.285,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0121",
+   "cells": 1062,
+   "near": 0.734,
+   "median_voxels": 5.9,
+   "winding": 94,
+   "on_winding": 0.729,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0122",
+   "cells": 698,
+   "near": 0.831,
+   "median_voxels": 5.1,
+   "winding": 63,
+   "on_winding": 0.443,
+   "windings": 14
+  },
+  {
+   "piece": "piece-0123",
+   "cells": 2044,
+   "near": 0.849,
+   "median_voxels": 4.8,
+   "winding": 91,
+   "on_winding": 0.275,
+   "windings": 17
+  },
+  {
+   "piece": "piece-0124",
+   "cells": 1467,
+   "near": 0.864,
+   "median_voxels": 4.2,
+   "winding": 73,
+   "on_winding": 0.598,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0125",
+   "cells": 533,
+   "near": 0.747,
+   "median_voxels": 5.8,
+   "winding": 59,
+   "on_winding": 0.593,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0126",
+   "cells": 1330,
+   "near": 0.849,
+   "median_voxels": 3.7,
+   "winding": 88,
+   "on_winding": 0.264,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0127",
+   "cells": 1212,
+   "near": 0.851,
+   "median_voxels": 4.1,
+   "winding": 42,
+   "on_winding": 0.484,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0128",
+   "cells": 844,
+   "near": 0.876,
+   "median_voxels": 3.9,
+   "winding": 36,
+   "on_winding": 0.482,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0129",
+   "cells": 1212,
+   "near": 0.861,
+   "median_voxels": 4.3,
+   "winding": 25,
+   "on_winding": 0.497,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0130",
+   "cells": 1069,
+   "near": 0.846,
+   "median_voxels": 4.9,
+   "winding": 94,
+   "on_winding": 0.52,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0131",
+   "cells": 842,
+   "near": 0.859,
+   "median_voxels": 5.0,
+   "winding": 101,
+   "on_winding": 0.447,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0132",
+   "cells": 960,
+   "near": 0.818,
+   "median_voxels": 4.8,
+   "winding": 69,
+   "on_winding": 0.464,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0133",
+   "cells": 1177,
+   "near": 0.805,
+   "median_voxels": 5.6,
+   "winding": 79,
+   "on_winding": 0.361,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0134",
+   "cells": 683,
+   "near": 0.536,
+   "median_voxels": 7.6,
+   "winding": 53,
+   "on_winding": 0.634,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0135",
+   "cells": 1209,
+   "near": 0.678,
+   "median_voxels": 5.5,
+   "winding": 49,
+   "on_winding": 0.916,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0136",
+   "cells": 900,
+   "near": 0.834,
+   "median_voxels": 4.2,
+   "winding": 60,
+   "on_winding": 0.819,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0137",
+   "cells": 573,
+   "near": 0.778,
+   "median_voxels": 4.9,
+   "winding": 79,
+   "on_winding": 0.574,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0138",
+   "cells": 1300,
+   "near": 0.798,
+   "median_voxels": 4.8,
+   "winding": 68,
+   "on_winding": 0.5,
+   "windings": 19
+  },
+  {
+   "piece": "piece-0140",
+   "cells": 741,
+   "near": 0.547,
+   "median_voxels": 7.2,
+   "winding": 102,
+   "on_winding": 0.484,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0141",
+   "cells": 1054,
+   "near": 0.857,
+   "median_voxels": 4.2,
+   "winding": 71,
+   "on_winding": 0.605,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0142",
+   "cells": 1181,
+   "near": 0.839,
+   "median_voxels": 4.1,
+   "winding": 93,
+   "on_winding": 0.307,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0143",
+   "cells": 530,
+   "near": 0.849,
+   "median_voxels": 3.9,
+   "winding": 38,
+   "on_winding": 0.807,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0144",
+   "cells": 1177,
+   "near": 0.857,
+   "median_voxels": 3.6,
+   "winding": 39,
+   "on_winding": 0.658,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0145",
+   "cells": 500,
+   "near": 0.834,
+   "median_voxels": 4.1,
+   "winding": 75,
+   "on_winding": 0.48,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0146",
+   "cells": 918,
+   "near": 0.722,
+   "median_voxels": 5.7,
+   "winding": 93,
+   "on_winding": 0.715,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0147",
+   "cells": 1013,
+   "near": 0.859,
+   "median_voxels": 3.7,
+   "winding": 52,
+   "on_winding": 0.52,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0148",
+   "cells": 1426,
+   "near": 0.775,
+   "median_voxels": 5.3,
+   "winding": 71,
+   "on_winding": 0.476,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0149",
+   "cells": 920,
+   "near": 0.877,
+   "median_voxels": 4.3,
+   "winding": 83,
+   "on_winding": 0.545,
+   "windings": 12
+  },
+  {
+   "piece": "piece-0150",
+   "cells": 1189,
+   "near": 0.856,
+   "median_voxels": 3.5,
+   "winding": 55,
+   "on_winding": 0.679,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0151",
+   "cells": 902,
+   "near": 0.769,
+   "median_voxels": 4.9,
+   "winding": 101,
+   "on_winding": 0.994,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0152",
+   "cells": 345,
+   "near": 0.791,
+   "median_voxels": 5.9,
+   "winding": 86,
+   "on_winding": 0.586,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0153",
+   "cells": 1500,
+   "near": 0.637,
+   "median_voxels": 6.6,
+   "winding": 53,
+   "on_winding": 0.453,
+   "windings": 12
+  },
+  {
+   "piece": "piece-0154",
+   "cells": 973,
+   "near": 0.745,
+   "median_voxels": 5.0,
+   "winding": 104,
+   "on_winding": 0.343,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0155",
+   "cells": 733,
+   "near": 0.812,
+   "median_voxels": 5.3,
+   "winding": 57,
+   "on_winding": 0.385,
+   "windings": 14
+  },
+  {
+   "piece": "piece-0156",
+   "cells": 1215,
+   "near": 0.742,
+   "median_voxels": 5.9,
+   "winding": 47,
+   "on_winding": 0.467,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0157",
+   "cells": 829,
+   "near": 0.813,
+   "median_voxels": 5.1,
+   "winding": 65,
+   "on_winding": 0.444,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0158",
+   "cells": 824,
+   "near": 0.829,
+   "median_voxels": 5.2,
+   "winding": 19,
+   "on_winding": 0.552,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0159",
+   "cells": 645,
+   "near": 0.836,
+   "median_voxels": 4.0,
+   "winding": 52,
+   "on_winding": 0.269,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0160",
+   "cells": 1677,
+   "near": 0.853,
+   "median_voxels": 4.9,
+   "winding": 64,
+   "on_winding": 0.474,
+   "windings": 15
+  },
+  {
+   "piece": "piece-0161",
+   "cells": 1472,
+   "near": 0.802,
+   "median_voxels": 4.7,
+   "winding": 61,
+   "on_winding": 0.498,
+   "windings": 22
+  },
+  {
+   "piece": "piece-0162",
+   "cells": 682,
+   "near": 0.735,
+   "median_voxels": 5.8,
+   "winding": 97,
+   "on_winding": 0.481,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0163",
+   "cells": 673,
+   "near": 0.845,
+   "median_voxels": 3.9,
+   "winding": 12,
+   "on_winding": 0.682,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0164",
+   "cells": 750,
+   "near": 0.836,
+   "median_voxels": 4.1,
+   "winding": 17,
+   "on_winding": 0.778,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0165",
+   "cells": 292,
+   "near": 0.651,
+   "median_voxels": 5.9,
+   "winding": 54,
+   "on_winding": 0.884,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0166",
+   "cells": 864,
+   "near": 0.847,
+   "median_voxels": 5.2,
+   "winding": 99,
+   "on_winding": 0.676,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0167",
+   "cells": 285,
+   "near": 0.821,
+   "median_voxels": 5.3,
+   "winding": 93,
+   "on_winding": 0.611,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0168",
+   "cells": 1047,
+   "near": 0.866,
+   "median_voxels": 4.2,
+   "winding": 76,
+   "on_winding": 0.52,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0169",
+   "cells": 194,
+   "near": 0.649,
+   "median_voxels": 6.1,
+   "winding": 57,
+   "on_winding": 0.365,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0170",
+   "cells": 718,
+   "near": 0.804,
+   "median_voxels": 4.5,
+   "winding": 94,
+   "on_winding": 0.572,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0171",
+   "cells": 880,
+   "near": 0.869,
+   "median_voxels": 4.3,
+   "winding": 21,
+   "on_winding": 0.708,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0172",
+   "cells": 540,
+   "near": 0.896,
+   "median_voxels": 4.4,
+   "winding": 58,
+   "on_winding": 0.748,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0173",
+   "cells": 197,
+   "near": 0.751,
+   "median_voxels": 5.8,
+   "winding": 60,
+   "on_winding": 0.568,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0174",
+   "cells": 672,
+   "near": 0.753,
+   "median_voxels": 5.6,
+   "winding": 60,
+   "on_winding": 0.84,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0175",
+   "cells": 644,
+   "near": 0.879,
+   "median_voxels": 4.0,
+   "winding": 57,
+   "on_winding": 0.758,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0176",
+   "cells": 725,
+   "near": 0.708,
+   "median_voxels": 5.6,
+   "winding": 49,
+   "on_winding": 0.692,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0177",
+   "cells": 773,
+   "near": 0.885,
+   "median_voxels": 4.0,
+   "winding": 55,
+   "on_winding": 0.485,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0178",
+   "cells": 986,
+   "near": 0.763,
+   "median_voxels": 6.3,
+   "winding": 45,
+   "on_winding": 0.581,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0179",
+   "cells": 1009,
+   "near": 0.793,
+   "median_voxels": 4.6,
+   "winding": 93,
+   "on_winding": 0.675,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0180",
+   "cells": 715,
+   "near": 0.876,
+   "median_voxels": 4.5,
+   "winding": 86,
+   "on_winding": 0.308,
+   "windings": 12
+  },
+  {
+   "piece": "piece-0181",
+   "cells": 501,
+   "near": 0.84,
+   "median_voxels": 4.0,
+   "winding": 66,
+   "on_winding": 0.865,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0182",
+   "cells": 1087,
+   "near": 0.856,
+   "median_voxels": 3.8,
+   "winding": 86,
+   "on_winding": 0.342,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0183",
+   "cells": 1432,
+   "near": 0.818,
+   "median_voxels": 4.7,
+   "winding": 56,
+   "on_winding": 0.566,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0184",
+   "cells": 713,
+   "near": 0.82,
+   "median_voxels": 4.5,
+   "winding": 60,
+   "on_winding": 0.644,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0185",
+   "cells": 533,
+   "near": 0.771,
+   "median_voxels": 5.4,
+   "winding": 95,
+   "on_winding": 0.659,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0186",
+   "cells": 700,
+   "near": 0.879,
+   "median_voxels": 3.5,
+   "winding": 17,
+   "on_winding": 0.433,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0187",
+   "cells": 714,
+   "near": 0.65,
+   "median_voxels": 6.3,
+   "winding": 96,
+   "on_winding": 0.627,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0188",
+   "cells": 688,
+   "near": 0.685,
+   "median_voxels": 5.2,
+   "winding": 44,
+   "on_winding": 0.841,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0189",
+   "cells": 816,
+   "near": 0.833,
+   "median_voxels": 3.7,
+   "winding": 53,
+   "on_winding": 0.5,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0190",
+   "cells": 228,
+   "near": 0.86,
+   "median_voxels": 5.6,
+   "winding": 100,
+   "on_winding": 0.633,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0191",
+   "cells": 1015,
+   "near": 0.83,
+   "median_voxels": 5.1,
+   "winding": 96,
+   "on_winding": 0.694,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0192",
+   "cells": 605,
+   "near": 0.851,
+   "median_voxels": 5.3,
+   "winding": 76,
+   "on_winding": 0.416,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0193",
+   "cells": 1221,
+   "near": 0.749,
+   "median_voxels": 5.8,
+   "winding": 98,
+   "on_winding": 0.571,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0195",
+   "cells": 80,
+   "near": 0.662,
+   "median_voxels": 7.0,
+   "winding": 73,
+   "on_winding": 0.906,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0196",
+   "cells": 1255,
+   "near": 0.848,
+   "median_voxels": 3.2,
+   "winding": 91,
+   "on_winding": 0.326,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0197",
+   "cells": 1330,
+   "near": 0.8,
+   "median_voxels": 5.3,
+   "winding": 77,
+   "on_winding": 0.492,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0198",
+   "cells": 464,
+   "near": 0.528,
+   "median_voxels": 7.8,
+   "winding": 92,
+   "on_winding": 0.531,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0199",
+   "cells": 586,
+   "near": 0.841,
+   "median_voxels": 5.2,
+   "winding": 97,
+   "on_winding": 0.854,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0200",
+   "cells": 733,
+   "near": 0.853,
+   "median_voxels": 3.5,
+   "winding": 13,
+   "on_winding": 0.765,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0201",
+   "cells": 385,
+   "near": 0.847,
+   "median_voxels": 4.4,
+   "winding": 50,
+   "on_winding": 0.607,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0202",
+   "cells": 724,
+   "near": 0.68,
+   "median_voxels": 6.5,
+   "winding": 94,
+   "on_winding": 0.567,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0203",
+   "cells": 852,
+   "near": 0.867,
+   "median_voxels": 3.9,
+   "winding": 16,
+   "on_winding": 0.556,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0204",
+   "cells": 1433,
+   "near": 0.863,
+   "median_voxels": 4.4,
+   "winding": 59,
+   "on_winding": 0.715,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0205",
+   "cells": 726,
+   "near": 0.81,
+   "median_voxels": 4.5,
+   "winding": 102,
+   "on_winding": 0.51,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0206",
+   "cells": 69,
+   "near": 0.696,
+   "median_voxels": 5.8,
+   "winding": 60,
+   "on_winding": 0.438,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0207",
+   "cells": 528,
+   "near": 0.392,
+   "median_voxels": 9.0,
+   "winding": 102,
+   "on_winding": 0.899,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0208",
+   "cells": 431,
+   "near": 0.87,
+   "median_voxels": 2.8,
+   "winding": 92,
+   "on_winding": 0.691,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0209",
+   "cells": 553,
+   "near": 0.859,
+   "median_voxels": 3.6,
+   "winding": 86,
+   "on_winding": 0.381,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0210",
+   "cells": 229,
+   "near": 0.886,
+   "median_voxels": 4.0,
+   "winding": 70,
+   "on_winding": 0.611,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0211",
+   "cells": 84,
+   "near": 0.81,
+   "median_voxels": 3.6,
+   "winding": 73,
+   "on_winding": 0.985,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0212",
+   "cells": 761,
+   "near": 0.703,
+   "median_voxels": 5.5,
+   "winding": 88,
+   "on_winding": 0.557,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0213",
+   "cells": 690,
+   "near": 0.814,
+   "median_voxels": 4.7,
+   "winding": 59,
+   "on_winding": 0.466,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0215",
+   "cells": 58,
+   "near": 0.638,
+   "median_voxels": 4.1,
+   "winding": 99,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0216",
+   "cells": 775,
+   "near": 0.79,
+   "median_voxels": 5.5,
+   "winding": 84,
+   "on_winding": 0.353,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0217",
+   "cells": 635,
+   "near": 0.847,
+   "median_voxels": 4.4,
+   "winding": 70,
+   "on_winding": 0.513,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0218",
+   "cells": 714,
+   "near": 0.853,
+   "median_voxels": 4.8,
+   "winding": 102,
+   "on_winding": 0.478,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0220",
+   "cells": 291,
+   "near": 0.924,
+   "median_voxels": 4.4,
+   "winding": 104,
+   "on_winding": 0.394,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0223",
+   "cells": 1034,
+   "near": 0.891,
+   "median_voxels": 4.0,
+   "winding": 67,
+   "on_winding": 0.459,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0224",
+   "cells": 503,
+   "near": 0.05,
+   "median_voxels": 17.1,
+   "winding": 10,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0226",
+   "cells": 223,
+   "near": 0.731,
+   "median_voxels": 6.2,
+   "winding": 73,
+   "on_winding": 0.546,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0227",
+   "cells": 1070,
+   "near": 0.821,
+   "median_voxels": 4.6,
+   "winding": 53,
+   "on_winding": 0.586,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0228",
+   "cells": 497,
+   "near": 0.891,
+   "median_voxels": 3.6,
+   "winding": 67,
+   "on_winding": 0.248,
+   "windings": 15
+  },
+  {
+   "piece": "piece-0229",
+   "cells": 668,
+   "near": 0.865,
+   "median_voxels": 3.3,
+   "winding": 41,
+   "on_winding": 0.509,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0230",
+   "cells": 553,
+   "near": 0.807,
+   "median_voxels": 4.2,
+   "winding": 96,
+   "on_winding": 0.765,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0232",
+   "cells": 1382,
+   "near": 0.828,
+   "median_voxels": 4.0,
+   "winding": 95,
+   "on_winding": 0.36,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0233",
+   "cells": 505,
+   "near": 0.903,
+   "median_voxels": 3.6,
+   "winding": 46,
+   "on_winding": 0.454,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0234",
+   "cells": 1087,
+   "near": 0.864,
+   "median_voxels": 4.2,
+   "winding": 75,
+   "on_winding": 0.322,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0235",
+   "cells": 298,
+   "near": 0.735,
+   "median_voxels": 6.0,
+   "winding": 98,
+   "on_winding": 0.639,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0236",
+   "cells": 798,
+   "near": 0.88,
+   "median_voxels": 4.8,
+   "winding": 64,
+   "on_winding": 0.42,
+   "windings": 16
+  },
+  {
+   "piece": "piece-0237",
+   "cells": 1008,
+   "near": 0.868,
+   "median_voxels": 4.0,
+   "winding": 68,
+   "on_winding": 0.371,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0238",
+   "cells": 726,
+   "near": 0.784,
+   "median_voxels": 5.1,
+   "winding": 92,
+   "on_winding": 0.599,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0239",
+   "cells": 570,
+   "near": 0.747,
+   "median_voxels": 5.1,
+   "winding": 50,
+   "on_winding": 0.859,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0240",
+   "cells": 846,
+   "near": 0.856,
+   "median_voxels": 4.2,
+   "winding": 80,
+   "on_winding": 0.587,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0241",
+   "cells": 657,
+   "near": 0.846,
+   "median_voxels": 4.7,
+   "winding": 96,
+   "on_winding": 0.493,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0242",
+   "cells": 1075,
+   "near": 0.846,
+   "median_voxels": 4.4,
+   "winding": 22,
+   "on_winding": 0.381,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0243",
+   "cells": 534,
+   "near": 0.884,
+   "median_voxels": 4.8,
+   "winding": 102,
+   "on_winding": 0.456,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0244",
+   "cells": 248,
+   "near": 0.766,
+   "median_voxels": 5.6,
+   "winding": 98,
+   "on_winding": 0.689,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0245",
+   "cells": 542,
+   "near": 0.867,
+   "median_voxels": 4.2,
+   "winding": 28,
+   "on_winding": 0.528,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0246",
+   "cells": 598,
+   "near": 0.557,
+   "median_voxels": 6.9,
+   "winding": 10,
+   "on_winding": 0.943,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0247",
+   "cells": 615,
+   "near": 0.857,
+   "median_voxels": 3.9,
+   "winding": 13,
+   "on_winding": 0.856,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0248",
+   "cells": 346,
+   "near": 0.633,
+   "median_voxels": 7.0,
+   "winding": 52,
+   "on_winding": 0.434,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0249",
+   "cells": 35,
+   "near": 0.543,
+   "median_voxels": 4.2,
+   "winding": 75,
+   "on_winding": 0.632,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0250",
+   "cells": 398,
+   "near": 0.857,
+   "median_voxels": 4.0,
+   "winding": 63,
+   "on_winding": 0.824,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0251",
+   "cells": 708,
+   "near": 0.864,
+   "median_voxels": 3.2,
+   "winding": 51,
+   "on_winding": 0.641,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0252",
+   "cells": 1014,
+   "near": 0.694,
+   "median_voxels": 5.9,
+   "winding": 64,
+   "on_winding": 0.646,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0253",
+   "cells": 660,
+   "near": 0.802,
+   "median_voxels": 4.5,
+   "winding": 39,
+   "on_winding": 0.692,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0254",
+   "cells": 575,
+   "near": 0.882,
+   "median_voxels": 3.3,
+   "winding": 45,
+   "on_winding": 0.759,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0255",
+   "cells": 395,
+   "near": 0.81,
+   "median_voxels": 4.5,
+   "winding": 66,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0256",
+   "cells": 137,
+   "near": 0.854,
+   "median_voxels": 4.4,
+   "winding": 87,
+   "on_winding": 0.752,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0257",
+   "cells": 691,
+   "near": 0.841,
+   "median_voxels": 4.6,
+   "winding": 76,
+   "on_winding": 0.386,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0258",
+   "cells": 433,
+   "near": 0.801,
+   "median_voxels": 5.7,
+   "winding": 79,
+   "on_winding": 0.427,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0259",
+   "cells": 978,
+   "near": 0.866,
+   "median_voxels": 3.7,
+   "winding": 38,
+   "on_winding": 0.665,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0261",
+   "cells": 314,
+   "near": 0.739,
+   "median_voxels": 5.4,
+   "winding": 99,
+   "on_winding": 0.737,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0262",
+   "cells": 889,
+   "near": 0.884,
+   "median_voxels": 3.9,
+   "winding": 30,
+   "on_winding": 0.528,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0263",
+   "cells": 660,
+   "near": 0.732,
+   "median_voxels": 5.6,
+   "winding": 93,
+   "on_winding": 0.625,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0264",
+   "cells": 692,
+   "near": 0.845,
+   "median_voxels": 4.4,
+   "winding": 27,
+   "on_winding": 0.627,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0265",
+   "cells": 837,
+   "near": 0.824,
+   "median_voxels": 4.8,
+   "winding": 42,
+   "on_winding": 0.528,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0266",
+   "cells": 323,
+   "near": 0.851,
+   "median_voxels": 5.0,
+   "winding": 54,
+   "on_winding": 0.222,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0268",
+   "cells": 642,
+   "near": 0.812,
+   "median_voxels": 4.6,
+   "winding": 79,
+   "on_winding": 0.393,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0269",
+   "cells": 661,
+   "near": 0.821,
+   "median_voxels": 5.0,
+   "winding": 46,
+   "on_winding": 0.372,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0270",
+   "cells": 236,
+   "near": 0.818,
+   "median_voxels": 5.1,
+   "winding": 94,
+   "on_winding": 0.725,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0271",
+   "cells": 578,
+   "near": 0.872,
+   "median_voxels": 4.7,
+   "winding": 81,
+   "on_winding": 0.437,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0272",
+   "cells": 489,
+   "near": 0.863,
+   "median_voxels": 4.6,
+   "winding": 78,
+   "on_winding": 0.718,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0273",
+   "cells": 403,
+   "near": 0.754,
+   "median_voxels": 5.7,
+   "winding": 95,
+   "on_winding": 0.924,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0274",
+   "cells": 467,
+   "near": 0.507,
+   "median_voxels": 7.9,
+   "winding": 42,
+   "on_winding": 0.532,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0275",
+   "cells": 291,
+   "near": 0.735,
+   "median_voxels": 6.1,
+   "winding": 96,
+   "on_winding": 0.636,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0276",
+   "cells": 804,
+   "near": 0.801,
+   "median_voxels": 5.0,
+   "winding": 82,
+   "on_winding": 0.331,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0277",
+   "cells": 155,
+   "near": 0.923,
+   "median_voxels": 3.6,
+   "winding": 74,
+   "on_winding": 0.657,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0278",
+   "cells": 159,
+   "near": 0.56,
+   "median_voxels": 7.3,
+   "winding": 46,
+   "on_winding": 0.742,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0280",
+   "cells": 455,
+   "near": 0.776,
+   "median_voxels": 6.3,
+   "winding": 41,
+   "on_winding": 0.788,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0281",
+   "cells": 864,
+   "near": 0.715,
+   "median_voxels": 5.7,
+   "winding": 66,
+   "on_winding": 0.346,
+   "windings": 18
+  },
+  {
+   "piece": "piece-0282",
+   "cells": 226,
+   "near": 0.876,
+   "median_voxels": 4.6,
+   "winding": 57,
+   "on_winding": 0.591,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0283",
+   "cells": 1148,
+   "near": 0.812,
+   "median_voxels": 5.4,
+   "winding": 60,
+   "on_winding": 0.546,
+   "windings": 17
+  },
+  {
+   "piece": "piece-0285",
+   "cells": 442,
+   "near": 0.808,
+   "median_voxels": 4.4,
+   "winding": 104,
+   "on_winding": 0.496,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0286",
+   "cells": 563,
+   "near": 0.634,
+   "median_voxels": 6.1,
+   "winding": 92,
+   "on_winding": 0.863,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0287",
+   "cells": 450,
+   "near": 0.633,
+   "median_voxels": 6.1,
+   "winding": 102,
+   "on_winding": 0.533,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0288",
+   "cells": 718,
+   "near": 0.875,
+   "median_voxels": 3.8,
+   "winding": 88,
+   "on_winding": 0.67,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0290",
+   "cells": 357,
+   "near": 0.866,
+   "median_voxels": 4.2,
+   "winding": 86,
+   "on_winding": 0.359,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0291",
+   "cells": 527,
+   "near": 0.803,
+   "median_voxels": 4.6,
+   "winding": 54,
+   "on_winding": 0.622,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0292",
+   "cells": 381,
+   "near": 0.816,
+   "median_voxels": 5.3,
+   "winding": 100,
+   "on_winding": 0.537,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0293",
+   "cells": 287,
+   "near": 0.721,
+   "median_voxels": 5.9,
+   "winding": 101,
+   "on_winding": 0.546,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0294",
+   "cells": 716,
+   "near": 0.838,
+   "median_voxels": 4.1,
+   "winding": 29,
+   "on_winding": 0.652,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0295",
+   "cells": 574,
+   "near": 0.81,
+   "median_voxels": 5.0,
+   "winding": 91,
+   "on_winding": 0.875,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0296",
+   "cells": 912,
+   "near": 0.773,
+   "median_voxels": 5.9,
+   "winding": 56,
+   "on_winding": 0.607,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0298",
+   "cells": 1235,
+   "near": 0.851,
+   "median_voxels": 4.4,
+   "winding": 97,
+   "on_winding": 0.523,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0299",
+   "cells": 1137,
+   "near": 0.843,
+   "median_voxels": 4.2,
+   "winding": 47,
+   "on_winding": 0.377,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0300",
+   "cells": 434,
+   "near": 0.857,
+   "median_voxels": 4.2,
+   "winding": 11,
+   "on_winding": 0.677,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0301",
+   "cells": 559,
+   "near": 0.846,
+   "median_voxels": 4.9,
+   "winding": 83,
+   "on_winding": 0.425,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0302",
+   "cells": 535,
+   "near": 0.867,
+   "median_voxels": 4.1,
+   "winding": 27,
+   "on_winding": 0.541,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0303",
+   "cells": 454,
+   "near": 0.828,
+   "median_voxels": 5.5,
+   "winding": 29,
+   "on_winding": 0.5,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0304",
+   "cells": 641,
+   "near": 0.711,
+   "median_voxels": 5.7,
+   "winding": 62,
+   "on_winding": 0.406,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0305",
+   "cells": 399,
+   "near": 0.842,
+   "median_voxels": 4.6,
+   "winding": 101,
+   "on_winding": 0.604,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0306",
+   "cells": 641,
+   "near": 0.913,
+   "median_voxels": 3.9,
+   "winding": 73,
+   "on_winding": 0.41,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0307",
+   "cells": 1208,
+   "near": 0.779,
+   "median_voxels": 4.5,
+   "winding": 54,
+   "on_winding": 0.707,
+   "windings": 12
+  },
+  {
+   "piece": "piece-0308",
+   "cells": 927,
+   "near": 0.901,
+   "median_voxels": 4.3,
+   "winding": 72,
+   "on_winding": 0.338,
+   "windings": 15
+  },
+  {
+   "piece": "piece-0309",
+   "cells": 386,
+   "near": 0.85,
+   "median_voxels": 4.5,
+   "winding": 84,
+   "on_winding": 0.811,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0310",
+   "cells": 209,
+   "near": 0.866,
+   "median_voxels": 4.1,
+   "winding": 81,
+   "on_winding": 0.796,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0313",
+   "cells": 62,
+   "near": 0.871,
+   "median_voxels": 3.8,
+   "winding": 22,
+   "on_winding": 0.722,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0314",
+   "cells": 250,
+   "near": 0.892,
+   "median_voxels": 4.4,
+   "winding": 101,
+   "on_winding": 0.825,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0315",
+   "cells": 335,
+   "near": 0.851,
+   "median_voxels": 4.5,
+   "winding": 69,
+   "on_winding": 0.246,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0316",
+   "cells": 305,
+   "near": 0.951,
+   "median_voxels": 4.2,
+   "winding": 85,
+   "on_winding": 0.486,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0317",
+   "cells": 726,
+   "near": 0.817,
+   "median_voxels": 4.2,
+   "winding": 35,
+   "on_winding": 0.444,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0319",
+   "cells": 118,
+   "near": 0.839,
+   "median_voxels": 5.6,
+   "winding": 30,
+   "on_winding": 0.646,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0324",
+   "cells": 279,
+   "near": 0.885,
+   "median_voxels": 4.4,
+   "winding": 90,
+   "on_winding": 0.498,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0325",
+   "cells": 403,
+   "near": 0.821,
+   "median_voxels": 4.7,
+   "winding": 54,
+   "on_winding": 0.299,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0326",
+   "cells": 522,
+   "near": 0.707,
+   "median_voxels": 5.5,
+   "winding": 94,
+   "on_winding": 0.385,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0327",
+   "cells": 697,
+   "near": 0.844,
+   "median_voxels": 3.8,
+   "winding": 15,
+   "on_winding": 0.529,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0329",
+   "cells": 383,
+   "near": 0.802,
+   "median_voxels": 4.8,
+   "winding": 90,
+   "on_winding": 0.625,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0330",
+   "cells": 859,
+   "near": 0.853,
+   "median_voxels": 3.9,
+   "winding": 80,
+   "on_winding": 0.491,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0331",
+   "cells": 1532,
+   "near": 0.863,
+   "median_voxels": 4.1,
+   "winding": 69,
+   "on_winding": 0.3,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0334",
+   "cells": 503,
+   "near": 0.871,
+   "median_voxels": 4.9,
+   "winding": 36,
+   "on_winding": 0.537,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0335",
+   "cells": 295,
+   "near": 0.82,
+   "median_voxels": 4.8,
+   "winding": 100,
+   "on_winding": 0.748,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0336",
+   "cells": 913,
+   "near": 0.823,
+   "median_voxels": 4.7,
+   "winding": 58,
+   "on_winding": 0.671,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0337",
+   "cells": 421,
+   "near": 0.85,
+   "median_voxels": 3.2,
+   "winding": 66,
+   "on_winding": 0.425,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0338",
+   "cells": 252,
+   "near": 0.857,
+   "median_voxels": 4.7,
+   "winding": 74,
+   "on_winding": 0.176,
+   "windings": 12
+  },
+  {
+   "piece": "piece-0339",
+   "cells": 300,
+   "near": 0.86,
+   "median_voxels": 4.7,
+   "winding": 75,
+   "on_winding": 0.756,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0341",
+   "cells": 527,
+   "near": 0.886,
+   "median_voxels": 4.1,
+   "winding": 60,
+   "on_winding": 0.407,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0343",
+   "cells": 522,
+   "near": 0.638,
+   "median_voxels": 6.1,
+   "winding": 104,
+   "on_winding": 0.327,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0345",
+   "cells": 458,
+   "near": 0.865,
+   "median_voxels": 4.7,
+   "winding": 72,
+   "on_winding": 0.508,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0347",
+   "cells": 187,
+   "near": 0.834,
+   "median_voxels": 4.5,
+   "winding": 22,
+   "on_winding": 0.571,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0350",
+   "cells": 583,
+   "near": 0.873,
+   "median_voxels": 4.6,
+   "winding": 72,
+   "on_winding": 0.532,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0352",
+   "cells": 167,
+   "near": 0.874,
+   "median_voxels": 4.5,
+   "winding": 100,
+   "on_winding": 0.781,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0353",
+   "cells": 205,
+   "near": 0.873,
+   "median_voxels": 4.0,
+   "winding": 76,
+   "on_winding": 0.749,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0354",
+   "cells": 371,
+   "near": 0.868,
+   "median_voxels": 4.8,
+   "winding": 55,
+   "on_winding": 0.214,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0355",
+   "cells": 307,
+   "near": 0.013,
+   "median_voxels": 15.7,
+   "winding": 10,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0357",
+   "cells": 346,
+   "near": 0.792,
+   "median_voxels": 5.6,
+   "winding": 100,
+   "on_winding": 0.431,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0358",
+   "cells": 1054,
+   "near": 0.855,
+   "median_voxels": 3.8,
+   "winding": 79,
+   "on_winding": 0.532,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0359",
+   "cells": 742,
+   "near": 0.857,
+   "median_voxels": 3.9,
+   "winding": 94,
+   "on_winding": 0.522,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0360",
+   "cells": 261,
+   "near": 0.663,
+   "median_voxels": 6.3,
+   "winding": 98,
+   "on_winding": 0.988,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0361",
+   "cells": 189,
+   "near": 0.624,
+   "median_voxels": 5.5,
+   "winding": 42,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0362",
+   "cells": 108,
+   "near": 0.824,
+   "median_voxels": 4.7,
+   "winding": 55,
+   "on_winding": 0.551,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0363",
+   "cells": 397,
+   "near": 0.713,
+   "median_voxels": 6.2,
+   "winding": 88,
+   "on_winding": 0.336,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0364",
+   "cells": 1096,
+   "near": 0.737,
+   "median_voxels": 5.3,
+   "winding": 55,
+   "on_winding": 0.679,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0365",
+   "cells": 322,
+   "near": 0.45,
+   "median_voxels": 8.4,
+   "winding": 100,
+   "on_winding": 0.628,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0366",
+   "cells": 836,
+   "near": 0.877,
+   "median_voxels": 4.2,
+   "winding": 64,
+   "on_winding": 0.323,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0367",
+   "cells": 562,
+   "near": 0.835,
+   "median_voxels": 3.3,
+   "winding": 48,
+   "on_winding": 0.631,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0369",
+   "cells": 863,
+   "near": 0.877,
+   "median_voxels": 4.4,
+   "winding": 74,
+   "on_winding": 0.413,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0370",
+   "cells": 536,
+   "near": 0.882,
+   "median_voxels": 4.7,
+   "winding": 45,
+   "on_winding": 0.736,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0371",
+   "cells": 368,
+   "near": 0.747,
+   "median_voxels": 6.2,
+   "winding": 94,
+   "on_winding": 0.491,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0374",
+   "cells": 435,
+   "near": 0.559,
+   "median_voxels": 6.2,
+   "winding": 91,
+   "on_winding": 0.864,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0375",
+   "cells": 318,
+   "near": 0.808,
+   "median_voxels": 4.9,
+   "winding": 103,
+   "on_winding": 0.198,
+   "windings": 14
+  },
+  {
+   "piece": "piece-0376",
+   "cells": 441,
+   "near": 0.853,
+   "median_voxels": 4.9,
+   "winding": 73,
+   "on_winding": 0.372,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0377",
+   "cells": 363,
+   "near": 0.873,
+   "median_voxels": 5.0,
+   "winding": 80,
+   "on_winding": 0.662,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0378",
+   "cells": 384,
+   "near": 0.76,
+   "median_voxels": 5.8,
+   "winding": 75,
+   "on_winding": 0.418,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0379",
+   "cells": 199,
+   "near": 0.663,
+   "median_voxels": 6.3,
+   "winding": 93,
+   "on_winding": 0.689,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0381",
+   "cells": 648,
+   "near": 0.789,
+   "median_voxels": 5.7,
+   "winding": 88,
+   "on_winding": 0.654,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0382",
+   "cells": 347,
+   "near": 0.715,
+   "median_voxels": 5.9,
+   "winding": 98,
+   "on_winding": 0.706,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0383",
+   "cells": 36,
+   "near": 0.861,
+   "median_voxels": 4.8,
+   "winding": 61,
+   "on_winding": 0.419,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0384",
+   "cells": 370,
+   "near": 0.0,
+   "median_voxels": 38.2,
+   "winding": 0,
+   "on_winding": 0.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0386",
+   "cells": 704,
+   "near": 0.854,
+   "median_voxels": 3.6,
+   "winding": 74,
+   "on_winding": 0.922,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0387",
+   "cells": 554,
+   "near": 0.753,
+   "median_voxels": 5.3,
+   "winding": 92,
+   "on_winding": 0.475,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0389",
+   "cells": 922,
+   "near": 0.872,
+   "median_voxels": 3.9,
+   "winding": 68,
+   "on_winding": 0.469,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0391",
+   "cells": 266,
+   "near": 0.883,
+   "median_voxels": 4.2,
+   "winding": 87,
+   "on_winding": 0.613,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0393",
+   "cells": 466,
+   "near": 0.002,
+   "median_voxels": 26.0,
+   "winding": 10,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0396",
+   "cells": 303,
+   "near": 0.838,
+   "median_voxels": 5.2,
+   "winding": 75,
+   "on_winding": 0.272,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0398",
+   "cells": 370,
+   "near": 0.673,
+   "median_voxels": 6.2,
+   "winding": 93,
+   "on_winding": 0.851,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0399",
+   "cells": 344,
+   "near": 0.622,
+   "median_voxels": 7.0,
+   "winding": 98,
+   "on_winding": 0.598,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0400",
+   "cells": 524,
+   "near": 0.557,
+   "median_voxels": 7.4,
+   "winding": 99,
+   "on_winding": 0.664,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0401",
+   "cells": 417,
+   "near": 0.811,
+   "median_voxels": 5.3,
+   "winding": 61,
+   "on_winding": 0.426,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0404",
+   "cells": 805,
+   "near": 0.866,
+   "median_voxels": 3.6,
+   "winding": 72,
+   "on_winding": 0.857,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0405",
+   "cells": 44,
+   "near": 0.818,
+   "median_voxels": 3.9,
+   "winding": 84,
+   "on_winding": 0.667,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0406",
+   "cells": 295,
+   "near": 0.895,
+   "median_voxels": 4.3,
+   "winding": 71,
+   "on_winding": 0.898,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0408",
+   "cells": 80,
+   "near": 0.85,
+   "median_voxels": 5.4,
+   "winding": 97,
+   "on_winding": 0.5,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0409",
+   "cells": 108,
+   "near": 0.87,
+   "median_voxels": 4.0,
+   "winding": 91,
+   "on_winding": 0.33,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0411",
+   "cells": 455,
+   "near": 0.835,
+   "median_voxels": 5.1,
+   "winding": 104,
+   "on_winding": 0.518,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0413",
+   "cells": 486,
+   "near": 0.877,
+   "median_voxels": 3.8,
+   "winding": 59,
+   "on_winding": 0.638,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0414",
+   "cells": 264,
+   "near": 0.004,
+   "median_voxels": 30.6,
+   "winding": 10,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0415",
+   "cells": 498,
+   "near": 0.859,
+   "median_voxels": 4.7,
+   "winding": 52,
+   "on_winding": 0.439,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0416",
+   "cells": 370,
+   "near": 0.846,
+   "median_voxels": 4.4,
+   "winding": 98,
+   "on_winding": 0.454,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0417",
+   "cells": 419,
+   "near": 0.776,
+   "median_voxels": 5.9,
+   "winding": 95,
+   "on_winding": 0.391,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0419",
+   "cells": 320,
+   "near": 0.828,
+   "median_voxels": 5.3,
+   "winding": 46,
+   "on_winding": 0.698,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0422",
+   "cells": 704,
+   "near": 0.767,
+   "median_voxels": 5.3,
+   "winding": 41,
+   "on_winding": 0.541,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0423",
+   "cells": 100,
+   "near": 0.71,
+   "median_voxels": 6.4,
+   "winding": 101,
+   "on_winding": 0.535,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0425",
+   "cells": 491,
+   "near": 0.798,
+   "median_voxels": 5.9,
+   "winding": 96,
+   "on_winding": 0.844,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0426",
+   "cells": 372,
+   "near": 0.793,
+   "median_voxels": 5.1,
+   "winding": 99,
+   "on_winding": 0.458,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0431",
+   "cells": 317,
+   "near": 0.801,
+   "median_voxels": 6.1,
+   "winding": 94,
+   "on_winding": 0.799,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0433",
+   "cells": 548,
+   "near": 0.832,
+   "median_voxels": 4.9,
+   "winding": 81,
+   "on_winding": 0.561,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0436",
+   "cells": 216,
+   "near": 0.861,
+   "median_voxels": 3.7,
+   "winding": 24,
+   "on_winding": 0.511,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0439",
+   "cells": 539,
+   "near": 0.796,
+   "median_voxels": 5.6,
+   "winding": 92,
+   "on_winding": 0.476,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0445",
+   "cells": 432,
+   "near": 0.532,
+   "median_voxels": 7.3,
+   "winding": 10,
+   "on_winding": 0.817,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0448",
+   "cells": 480,
+   "near": 0.875,
+   "median_voxels": 3.7,
+   "winding": 77,
+   "on_winding": 0.707,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0449",
+   "cells": 261,
+   "near": 0.854,
+   "median_voxels": 4.7,
+   "winding": 69,
+   "on_winding": 0.641,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0450",
+   "cells": 325,
+   "near": 0.815,
+   "median_voxels": 4.6,
+   "winding": 39,
+   "on_winding": 0.758,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0452",
+   "cells": 174,
+   "near": 0.908,
+   "median_voxels": 4.4,
+   "winding": 39,
+   "on_winding": 0.747,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0454",
+   "cells": 408,
+   "near": 0.843,
+   "median_voxels": 5.3,
+   "winding": 70,
+   "on_winding": 0.491,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0458",
+   "cells": 156,
+   "near": 0.686,
+   "median_voxels": 6.1,
+   "winding": 71,
+   "on_winding": 0.692,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0464",
+   "cells": 247,
+   "near": 0.939,
+   "median_voxels": 3.5,
+   "winding": 70,
+   "on_winding": 0.582,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0468",
+   "cells": 792,
+   "near": 0.77,
+   "median_voxels": 4.9,
+   "winding": 83,
+   "on_winding": 0.325,
+   "windings": 14
+  },
+  {
+   "piece": "piece-0471",
+   "cells": 185,
+   "near": 0.865,
+   "median_voxels": 4.4,
+   "winding": 34,
+   "on_winding": 0.756,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0472",
+   "cells": 536,
+   "near": 0.884,
+   "median_voxels": 4.2,
+   "winding": 50,
+   "on_winding": 0.449,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0474",
+   "cells": 571,
+   "near": 0.76,
+   "median_voxels": 5.5,
+   "winding": 51,
+   "on_winding": 0.399,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0475",
+   "cells": 344,
+   "near": 0.703,
+   "median_voxels": 6.1,
+   "winding": 57,
+   "on_winding": 0.545,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0476",
+   "cells": 227,
+   "near": 0.841,
+   "median_voxels": 4.9,
+   "winding": 79,
+   "on_winding": 0.613,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0477",
+   "cells": 397,
+   "near": 0.71,
+   "median_voxels": 6.0,
+   "winding": 63,
+   "on_winding": 0.33,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0479",
+   "cells": 137,
+   "near": 0.818,
+   "median_voxels": 3.9,
+   "winding": 81,
+   "on_winding": 0.616,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0482",
+   "cells": 234,
+   "near": 0.808,
+   "median_voxels": 5.9,
+   "winding": 95,
+   "on_winding": 0.27,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0485",
+   "cells": 525,
+   "near": 0.91,
+   "median_voxels": 4.6,
+   "winding": 102,
+   "on_winding": 0.617,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0486",
+   "cells": 472,
+   "near": 0.852,
+   "median_voxels": 4.9,
+   "winding": 20,
+   "on_winding": 0.6,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0489",
+   "cells": 166,
+   "near": 0.807,
+   "median_voxels": 5.6,
+   "winding": 62,
+   "on_winding": 0.418,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0490",
+   "cells": 693,
+   "near": 0.802,
+   "median_voxels": 5.0,
+   "winding": 101,
+   "on_winding": 0.583,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0492",
+   "cells": 307,
+   "near": 0.824,
+   "median_voxels": 5.2,
+   "winding": 91,
+   "on_winding": 0.621,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0493",
+   "cells": 225,
+   "near": 0.711,
+   "median_voxels": 6.7,
+   "winding": 47,
+   "on_winding": 0.431,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0494",
+   "cells": 383,
+   "near": 0.885,
+   "median_voxels": 4.0,
+   "winding": 75,
+   "on_winding": 0.835,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0498",
+   "cells": 366,
+   "near": 0.858,
+   "median_voxels": 3.4,
+   "winding": 86,
+   "on_winding": 0.592,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0503",
+   "cells": 285,
+   "near": 0.895,
+   "median_voxels": 5.2,
+   "winding": 87,
+   "on_winding": 0.592,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0504",
+   "cells": 81,
+   "near": 0.79,
+   "median_voxels": 4.6,
+   "winding": 77,
+   "on_winding": 0.922,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0509",
+   "cells": 182,
+   "near": 0.692,
+   "median_voxels": 6.3,
+   "winding": 51,
+   "on_winding": 0.484,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0510",
+   "cells": 224,
+   "near": 0.0,
+   "median_voxels": 42.8,
+   "winding": 0,
+   "on_winding": 0.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0512",
+   "cells": 161,
+   "near": 0.733,
+   "median_voxels": 6.2,
+   "winding": 53,
+   "on_winding": 0.407,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0515",
+   "cells": 202,
+   "near": 0.881,
+   "median_voxels": 3.4,
+   "winding": 88,
+   "on_winding": 0.612,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0516",
+   "cells": 286,
+   "near": 0.864,
+   "median_voxels": 3.4,
+   "winding": 81,
+   "on_winding": 0.992,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0517",
+   "cells": 324,
+   "near": 0.673,
+   "median_voxels": 7.0,
+   "winding": 63,
+   "on_winding": 0.408,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0519",
+   "cells": 400,
+   "near": 0.745,
+   "median_voxels": 6.1,
+   "winding": 92,
+   "on_winding": 0.849,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0520",
+   "cells": 63,
+   "near": 0.444,
+   "median_voxels": 8.8,
+   "winding": 47,
+   "on_winding": 0.964,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0521",
+   "cells": 739,
+   "near": 0.825,
+   "median_voxels": 4.6,
+   "winding": 62,
+   "on_winding": 0.795,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0522",
+   "cells": 662,
+   "near": 0.844,
+   "median_voxels": 5.2,
+   "winding": 78,
+   "on_winding": 0.383,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0524",
+   "cells": 587,
+   "near": 0.842,
+   "median_voxels": 4.5,
+   "winding": 52,
+   "on_winding": 0.611,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0525",
+   "cells": 42,
+   "near": 0.881,
+   "median_voxels": 3.8,
+   "winding": 81,
+   "on_winding": 0.919,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0526",
+   "cells": 387,
+   "near": 0.568,
+   "median_voxels": 7.4,
+   "winding": 72,
+   "on_winding": 0.295,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0527",
+   "cells": 74,
+   "near": 0.77,
+   "median_voxels": 4.8,
+   "winding": 80,
+   "on_winding": 0.596,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0528",
+   "cells": 759,
+   "near": 0.56,
+   "median_voxels": 7.5,
+   "winding": 92,
+   "on_winding": 0.593,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0530",
+   "cells": 113,
+   "near": 0.903,
+   "median_voxels": 3.7,
+   "winding": 82,
+   "on_winding": 0.922,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0531",
+   "cells": 178,
+   "near": 0.73,
+   "median_voxels": 4.7,
+   "winding": 73,
+   "on_winding": 0.838,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0534",
+   "cells": 306,
+   "near": 0.0,
+   "median_voxels": 50.5,
+   "winding": 0,
+   "on_winding": 0.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0538",
+   "cells": 67,
+   "near": 0.687,
+   "median_voxels": 6.6,
+   "winding": 79,
+   "on_winding": 0.152,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0539",
+   "cells": 176,
+   "near": 0.733,
+   "median_voxels": 5.9,
+   "winding": 73,
+   "on_winding": 0.457,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0541",
+   "cells": 1042,
+   "near": 0.796,
+   "median_voxels": 4.8,
+   "winding": 67,
+   "on_winding": 0.409,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0545",
+   "cells": 292,
+   "near": 0.86,
+   "median_voxels": 4.2,
+   "winding": 91,
+   "on_winding": 0.323,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0553",
+   "cells": 237,
+   "near": 0.819,
+   "median_voxels": 5.0,
+   "winding": 76,
+   "on_winding": 0.634,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0554",
+   "cells": 87,
+   "near": 0.759,
+   "median_voxels": 6.0,
+   "winding": 79,
+   "on_winding": 0.697,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0555",
+   "cells": 235,
+   "near": 0.634,
+   "median_voxels": 7.0,
+   "winding": 90,
+   "on_winding": 0.47,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0556",
+   "cells": 220,
+   "near": 0.877,
+   "median_voxels": 4.4,
+   "winding": 68,
+   "on_winding": 0.472,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0558",
+   "cells": 241,
+   "near": 0.693,
+   "median_voxels": 6.4,
+   "winding": 86,
+   "on_winding": 0.383,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0560",
+   "cells": 479,
+   "near": 0.841,
+   "median_voxels": 4.9,
+   "winding": 78,
+   "on_winding": 0.228,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0561",
+   "cells": 40,
+   "near": 0.775,
+   "median_voxels": 5.9,
+   "winding": 84,
+   "on_winding": 0.516,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0563",
+   "cells": 117,
+   "near": 0.872,
+   "median_voxels": 4.3,
+   "winding": 78,
+   "on_winding": 0.382,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0564",
+   "cells": 51,
+   "near": 0.706,
+   "median_voxels": 5.6,
+   "winding": 63,
+   "on_winding": 0.806,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0567",
+   "cells": 93,
+   "near": 0.86,
+   "median_voxels": 4.3,
+   "winding": 63,
+   "on_winding": 0.6,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0568",
+   "cells": 403,
+   "near": 0.839,
+   "median_voxels": 5.1,
+   "winding": 97,
+   "on_winding": 0.615,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0573",
+   "cells": 41,
+   "near": 0.78,
+   "median_voxels": 5.5,
+   "winding": 73,
+   "on_winding": 0.688,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0580",
+   "cells": 658,
+   "near": 0.802,
+   "median_voxels": 5.5,
+   "winding": 92,
+   "on_winding": 0.532,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0594",
+   "cells": 409,
+   "near": 0.778,
+   "median_voxels": 5.4,
+   "winding": 97,
+   "on_winding": 0.481,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0595",
+   "cells": 168,
+   "near": 0.863,
+   "median_voxels": 3.8,
+   "winding": 88,
+   "on_winding": 0.379,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0596",
+   "cells": 134,
+   "near": 0.813,
+   "median_voxels": 5.4,
+   "winding": 77,
+   "on_winding": 0.183,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0598",
+   "cells": 527,
+   "near": 0.905,
+   "median_voxels": 4.3,
+   "winding": 69,
+   "on_winding": 0.426,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0601",
+   "cells": 152,
+   "near": 0.441,
+   "median_voxels": 9.3,
+   "winding": 86,
+   "on_winding": 0.388,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0603",
+   "cells": 206,
+   "near": 0.854,
+   "median_voxels": 3.9,
+   "winding": 85,
+   "on_winding": 0.25,
+   "windings": 9
+  },
+  {
+   "piece": "piece-0604",
+   "cells": 40,
+   "near": 0.475,
+   "median_voxels": 8.7,
+   "winding": 68,
+   "on_winding": 1.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0605",
+   "cells": 250,
+   "near": 0.84,
+   "median_voxels": 4.1,
+   "winding": 34,
+   "on_winding": 0.781,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0606",
+   "cells": 193,
+   "near": 0.741,
+   "median_voxels": 6.4,
+   "winding": 102,
+   "on_winding": 0.72,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0608",
+   "cells": 1067,
+   "near": 0.876,
+   "median_voxels": 3.5,
+   "winding": 59,
+   "on_winding": 0.472,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0610",
+   "cells": 211,
+   "near": 0.896,
+   "median_voxels": 3.6,
+   "winding": 72,
+   "on_winding": 0.471,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0612",
+   "cells": 490,
+   "near": 0.896,
+   "median_voxels": 4.7,
+   "winding": 74,
+   "on_winding": 0.472,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0613",
+   "cells": 334,
+   "near": 0.829,
+   "median_voxels": 4.4,
+   "winding": 99,
+   "on_winding": 0.917,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0617",
+   "cells": 212,
+   "near": 0.783,
+   "median_voxels": 5.6,
+   "winding": 68,
+   "on_winding": 0.711,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0618",
+   "cells": 812,
+   "near": 0.857,
+   "median_voxels": 3.5,
+   "winding": 62,
+   "on_winding": 0.371,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0619",
+   "cells": 446,
+   "near": 0.796,
+   "median_voxels": 5.3,
+   "winding": 76,
+   "on_winding": 0.403,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0622",
+   "cells": 497,
+   "near": 0.863,
+   "median_voxels": 4.3,
+   "winding": 73,
+   "on_winding": 0.499,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0624",
+   "cells": 204,
+   "near": 0.882,
+   "median_voxels": 4.8,
+   "winding": 30,
+   "on_winding": 0.506,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0626",
+   "cells": 242,
+   "near": 0.864,
+   "median_voxels": 4.9,
+   "winding": 53,
+   "on_winding": 0.493,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0636",
+   "cells": 472,
+   "near": 0.824,
+   "median_voxels": 4.7,
+   "winding": 78,
+   "on_winding": 0.501,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0639",
+   "cells": 207,
+   "near": 0.865,
+   "median_voxels": 4.1,
+   "winding": 65,
+   "on_winding": 0.821,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0641",
+   "cells": 222,
+   "near": 0.86,
+   "median_voxels": 4.7,
+   "winding": 74,
+   "on_winding": 0.435,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0643",
+   "cells": 196,
+   "near": 0.811,
+   "median_voxels": 5.9,
+   "winding": 99,
+   "on_winding": 0.66,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0644",
+   "cells": 400,
+   "near": 0.868,
+   "median_voxels": 4.1,
+   "winding": 83,
+   "on_winding": 0.251,
+   "windings": 11
+  },
+  {
+   "piece": "piece-0645",
+   "cells": 479,
+   "near": 0.856,
+   "median_voxels": 4.7,
+   "winding": 72,
+   "on_winding": 0.285,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0646",
+   "cells": 447,
+   "near": 0.834,
+   "median_voxels": 4.7,
+   "winding": 74,
+   "on_winding": 0.311,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0649",
+   "cells": 155,
+   "near": 0.871,
+   "median_voxels": 4.4,
+   "winding": 15,
+   "on_winding": 0.593,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0650",
+   "cells": 114,
+   "near": 0.307,
+   "median_voxels": 12.0,
+   "winding": 88,
+   "on_winding": 0.257,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0652",
+   "cells": 87,
+   "near": 0.414,
+   "median_voxels": 9.5,
+   "winding": 86,
+   "on_winding": 0.528,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0654",
+   "cells": 187,
+   "near": 0.503,
+   "median_voxels": 8.0,
+   "winding": 101,
+   "on_winding": 0.553,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0656",
+   "cells": 318,
+   "near": 0.088,
+   "median_voxels": 21.7,
+   "winding": 10,
+   "on_winding": 0.893,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0658",
+   "cells": 165,
+   "near": 0.873,
+   "median_voxels": 4.5,
+   "winding": 68,
+   "on_winding": 0.792,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0664",
+   "cells": 363,
+   "near": 0.815,
+   "median_voxels": 5.0,
+   "winding": 66,
+   "on_winding": 0.375,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0667",
+   "cells": 692,
+   "near": 0.601,
+   "median_voxels": 6.8,
+   "winding": 51,
+   "on_winding": 0.983,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0670",
+   "cells": 248,
+   "near": 0.855,
+   "median_voxels": 4.5,
+   "winding": 78,
+   "on_winding": 0.429,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0671",
+   "cells": 738,
+   "near": 0.859,
+   "median_voxels": 4.2,
+   "winding": 64,
+   "on_winding": 0.677,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0672",
+   "cells": 196,
+   "near": 0.821,
+   "median_voxels": 5.4,
+   "winding": 65,
+   "on_winding": 0.876,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0678",
+   "cells": 142,
+   "near": 0.768,
+   "median_voxels": 6.2,
+   "winding": 103,
+   "on_winding": 0.505,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0682",
+   "cells": 497,
+   "near": 0.869,
+   "median_voxels": 4.9,
+   "winding": 86,
+   "on_winding": 0.593,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0683",
+   "cells": 550,
+   "near": 0.816,
+   "median_voxels": 5.5,
+   "winding": 89,
+   "on_winding": 0.621,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0685",
+   "cells": 210,
+   "near": 0.786,
+   "median_voxels": 5.2,
+   "winding": 68,
+   "on_winding": 0.715,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0687",
+   "cells": 183,
+   "near": 0.913,
+   "median_voxels": 3.5,
+   "winding": 82,
+   "on_winding": 0.647,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0688",
+   "cells": 163,
+   "near": 0.061,
+   "median_voxels": 18.8,
+   "winding": 10,
+   "on_winding": 0.8,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0690",
+   "cells": 212,
+   "near": 0.868,
+   "median_voxels": 4.7,
+   "winding": 56,
+   "on_winding": 0.179,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0692",
+   "cells": 234,
+   "near": 0.855,
+   "median_voxels": 5.2,
+   "winding": 35,
+   "on_winding": 0.73,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0693",
+   "cells": 417,
+   "near": 0.847,
+   "median_voxels": 5.0,
+   "winding": 58,
+   "on_winding": 0.286,
+   "windings": 10
+  },
+  {
+   "piece": "piece-0704",
+   "cells": 446,
+   "near": 0.845,
+   "median_voxels": 4.7,
+   "winding": 21,
+   "on_winding": 0.695,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0708",
+   "cells": 192,
+   "near": 0.297,
+   "median_voxels": 11.8,
+   "winding": 86,
+   "on_winding": 0.228,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0712",
+   "cells": 367,
+   "near": 0.842,
+   "median_voxels": 4.8,
+   "winding": 90,
+   "on_winding": 0.861,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0713",
+   "cells": 194,
+   "near": 0.747,
+   "median_voxels": 5.8,
+   "winding": 92,
+   "on_winding": 0.662,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0715",
+   "cells": 150,
+   "near": 0.56,
+   "median_voxels": 7.2,
+   "winding": 86,
+   "on_winding": 0.357,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0720",
+   "cells": 34,
+   "near": 0.794,
+   "median_voxels": 4.9,
+   "winding": 64,
+   "on_winding": 0.593,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0723",
+   "cells": 79,
+   "near": 0.835,
+   "median_voxels": 4.4,
+   "winding": 80,
+   "on_winding": 0.576,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0724",
+   "cells": 64,
+   "near": 0.562,
+   "median_voxels": 7.2,
+   "winding": 99,
+   "on_winding": 0.833,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0726",
+   "cells": 280,
+   "near": 0.779,
+   "median_voxels": 4.9,
+   "winding": 98,
+   "on_winding": 0.564,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0727",
+   "cells": 628,
+   "near": 0.809,
+   "median_voxels": 4.9,
+   "winding": 47,
+   "on_winding": 0.476,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0728",
+   "cells": 107,
+   "near": 0.748,
+   "median_voxels": 5.6,
+   "winding": 37,
+   "on_winding": 0.512,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0729",
+   "cells": 571,
+   "near": 0.704,
+   "median_voxels": 6.0,
+   "winding": 93,
+   "on_winding": 0.749,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0731",
+   "cells": 286,
+   "near": 0.839,
+   "median_voxels": 4.4,
+   "winding": 74,
+   "on_winding": 0.637,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0732",
+   "cells": 269,
+   "near": 0.0,
+   "median_voxels": 60.4,
+   "winding": 0,
+   "on_winding": 0.0,
+   "windings": 1
+  },
+  {
+   "piece": "piece-0734",
+   "cells": 326,
+   "near": 0.819,
+   "median_voxels": 4.5,
+   "winding": 87,
+   "on_winding": 0.861,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0735",
+   "cells": 97,
+   "near": 0.464,
+   "median_voxels": 8.5,
+   "winding": 87,
+   "on_winding": 0.667,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0736",
+   "cells": 364,
+   "near": 0.827,
+   "median_voxels": 4.6,
+   "winding": 74,
+   "on_winding": 0.874,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0738",
+   "cells": 322,
+   "near": 0.674,
+   "median_voxels": 6.7,
+   "winding": 64,
+   "on_winding": 0.512,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0748",
+   "cells": 38,
+   "near": 0.921,
+   "median_voxels": 4.2,
+   "winding": 82,
+   "on_winding": 0.429,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0750",
+   "cells": 456,
+   "near": 0.855,
+   "median_voxels": 5.4,
+   "winding": 65,
+   "on_winding": 0.449,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0753",
+   "cells": 226,
+   "near": 0.805,
+   "median_voxels": 5.2,
+   "winding": 75,
+   "on_winding": 0.698,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0755",
+   "cells": 600,
+   "near": 0.855,
+   "median_voxels": 3.9,
+   "winding": 54,
+   "on_winding": 0.23,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0756",
+   "cells": 420,
+   "near": 0.833,
+   "median_voxels": 4.5,
+   "winding": 60,
+   "on_winding": 0.186,
+   "windings": 18
+  },
+  {
+   "piece": "piece-0758",
+   "cells": 571,
+   "near": 0.909,
+   "median_voxels": 3.5,
+   "winding": 82,
+   "on_winding": 0.969,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0759",
+   "cells": 53,
+   "near": 0.774,
+   "median_voxels": 4.8,
+   "winding": 102,
+   "on_winding": 0.585,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0762",
+   "cells": 100,
+   "near": 0.84,
+   "median_voxels": 5.4,
+   "winding": 99,
+   "on_winding": 0.94,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0766",
+   "cells": 461,
+   "near": 0.824,
+   "median_voxels": 5.1,
+   "winding": 77,
+   "on_winding": 0.589,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0770",
+   "cells": 236,
+   "near": 0.547,
+   "median_voxels": 7.1,
+   "winding": 101,
+   "on_winding": 0.558,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0771",
+   "cells": 302,
+   "near": 0.825,
+   "median_voxels": 4.7,
+   "winding": 102,
+   "on_winding": 0.53,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0772",
+   "cells": 530,
+   "near": 0.694,
+   "median_voxels": 6.6,
+   "winding": 46,
+   "on_winding": 0.505,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0776",
+   "cells": 535,
+   "near": 0.918,
+   "median_voxels": 3.7,
+   "winding": 19,
+   "on_winding": 0.572,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0779",
+   "cells": 437,
+   "near": 0.87,
+   "median_voxels": 4.0,
+   "winding": 89,
+   "on_winding": 0.426,
+   "windings": 8
+  },
+  {
+   "piece": "piece-0786",
+   "cells": 523,
+   "near": 0.793,
+   "median_voxels": 4.1,
+   "winding": 97,
+   "on_winding": 0.99,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0788",
+   "cells": 318,
+   "near": 0.783,
+   "median_voxels": 6.1,
+   "winding": 97,
+   "on_winding": 0.462,
+   "windings": 6
+  },
+  {
+   "piece": "piece-0789",
+   "cells": 344,
+   "near": 0.828,
+   "median_voxels": 4.5,
+   "winding": 76,
+   "on_winding": 0.46,
+   "windings": 7
+  },
+  {
+   "piece": "piece-0795",
+   "cells": 312,
+   "near": 0.724,
+   "median_voxels": 5.7,
+   "winding": 65,
+   "on_winding": 0.558,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0796",
+   "cells": 403,
+   "near": 0.68,
+   "median_voxels": 6.4,
+   "winding": 87,
+   "on_winding": 0.697,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0807",
+   "cells": 116,
+   "near": 0.741,
+   "median_voxels": 6.3,
+   "winding": 95,
+   "on_winding": 0.547,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0830",
+   "cells": 318,
+   "near": 0.877,
+   "median_voxels": 4.5,
+   "winding": 104,
+   "on_winding": 0.459,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0836",
+   "cells": 249,
+   "near": 0.819,
+   "median_voxels": 4.8,
+   "winding": 100,
+   "on_winding": 0.843,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0839",
+   "cells": 171,
+   "near": 0.784,
+   "median_voxels": 5.7,
+   "winding": 60,
+   "on_winding": 0.657,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0843",
+   "cells": 200,
+   "near": 0.59,
+   "median_voxels": 7.2,
+   "winding": 56,
+   "on_winding": 0.568,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0849",
+   "cells": 212,
+   "near": 0.693,
+   "median_voxels": 5.3,
+   "winding": 99,
+   "on_winding": 0.898,
+   "windings": 3
+  },
+  {
+   "piece": "piece-0856",
+   "cells": 535,
+   "near": 0.817,
+   "median_voxels": 4.2,
+   "winding": 78,
+   "on_winding": 0.542,
+   "windings": 5
+  },
+  {
+   "piece": "piece-0877",
+   "cells": 149,
+   "near": 0.624,
+   "median_voxels": 6.7,
+   "winding": 55,
+   "on_winding": 0.806,
+   "windings": 2
+  },
+  {
+   "piece": "piece-0882",
+   "cells": 346,
+   "near": 0.913,
+   "median_voxels": 5.0,
+   "winding": 70,
+   "on_winding": 0.658,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0883",
+   "cells": 609,
+   "near": 0.865,
+   "median_voxels": 4.2,
+   "winding": 79,
+   "on_winding": 0.67,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0928",
+   "cells": 342,
+   "near": 0.86,
+   "median_voxels": 2.9,
+   "winding": 59,
+   "on_winding": 0.772,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0939",
+   "cells": 367,
+   "near": 0.864,
+   "median_voxels": 4.3,
+   "winding": 44,
+   "on_winding": 0.7,
+   "windings": 4
+  },
+  {
+   "piece": "piece-0940",
+   "cells": 279,
+   "near": 0.885,
+   "median_voxels": 3.6,
+   "winding": 64,
+   "on_winding": 0.409,
+   "windings": 6
+  }
+ ]
+}
