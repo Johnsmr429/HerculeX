@@ -1,17 +1,25 @@
-# ink/model
+# Ink model
 
-```text
-weights.py           stock Reader v3 fetched at its pinned revision, checked and converted for the tile reader
-stock_model.py       the network built from the open villa code at a pinned commit; the open ink_9um models
-tile_reader.py       the network on 512-pixel tiles every 384: stem norms fixed per stack, body norms per tile
-depth_stem.metal     the 3-D stem as one Metal kernel, run ahead of the engine on its own thread
-neural_engine.py     the 2-D body compiled once per weights for the Neural Engine, half precision
-engine_calls.m       engine called from C, since coremltools holds Python's lock for a whole prediction
-input_stack.py       the input recipe: the 17-layer window from the written face, raw values scaled
-tile_filling.c       a tile's empty columns filled from shifted, flipped copies of its own stack
-portable_reader.py   the same arithmetic in PyTorch, float32, on CPU or CUDA: the reference for a port
+This module runs stock Reader v3 over 17-layer CT stacks. On Apple silicon, it uses Metal for the 3-D stem and the Neural Engine for the 2-D body.
+
+## Files
+
+| File | Purpose |
+| --- | --- |
+| `weights.py` | Downloads Reader v3 at a pinned revision, verifies its checksum, and converts its state for the tile reader. |
+| `stock_model.py` | Builds the open `ink_9um` network that defines the Reader v3 architecture. |
+| `input_stack.py` | Prepares and scales the 17-layer input window around the written face. |
+| `tile_reader.py` | Reads overlapping 512-pixel tiles and blends their predictions. |
+| `depth_stem.metal` | Runs the network's 3-D stem as a Metal kernel. |
+| `neural_engine.py` and `engine_calls.m` | Compile and call the 2-D network body on the Neural Engine. |
+| `tile_filling.c` | Fills uncovered tile columns from shifted and reflected stack content. |
+| `portable_reader.py` | Runs equivalent Reader v3 arithmetic with PyTorch on a CPU or CUDA device. |
+
+## Commands
+
+```sh
+./run.sh ink.model.weights fetch
+./run.sh ink.model.weights status
 ```
 
-A tile's empty columns are filled from shifted, flipped copies of its own stack, so per-tile norms do not read a hole's
-edge as ink. On the Neural Engine, half precision keeps every ink probability within 0.03 of the float network (99th
-percentile 0.015).
+The fetch command is resumable: it reuses verified weights and only creates missing converted state.

@@ -1,11 +1,14 @@
-# scans
+# Scans
 
-Stage 1: listing the available scans and downloading them.
+The scan stage discovers available CT scans and published products, then downloads only the data required by later stages.
 
-```text
-catalog/    indexes of the open-data bucket and dl.ash2txt.org; the scan chosen for each scroll
-transfer/   range fetches of OME-Zarr levels into brick stores; published mirrors; fragments
-```
+## Modules
 
-Writes in the library: `catalog/`, `raw/SCROLL/atlas_VOXEL/`, `cache/bricks/SCROLL/STORE/` (removed once read), `published/open_data/`, `published/dl_ash2txt/`.
-Downloads share one network link; long fetches go on the job board with `--link`.
+| Path | Purpose |
+| --- | --- |
+| `catalog/` | This module indexes open-data scans, volumes, segments, and published products. |
+| `transfer/` | This module downloads OME-Zarr levels, published mirrors, and fragment data. |
+
+Catalogs and source data live under `${HERCULEX_LIBRARY:-data/library}/catalog/` and `raw/`. Temporary CT brick stores live under `cache/bricks/` and are removed after use unless the reading stage retains them.
+
+Run long downloads through the job board with the `--link` resource flag.

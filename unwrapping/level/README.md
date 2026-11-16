@@ -1,24 +1,26 @@
-# unwrapping/level
+# Level unwrapping
 
-Stage 3: sheet nodes to single-sheet pieces from exact integer levels, written with everything after them in `unwrapping/level/` in the outputs folder.
+This stage converts sheet nodes into single-sheet pieces by solving exact integer levels. It flattens each piece, joins pieces across unit seams, and fits one frame for the scan.
 
-```text
-run_levels.py                              the stage per unit, pieces written as tifxyz, joints across chunk seams; links the scan's sheet nodes
-sheet_graph.py                             cells, sheet edges and rays of a field
-piece_growth.py, patch_agglomeration.c     normals turned to agree along the sheets, patches merged into quick pieces
-winding_order.py, l1_synchronization.py, network_simplex.c   the curl of a unit, solved exactly over its quick pieces
-level_pieces.py, level_solver.c            exact integer levels and pieces from whole levels
-orientation.py                             normals turned out of the body by one minimum cut
-piece_flattening.py, sheet_flattening.c    pieces laid flat in frames carried along the sheet, gridded and bridged
-piece_joiner.py                            pieces joined across chunk seams
-scroll_axis.py                             the scroll axis from sheet normals
-scroll_frame.py                            one frame for a whole scan
-scroll_layout.py                           every piece placed on one sheet by that frame
-kernel_bindings.py, piece_kernel_bindings.py, piece_kernels.c   ctypes signatures of the C kernels; the piece kernels
+## Files
 
+| File | Purpose |
+| --- | --- |
+| `run_levels.py` | Coordinates resumable unit solves and final scan-wide outputs. |
+| `sheet_graph.py`, `piece_growth.py`, and `patch_agglomeration.c` | Build the sheet graph, align normals, and merge cells into initial pieces. |
+| `winding_order.py`, `l1_synchronization.py`, `network_simplex.c`, `level_pieces.py`, and `level_solver.c` | Solve winding relations and exact integer levels. |
+| `orientation.py` | Turns piece normals outward with a minimum cut. |
+| `piece_flattening.py` and `sheet_flattening.c` | Flatten and grid each piece at its surface spacing. |
+| `piece_joiner.py` | Joins pieces across neighboring unit seams. |
+| `scroll_axis.py`, `scroll_frame.py`, and `scroll_layout.py` | Fit the scan axis and frame, then place every piece on one sheet. |
+| `kernel_bindings.py`, `piece_kernel_bindings.py`, and `piece_kernels.c` | Provide typed calls to the native solvers. |
+
+## Commands
+
+```sh
 ./run.sh unwrapping.level.run_levels curl SCROLL
-./run.sh unwrapping.level.run_levels unit SCROLL UNIT      once per unit
-./run.sh unwrapping.level.run_levels finish SCROLL         joints, frame, layout
+./run.sh unwrapping.level.run_levels unit SCROLL UNIT
+./run.sh unwrapping.level.run_levels finish SCROLL
 ```
 
-A scan of several units runs these as board jobs. Every scan's sheet nodes stay in `unwrapping/grown/` (`data_roots.NODE_ROUTE`), the folder of an earlier route.
+For normal operation, run `./run.sh runner.pipeline run pieces SCROLL`. The stage writes pieces and scan-wide metadata under `${HERCULEX_OUTPUTS:-data/outputs}/unwrapping/level/SCROLL/SCAN/`.

@@ -1,17 +1,25 @@
-# scans/transfer
+# Scan transfer
 
-Downloads over HTTP into brick stores and mirrors.
+This module downloads scan volumes and published products over HTTP.
 
-```text
-parallel_fetch.py   many GETs over kept-alive connections, ranges and retries
-fetch_volume.py     one OME-Zarr level into a brick store
-fetch_atlas.py      every scroll at about 75 µm, into raw/SCROLL/atlas_VOXEL/
-fetch_fragment.py   a fragment's surface volume and infrared truth
-fetch_products.py   published meshes and maps, packed losslessly, into published/open_data/
-fetch_server.py     products only dl.ash2txt.org holds, into published/dl_ash2txt/
-sharded_labels.py   a 2-D zarr v3 mask from blosc shards
+## Files
 
-./run.sh scans.transfer.fetch_atlas OUT [VOXEL_UM]
+| File | Purpose |
+| --- | --- |
+| `parallel_fetch.py` | Performs concurrent HTTP requests with connection reuse and retries. |
+| `fetch_volume.py` | Streams one OME-Zarr level into a local brick store. |
+| `fetch_atlas.py` | Downloads a coarse CT level for each scroll. |
+| `fetch_fragment.py` | Downloads a fragment's surface volume and infrared truth. |
+| `fetch_products.py` | Mirrors published open-data meshes and maps. |
+| `fetch_server.py` | Mirrors products available only from `dl.ash2txt.org`. |
+| `sharded_labels.py` | Reads nonempty chunks from a sharded Zarr v3 label mask. |
+
+## Commands
+
+```sh
+./run.sh scans.transfer.fetch_atlas OUT [TARGET_UM]
 ./run.sh scans.transfer.fetch_products walk|fetch|verify
 ./run.sh scans.transfer.fetch_server plan|fetch|verify
 ```
+
+Published mirrors are stored under `${HERCULEX_LIBRARY:-data/library}/published/`. `HERCULEX_FETCH_CONNECTIONS` sets the HTTP connection count and defaults to `32`.

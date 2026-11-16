@@ -1,13 +1,16 @@
-# tests
+# Tests
 
-This folder holds two kinds of test.
+The test suite contains end-to-end tests over synthetic inputs and golden tests against trusted implementations.
 
-```text
-*_e2e.py      a stage or tool run whole on synthetic inputs with known truth: a crushed scroll of known windings, a spiral, a small server, a board of its own
-*_golden.py   a fast path against a trusted reference: Metal against C, network simplex against an LP solver
+| Pattern | Purpose |
+| --- | --- |
+| `*_e2e.py` | These tests run a complete stage or tool with small inputs and known results. |
+| `*_golden.py` | These tests compare an optimized path with a trusted reference implementation. |
 
-./run.sh board room 6 && ./run.sh check    all, about 3 minutes
-./run.sh check cpu                         without the GPU and Neural Engine
+Run the CPU-only suite before every change:
+
+```sh
+./run.sh check cpu
 ```
 
-`test_tile_reader_e2e.py` needs Reader v3 (`./run.sh ink.model.weights fetch`) and the GPU.
+Run `./run.sh check` when a change affects the GPU, Neural Engine, or reader. The tile-reader test requires stock Reader v3; fetch it with `./run.sh ink.model.weights fetch`.

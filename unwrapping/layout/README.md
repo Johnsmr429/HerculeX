@@ -1,11 +1,20 @@
-# unwrapping/layout
+# Sheet layout
 
-Stage 4: pieces and joints to one sheet along the roll.
+This stage places unwrapped pieces on one two-dimensional sheet.
 
-```text
-mosaic_layout.py    joined pieces into mosaics, mosaics placed on one sheet: papyrus-sheet/layout.json
-roll_placement.py   pieces of one height band placed along the roll by winding, grid facing
-tifxyz_export.py    a laid-out sheet as one tifxyz grid for VC3D
+## Files
 
+| File | Purpose |
+| --- | --- |
+| `mosaic_layout.py` | Joins connected pieces into mosaics and writes their sheet placement. |
+| `roll_placement.py` | Orders pieces from one height band by winding around the scroll. |
+| `tifxyz_export.py` | Exports a completed layout as a tifxyz grid for VC3D. |
+
+## Commands
+
+```sh
 ./run.sh unwrapping.layout.mosaic_layout SCROLL SCAN
+./run.sh unwrapping.layout.tifxyz_export SCROLL SCAN PAGE
 ```
+
+The layout command writes `sheet/layout.json` under the scan's level-route output. The export command writes `tifxyz/` under the named website page.

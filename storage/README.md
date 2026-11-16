@@ -1,19 +1,21 @@
-# storage
+# Storage
 
-Where data lives and how it is packed.
+This module defines every data root and the binary formats used by the pipeline.
 
-```text
-data_roots.py       every data folder (the library, the outputs, the checkout); scan_folder, ct_bricks, calibration_output
-brick_store.py      a scan level or surface volume as one file of raw bricks plus an offset table
-node_store.py       sheet nodes packed losslessly to about 0.43 of their size
-route_database.py   SQLite index of every stage's finished units, rebuilt from their records
-tile_store.py       a sheet's image pyramid as one pack of tiles plus an index, read by byte range
-```
+## Files
 
-The library (`data/library`, or `HERCULEX_LIBRARY`) holds scan catalogues, published products, labels, weights, studies and live marks; temporary CT bricks use `cache/bricks/`.
-The outputs (`data/outputs`, or `HERCULEX_OUTPUTS`) hold `unwrapping/`, `stacks/`, `website/`, and isolated rebuilds under `runs/`.
-`HERCULEX_DATA` moves both at once; a symlinked folder (another drive) is resolved to its real place.
+| File | Purpose |
+| --- | --- |
+| `data_roots.py` | Defines the library, outputs, runtime, and stage paths. |
+| `brick_store.py` | Stores a CT level or surface volume as raw bricks with an offset table. |
+| `node_store.py` | Compresses sheet nodes and cells without changing their values. |
+| `route_database.py` | Rebuilds a SQLite index of completed stage units from their records. |
+| `tile_store.py` | Packs a sheet image pyramid and its byte-range index. |
 
-Use `scan_folder()` for the scan root, `stage_folder()` for its output role and `stage_entries()` to enumerate scans. Use `route_id()` for the historical keys in datasets and marks.
+## Data roots
 
-Stages write to the level route's folder, `unwrapping/level/`; every scan's sheet nodes stay in `unwrapping/grown/` (`NODE_ROUTE`). `HERCULEX_BRICKS` overrides the CT brick cache location.
+The library defaults to `data/library/` and contains catalogs, source data, model weights, controls, studies, and append-only hand marks. Set `HERCULEX_LIBRARY` to move it.
+
+The outputs default to `data/outputs/` and contain unwrapping artifacts, sampled stacks, ink maps, and the generated website. Set `HERCULEX_OUTPUTS` to move it. Set `HERCULEX_DATA` to move both default folders together.
+
+Use the path helpers in `data_roots.py` instead of embedding absolute paths. `HERCULEX_BRICKS` can place the temporary CT brick cache on a separate volume.

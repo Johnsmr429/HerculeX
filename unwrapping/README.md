@@ -1,14 +1,19 @@
-# unwrapping
+# Unwrapping
 
-Stages 2 to 4: CT voxels to sheet nodes, nodes to single-sheet pieces, pieces to one laid-out sheet.
+The unwrapping pipeline converts CT voxels into sheet nodes, separates those nodes into single-sheet pieces, and places the pieces on one two-dimensional sheet.
 
-```text
-detection/   sheet nodes with normals per 8-voxel cell, Metal with a C reference
-level/       pieces from exact integer levels and one frame per scan
-layout/      pieces placed along the roll, mosaics, tifxyz export
-```
+## Modules
 
-Outputs: `unwrapping/level/SCROLL/SCAN/` in the outputs folder with `nodes/` (a link to the scan's sheet nodes, kept in `unwrapping/grown/`), `pieces/UNIT/`, `pieces/joints/`, `pieces/frame/`, `sheet/layout.json`.
-Each unit is written to a sibling folder and swapped in whole; `record.json`, written last, names the digest of the code that made it.
-`same_output_methods.txt` lists earlier digests proven to give the same output, so a refactor that keeps the output does not force a rerun. When a change alters the output, empty the list: an entry only says two digests agree with each other, and an old one left in place makes units of the earlier output count as current. Pieces units must also carry the isometry record (`piece_flattening.UNIT_NEEDS`), which units made before the isometric grids lack.
-A unit whose record names any other digest is made again by its stage and replaced.
+| Path | Purpose |
+| --- | --- |
+| `detection/` | This stage detects sheet nodes and normals in CT brick stores. |
+| `level/` | This stage solves exact integer levels, creates pieces, joins seams, and fits a frame for the scan. |
+| `layout/` | This stage places pieces along the roll and exports sheet layouts. |
+
+## Outputs and resuming
+
+HerculeX writes unwrapping artifacts under `${HERCULEX_OUTPUTS:-data/outputs}/unwrapping/`. A level-route scan contains per-unit pieces, cross-unit joints, a scan frame, and `sheet/layout.json` under `level/SCROLL/SCAN/`.
+
+Each unit is built in a temporary sibling directory and moved into place only after it succeeds. Its `record.json` stores the method digest that produced it, so a changed method rebuilds stale units automatically.
+
+A stage's `same_output_methods.txt` may list earlier digests that are proven to produce identical output. Clear the list when a change alters output.

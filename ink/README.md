@@ -1,15 +1,19 @@
-# ink
+# Ink
 
-Stage 6: layer stacks to ink maps, read with stock Reader v3.
+The ink stage converts sampled CT layer stacks into ink-probability maps with stock Reader v3.
 
-```text
-model/      Reader v3 fetched and checked, the tile reader (Metal stem, Neural Engine body), a portable PyTorch reader
-reading/    the ink stage over every piece, and re-reads of circled spots at other depths
-datasets/   labelled_cases.py: the published labelled segments, for the letter atlas
+## Modules
+
+| Path | Purpose |
+| --- | --- |
+| `model/` | This module fetches Reader v3 and runs it with the Apple-silicon tile reader or the portable PyTorch reader. |
+| `reading/` | This module samples each piece, selects its written face, and produces ink maps. |
+| `datasets/` | This module exposes published labelled segments for the letter atlas. |
+
+## Set up Reader v3
+
+```sh
+./run.sh ink.model.weights fetch
 ```
 
-The network: 34.5M parameters, a 3-D stem over 17 layers into a 2-D residual U-Net, the Vesuvius Challenge `ink_9um`
-architecture. Reader v3 is its fine-tune by Domenico Russo (MIT, https://huggingface.co/domenicor046/reader-v3).
-`./run.sh ink.model.weights fetch` puts it in the library's `weights/pretrained/reader_v3/`; the Neural Engine build is
-made on first use in `weights/engine/`. HerculeX ships no ink model of its own. `HERCULEX_WEIGHTS` reads with another
-checkpoint of the same network.
+The command verifies the pinned Reader v3 download and stores it under `${HERCULEX_LIBRARY:-data/library}/weights/pretrained/reader_v3/`. HerculeX compiles the Neural Engine body on first use and stores the build under `weights/engine/` in the library.
