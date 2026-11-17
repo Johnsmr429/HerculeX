@@ -14,7 +14,7 @@ import numpy as np
 
 from ink.model import stock_model
 from ink.model.neural_engine import SIDE, STEM_CHANNELS, EngineBody
-from runner.compiled_kernels import APPLE, load
+from runner.compiled_kernels import load
 
 TILE, STEP = 512, 384
 FILLING_TRIES = 400
@@ -351,15 +351,6 @@ class TileReader:
 
     def fix_to(self, stack):
         self.fixed = self.stem.statistics(stack)
-
-
-def reader(weights):
-    """The reader this machine runs: Metal and the Neural Engine on a Mac, else the same arithmetic in PyTorch."""
-    if APPLE:
-        return TileReader(weights)
-    from ink.model.portable_reader import PortableReader
-
-    return PortableReader(weights)
 
 
 def fixed_norms(torch, stem):

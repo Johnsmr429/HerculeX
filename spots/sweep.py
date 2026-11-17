@@ -17,7 +17,7 @@ import time
 
 import numpy as np
 
-from ink.model import tile_reader
+from ink.model import machine_reader
 from ink.model.weights import STOCK_READER
 from spots.surfaces import LAYERS, MIDDLE, work_of
 from storage.data_roots import MODEL_WEIGHTS
@@ -46,7 +46,7 @@ READ_BY = {
 
 
 def reader_of(name):
-    return tile_reader.reader(WEIGHTS[name])
+    return machine_reader.reader(WEIGHTS[name])
 
 
 def window(stack, depth, side):

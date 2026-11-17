@@ -8,7 +8,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from ink.model import tile_reader
+from ink.model import machine_reader
 from ink.model.input_stack import DEPTH, PAST_FACE, face_layer_of, scrambled
 from ink.model.stock_model import SURE
 from ink.reading import spot_depths
@@ -43,7 +43,7 @@ def read_all(sample, volume, pieces, weights):
     sampler.LAYERS = spot_depths.READ_LAYERS + 2 * EXTRA
     base = ROUTE_OUTPUTS / sample / volume
     axis, faces = spot_depths.axis_of(sample, volume), spot_depths.faces_folder(sample, volume)
-    readers = {m: tile_reader.reader(w) for m, w in models.items()}
+    readers = {m: machine_reader.reader(w) for m, w in models.items()}
     for start in range(0, len(wanted), spot_depths.PIECES_A_STORE):
         batch = wanted[start : start + spot_depths.PIECES_A_STORE]
         folder = ct_bricks(sample, "passages")
