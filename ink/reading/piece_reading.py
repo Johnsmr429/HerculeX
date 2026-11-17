@@ -84,7 +84,7 @@ def digest():
     model = checkpoint_hash(WEIGHTS)
     reader = Path(tile_reader.__file__)
     model.update(reader.read_bytes())
-    model.update(reader.with_name("depth_stem.metal").read_bytes())
+    model.update(reader.with_name("depth_stem.metal" if tile_reader.APPLE else "portable_reader.py").read_bytes())
     model.update(reader.with_name("tile_filling.c").read_bytes())
     model.update(sampler.SAMPLING.encode())
     if (FACES, SHIFTS) != (PRODUCTION_FACES, (0,)):
@@ -465,7 +465,7 @@ def read_all(jobs, store_folder, keep):
         maps = []
         try:
             if ready is not None:
-                _model = tile_reader.TileReader(WEIGHTS)
+                _model = tile_reader.reader(WEIGHTS)
                 ready.set()
             for read in _model.maps(stacks_of(pieces)):
                 maps.append(read)

@@ -43,7 +43,7 @@ def read_all(sample, volume, pieces, weights):
     sampler.LAYERS = spot_depths.READ_LAYERS + 2 * EXTRA
     base = ROUTE_OUTPUTS / sample / volume
     axis, faces = spot_depths.axis_of(sample, volume), spot_depths.faces_folder(sample, volume)
-    readers = {m: tile_reader.TileReader(w) for m, w in models.items()}
+    readers = {m: tile_reader.reader(w) for m, w in models.items()}
     for start in range(0, len(wanted), spot_depths.PIECES_A_STORE):
         batch = wanted[start : start + spot_depths.PIECES_A_STORE]
         folder = ct_bricks(sample, "passages")

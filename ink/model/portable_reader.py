@@ -11,6 +11,8 @@ silicon only. Here the same arithmetic runs in PyTorch, in float32:
 TurnedPortableReader reads the eight turns and flips of a stack, each turned back, and averages them.
 """
 
+import sys
+
 import numpy as np
 
 from ink.model import stock_model, tile_reader
@@ -20,10 +22,16 @@ BATCH = {"cpu": 1, "cuda": 4}  # tiles a forward pass: one keeps a CPU run withi
 
 
 class PortableReader:
-    def __init__(self, weights, device="cpu"):
+    def __init__(self, weights, device=None):
         import torch
 
-        self.torch, self.device = torch, torch.device(device)
+        self.torch, self.device = torch, torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
+        if device is None and self.device.type == "cpu":
+            print(
+                "the ink reader runs on the CPU, many times slower, as PyTorch sees no CUDA GPU",
+                file=sys.stderr,
+                flush=True,
+            )
         self.batch = BATCH.get(self.device.type, 1)
         net = (
             stock_model.InkModel(names=tuple(stock_model.CHECKPOINTS)[:1], weights=[weights], device="cpu")
@@ -40,12 +48,14 @@ class PortableReader:
         self.norms = tile_reader.fixed_norms(torch, self.stem)
 
     def fix_to(self, stack):
-        """The raw scale of a stack and its stem norms, measured on the tiles TileReader measures."""
+        """Fix the statistics to a stack, measured on the tiles TileReader measures."""
+        self.fixed = self.statistics_of(*tile_reader.measured(stack))
+
+    def statistics_of(self, tiles, scale):
+        """The raw scale of measured tiles and the stem norms they give."""
         torch = self.torch
-        tiles = tile_reader.measured_tiles(stack)
-        scale = tile_reader.raw_scale(tiles)
         low, high, centre, spread = scale
-        image = (np.clip(np.stack(tiles).astype(np.float32), low, high) - centre) / spread
+        image = (np.clip(tiles.astype(np.float32), low, high) - centre) / spread
         for norm in self.norms:
             norm.measuring = True
         with torch.inference_mode():
@@ -60,16 +70,34 @@ class PortableReader:
             ]
         return scale, parts
 
-    def read(self, stack):
-        """Probability of ink of a (17, height, width) uint8 stack."""
+    def read(self, stack, fixed=False):
+        """Probability of ink of a (17, height, width) uint8 stack, with its own statistics unless they stay fixed."""
+        (read,) = self.maps([(stack, None if fixed else tile_reader.measured(stack))])
+        if isinstance(read, Exception):
+            raise read
+        return read
+
+    def maps(self, stacks):
+        """Read each raw or prepared stack with its measurements, or None to reuse the last statistics, as TileReader.maps does."""
+        for stack, measure in stacks:
+            try:
+                if measure is not None:
+                    self.fixed = self.statistics_of(*measure)
+                yield self.read_fixed(stack)
+            except Exception as error:
+                yield error
+
+    def read_fixed(self, stack):
+        """One stack read with the fixed statistics."""
         torch = self.torch
-        scale, norms = self.fix_to(stack)
+        scale, norms = self.fixed
         low, high, centre, spread = scale
         grey = ((np.clip(np.arange(256, dtype=np.float32), low, high) - centre) / spread).astype(np.float32)
         depth, height, width = stack.shape
         sums = tile_reader.Sums(height, width)
         ty, tx = sums.tile_y, sums.tile_x
-        whole, coverage = tile_reader.prepare_stack(np.ascontiguousarray(stack))
+        prepared = isinstance(stack, tile_reader.PreparedStack)
+        whole, coverage = stack if prepared else tile_reader.prepare_stack(np.ascontiguousarray(stack))
         places = [
             (y, x)
             for y in tile_reader.tile_starts(height, ty)

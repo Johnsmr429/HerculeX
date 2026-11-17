@@ -323,7 +323,7 @@ def read_pieces(sample, volume, pieces, model):
         jobs = [(base / "pieces" / p["unit"] / f"piece-{p['piece']:04d}", None, axis) for p in batch]
         fetch_bricks(sample, volume, jobs, folder)
         store = BrickStore(folder)
-        reader = reader or tile_reader.TileReader(WEIGHTS)
+        reader = reader or tile_reader.reader(WEIGHTS)
         for p, job in zip(batch, jobs):
             began = time.time()
             side = json.loads(piece_png(faces, p, "-taught-side").with_suffix(".json").read_text())

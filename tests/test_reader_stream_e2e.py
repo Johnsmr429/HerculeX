@@ -132,7 +132,7 @@ def test_failed_model_loading_leaves_prefetched_piece_unwritten(tmp_path, monkey
     monkeypatch.setattr(piece_reading, "_model", None)
     monkeypatch.setattr(piece_reading, "SAMPLERS", 1)
     monkeypatch.setattr(piece_reading, "sampled_piece", mark_before_sampling_writes)
-    monkeypatch.setattr(tile_reader, "TileReader", fail_model)
+    monkeypatch.setattr(tile_reader, "reader", fail_model)
     with pytest.raises(ValueError, match="model could not open"):
         piece_reading.read_all([(folder, face, None, 1, "model")], store.folder, False)
     assert not list(tmp_path.glob("piece-0001*.png")) and not windows.exists() and store.folder.is_dir()

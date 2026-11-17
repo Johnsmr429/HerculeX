@@ -1,11 +1,17 @@
 """The Metal stem and the Neural Engine body read as the network does."""
 
+import sys
+
 import numpy as np
 import pytest
 from scipy import ndimage as ni
 
 from ink.model.tile_reader import TileReader, measured, scaled
 from ink.model.weights import STOCK_READER as WEIGHTS
+
+pytestmark = pytest.mark.skipif(
+    sys.platform != "darwin", reason="Metal and the Neural Engine; elsewhere see test_portable_reader_e2e.py"
+)
 
 
 def papyrus(side):

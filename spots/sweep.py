@@ -46,7 +46,7 @@ READ_BY = {
 
 
 def reader_of(name):
-    return tile_reader.TileReader(WEIGHTS[name])
+    return tile_reader.reader(WEIGHTS[name])
 
 
 def window(stack, depth, side):
