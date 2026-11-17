@@ -18,10 +18,11 @@ import numpy as np
 import zstandard
 from PIL import Image
 
-from ink.model import input_stack, tile_reader
+from ink.model import input_stack, machine_reader, tile_reader
 from ink.model.input_stack import DEPTH, PAST_FACE, face_layer_of, scrambled
 from ink.model.stock_model import SURE, checkpoint_hash
 from ink.model.weights import STOCK_READER
+from runner.compiled_kernels import APPLE
 from sampling import column_sampling as sampler
 from sampling.fibre_faces import recto_face
 from sampling.piece_images import (
@@ -84,7 +85,7 @@ def digest():
     model = checkpoint_hash(WEIGHTS)
     reader = Path(tile_reader.__file__)
     model.update(reader.read_bytes())
-    model.update(reader.with_name("depth_stem.metal" if tile_reader.APPLE else "portable_reader.py").read_bytes())
+    model.update(reader.with_name("depth_stem.metal" if APPLE else "portable_reader.py").read_bytes())
     model.update(reader.with_name("tile_filling.c").read_bytes())
     model.update(sampler.SAMPLING.encode())
     if (FACES, SHIFTS) != (PRODUCTION_FACES, (0,)):
@@ -465,7 +466,7 @@ def read_all(jobs, store_folder, keep):
         maps = []
         try:
             if ready is not None:
-                _model = tile_reader.reader(WEIGHTS)
+                _model = machine_reader.reader(WEIGHTS)
                 ready.set()
             for read in _model.maps(stacks_of(pieces)):
                 maps.append(read)
