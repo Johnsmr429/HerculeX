@@ -1,15 +1,12 @@
-# Calibration
+# calibration
 
-Use these studies to measure unwrapping stages against controls with known geometry before you publish a result.
+The `calibration` package scores the unwrapping stages on controls with known truth. Use it to measure a replacement
+for any stage against the stage that it replaces.
 
-## Modules
-
-| Path | Purpose |
+| Folder | Contents |
 | --- | --- |
-| `unwrap/` | This module builds sheet controls and measures surface recovery, winding consistency, and continuous area. |
+| `unwrap/` | Scores sheet detection and unwrapping against published meshes and against a synthetic scroll of known windings. |
 
-## Data and results
-
-The studies read controls from `${HERCULEX_LIBRARY:-data/library}/controls/` and store large intermediate results under `calibration/` in the same library. They write reviewed summary measurements to `records/surface/` in this repository.
-
-Add a measurement to a record only after you run its control with the method that produced the measurement.
+The controls are stored in the library's `controls/` folder. Each study writes its working files to `calibration/STUDY/`
+in the library and its measured results to [`records/surface/`](../records/README.md). Record a number only after you
+run its control alongside it.

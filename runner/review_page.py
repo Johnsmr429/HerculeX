@@ -26,10 +26,10 @@ CHECKPOINT = STOCK_READER
 
 
 def model_name(weights):
-    """The model's name on the page: stock Reader v3, or a fine-tune by HERCULEX_MODEL_NAME (post-trained by default)."""
-    if weights.resolve() == CHECKPOINT.resolve():
-        return "stock Reader v3"
-    return os.environ.get("HERCULEX_MODEL_NAME", "post-trained Reader v3")
+    """The ink model's name on the page: HERCULEX_MODEL_NAME, else Reader v3 for its checkpoint, else the file's name."""
+    if named := os.environ.get("HERCULEX_MODEL_NAME"):
+        return named
+    return "Reader v3" if weights.resolve() == CHECKPOINT.resolve() else weights.stem
 
 
 def live(url):
@@ -125,7 +125,7 @@ def publish(sample, volume, url):
                 "--model",
                 model_label,
                 "--ink-name",
-                "stock ink" if model_label.startswith("stock") else "taught ink",
+                "ink",
                 "--written-face",
             )
             render_page(sheet, folder, site_pages.card_title(sample, name), scan)

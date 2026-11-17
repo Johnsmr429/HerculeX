@@ -41,9 +41,9 @@ def test_a_symlinked_data_folder_names_its_real_place(tmp_path):
 def test_a_page_names_stock_reader_v3_or_a_fine_tune(tmp_path, monkeypatch):
     from runner import review_page
 
-    assert review_page.model_name(review_page.CHECKPOINT) == "stock Reader v3"
+    assert review_page.model_name(review_page.CHECKPOINT) == "Reader v3"
     monkeypatch.delenv("HERCULEX_MODEL_NAME", raising=False)
-    assert review_page.model_name(tmp_path / "mine.pth") == "post-trained Reader v3"
+    assert review_page.model_name(tmp_path / "mine.pth") == "mine"
     monkeypatch.setenv("HERCULEX_MODEL_NAME", "a Reader v3 fine-tune")
     assert review_page.model_name(tmp_path / "mine.pth") == "a Reader v3 fine-tune"
     assert not review_page.live("http://127.0.0.1:9")

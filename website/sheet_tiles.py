@@ -256,9 +256,9 @@ def compose(pieces, folder, writer, path, layer, pixel_mm, pool):
 
 def layer_name(layer, pixel_mm):
     return {
-        "ink": "stock ink",
-        "taught": "taught ink",
-        SCAN_UNDER_TAUGHT: "scan under taught ink",
+        "ink": "ink",
+        "taught": "ink",
+        SCAN_UNDER_TAUGHT: "scan under the ink",
         "sheet": "brightest across the sheet",
     }.get(layer) or f"{int(layer.removeprefix('layer')) * pixel_mm * 1000:+.0f} µm"
 

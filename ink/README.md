@@ -1,19 +1,24 @@
-# Ink
+# ink
 
-The ink stage converts sampled CT layer stacks into ink-probability maps with stock Reader v3.
+The `ink` package turns each piece's layer stack into an ink map (stage 6). It reads the ink with Reader v3.
 
-## Modules
-
-| Path | Purpose |
+| Folder | Contents |
 | --- | --- |
-| `model/` | This module fetches Reader v3 and runs it with the Apple-silicon tile reader or the portable PyTorch reader. |
-| `reading/` | This module samples each piece, selects its written face, and produces ink maps. |
-| `datasets/` | This module exposes published labelled segments for the letter atlas. |
+| `model/` | Fetches and checks Reader v3 and runs it: the tile reader, with a Metal stem and a Neural Engine body, and a portable PyTorch reader. |
+| `reading/` | Runs the ink stage over every piece, and reads circled spots and passages again at other depths. |
+| `datasets/` | `labelled_cases.py` collects the published labeled ink segments and infrared fragments that the letter atlas uses. Run `./run.sh ink.datasets.labelled_cases` to build them in the library's `datasets/`. |
 
-## Set up Reader v3
+## The network
+
+Reader v3 is Domenico Russo's fine-tune of the Vesuvius Challenge `ink_9um` network, released under the MIT license at
+<https://huggingface.co/domenicor046/reader-v3>. The network has 34.5 million parameters: a 3D stem over 17 CT layers
+feeds a 2D residual U-Net. HerculeX doesn't include model weights. Fetch Reader v3 once before you read ink:
 
 ```sh
-./run.sh ink.model.weights fetch
+./run.sh ink.model.weights fetch     # download Reader v3, check it and convert it for the tile reader
+./run.sh ink.model.weights status    # show where each checkpoint is and whether it's in place
 ```
 
-The command verifies the pinned Reader v3 download and stores it under `${HERCULEX_LIBRARY:-data/library}/weights/pretrained/reader_v3/`. HerculeX compiles the Neural Engine body on first use and stores the build under `weights/engine/` in the library.
+The checkpoint goes to the library's `weights/pretrained/reader_v3/`. HerculeX compiles the Neural Engine build on
+first use and keeps it in `weights/engine/`. To read with another checkpoint of the same network, set
+`HERCULEX_WEIGHTS` to its path.

@@ -1,11 +1,11 @@
-# Records
+# records
 
-This directory contains compact, reviewed measurements produced by calibration studies.
+The `records` folder keeps measured results as JSON files beside the code. The calibration studies write them, and
+reports read them back.
 
-## Contents
-
-| Path | Purpose |
+| Folder | Contents |
 | --- | --- |
-| `surface/` | These JSON records summarize piece truth, winding studies, and survey comparisons with published meshes. |
+| `surface/` | Results of the unwrapping controls: the wrap studies, the per-piece truth of a control band, and a survey of every band against the published meshes. |
 
-Keep large study artifacts in `${HERCULEX_LIBRARY:-data/library}/calibration/`. Add a number here only when its record identifies the control and method used to measure it.
+Add a number here only together with the control that it was measured against. Large study outputs belong in the
+library's `calibration/STUDY/` folder, not here.

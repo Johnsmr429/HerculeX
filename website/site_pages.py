@@ -225,8 +225,14 @@ def scans(root=ROUTE_OUTPUTS):
     energy = {r["volume"]: r["energy_kev"] for r in survey_volumes(load())}
     found = sorted((path.parts[-4], path.parts[-3]) for path in stage_entries(root, "sheet", "layout.json"))
     route = "-level" if root == LEVEL_ROUTE else ""
+    kev = {v: f"{e:.0f}" if e else "" for v, e in energy.items()}  # a scan without a recorded energy goes by its id
     return [
-        (s, v, f"{s}-{energy[v]:.0f}keV{route}", f"{s} · {energy[v]:.0f} keV" + (" · second route" if route else ""))
+        (
+            s,
+            v,
+            f"{s}-{kev[v]}keV{route}" if kev.get(v) else f"{s}-{v}{route}",
+            f"{s} · {kev[v]} keV" if kev.get(v) else f"{s} · {v}",
+        )
         for s, v in sorted(found, key=lambda scan: prize_order(scan[0]))
     ]
 
@@ -248,18 +254,7 @@ def read_on(name, layer):
 SURFACES = (
     ("two-unwraps-", "grown+level"),
     ("-continuous-frame", "frame"),
-    ("-level", "level"),
 )
-# the ink model of an older page whose ink layer names none (pages made now name theirs): the grown route's maps were
-# read by ink_9um post-trained on the labelled scrolls, the level route's by Reader v3 post-trained on them and on
-# labels carried onto the pipeline's own surfaces
-UNNAMED_MODEL = {
-    "grown": "post-trained ink_9um",
-    "level": "post-trained Reader v3",
-    "rebuilt": "post-trained Reader v3",
-    "grown+level": "post-trained ink_9um + Reader v3",
-    "frame": "stock Reader v3",
-}
 INK_LAYERS = ("taught", "new-ink", "ink")
 
 
@@ -271,16 +266,15 @@ def registered():
 
 def surface_of(name):
     named = next((entry.get("surface") for entry in registered() if entry["page"] == name), None)
-    return named or next((word for key, word in SURFACES if key in name), "grown")
+    return named or next((word for key, word in SURFACES if key in name), "level")
 
 
-def card_title(sample, name):
-    """A start page card's label: scroll, ink model, surface, the day its ink was composed."""
+def card_title(sample, name, surface=None):
+    """A start page card's label: scroll, the ink model its ink layer names, surface, the day its ink was composed."""
     layers = {layer["path"]: layer for layer in layers_of(name)}
     path = next((path for path in INK_LAYERS if path in layers), None)
-    surface = surface_of(name)
-    model = (layers[path].get("model") if path else None) or UNNAMED_MODEL[surface]
-    return " · ".join(filter(None, (sample, model, surface, read_on(name, path) if path else "")))
+    model = layers[path].get("model") if path else None
+    return " · ".join(filter(None, (sample, model, surface or surface_of(name), read_on(name, path) if path else "")))
 
 
 def ink_stamp(name):
@@ -318,7 +312,7 @@ def front_cards():
                 {
                     "href": f"sheet-{tag}/index.html",
                     "image": f"sheet-{tag}/card.jpg",
-                    "title": card_title(sample, f"sheet-{tag}"),
+                    "title": card_title(sample, f"sheet-{tag}", "grown"),
                 }
             )
     for sample in sorted(both, key=prize_order):

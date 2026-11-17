@@ -94,7 +94,8 @@ def located(sheet, mark, placed):
         and p["y_mm"] < high[1]
         and p["y_mm"] + p["height_mm"] > low[1]
     ]
-    step = near[0]["stride"] * near[0]["um"] if near else 16 * 0.009362
+    shown = near[0] if near else placed[0]
+    step = shown["stride"] * shown["um"]
     claimed = {}
     found = {}
     for margins in (False, True):
@@ -158,8 +159,9 @@ def cells_inside(outline, step):
     return int(inside(grid, outline).sum())
 
 
-def row_of(sheet, mark, voxel_um=9.362):
+def row_of(sheet, mark):
     placed = sheet.layout(mark["layout"])
+    voxel_um = round(placed[0]["um"] * 1000, 3)  # the scan's voxel, as its pieces were laid out
     outline, clicked, pieces, points, expected, step = located(sheet, mark, placed)
     labeller = "target-day" if mark["time"][:10] >= TARGETS_SINCE else "earlier"
     centre = points.mean(axis=0) if len(points) else np.full(3, np.nan)

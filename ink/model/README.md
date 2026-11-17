@@ -1,25 +1,20 @@
-# Ink model
+# ink/model
 
-This module runs stock Reader v3 over 17-layer CT stacks. On Apple silicon, it uses Metal for the 3-D stem and the Neural Engine for the 2-D body.
+These modules fetch Reader v3 and run it on Apple silicon: the 3D stem on the GPU with Metal and the 2D body on the
+Neural Engine.
 
-## Files
-
-| File | Purpose |
+| File | Description |
 | --- | --- |
-| `weights.py` | Downloads Reader v3 at a pinned revision, verifies its checksum, and converts its state for the tile reader. |
-| `stock_model.py` | Builds the open `ink_9um` network that defines the Reader v3 architecture. |
-| `input_stack.py` | Prepares and scales the 17-layer input window around the written face. |
-| `tile_reader.py` | Reads overlapping 512-pixel tiles and blends their predictions. |
-| `depth_stem.metal` | Runs the network's 3-D stem as a Metal kernel. |
-| `neural_engine.py` and `engine_calls.m` | Compile and call the 2-D network body on the Neural Engine. |
-| `tile_filling.c` | Fills uncovered tile columns from shifted and reflected stack content. |
-| `portable_reader.py` | Runs equivalent Reader v3 arithmetic with PyTorch on a CPU or CUDA device. |
+| `weights.py` | Downloads Reader v3 at its pinned revision, checks its SHA-256 digest, and converts it for the tile reader. |
+| `stock_model.py` | Builds the `ink_9um` network from the Vesuvius Challenge `villa` code at a pinned commit, and fetches that code and the checkpoint that configures the network on first use. |
+| `tile_reader.py` | Reads a stack in 512-pixel tiles every 384 pixels and blends them with a Hann window. It fixes the stem's normalization to statistics measured once per stack. |
+| `depth_stem.metal` | Runs the 3D stem as one Metal kernel, on its own thread, ahead of the Neural Engine. |
+| `neural_engine.py` | Compiles the 2D body for the Neural Engine in half precision, once per checkpoint. |
+| `engine_calls.m` | Calls Core ML from C, so a thread that waits on the Neural Engine doesn't hold Python's global interpreter lock. |
+| `input_stack.py` | Defines the input: a 17-layer window placed from the stack's written face, with raw values scaled. |
+| `tile_filling.c` | Fills a tile's empty columns from shifted, flipped copies of its own stack. |
+| `portable_reader.py` | Runs the same arithmetic in PyTorch, in float32, on a CPU or a CUDA GPU. Start from this file to port the reader to other hardware. |
 
-## Commands
-
-```sh
-./run.sh ink.model.weights fetch
-./run.sh ink.model.weights status
-```
-
-The fetch command is resumable: it reuses verified weights and only creates missing converted state.
+The tile reader fills empty columns so that per-tile normalization doesn't read the edge of a hole as ink.
+`tests/test_tile_reader_e2e.py` checks the Metal stem and the half-precision Neural Engine body against the float32
+network.

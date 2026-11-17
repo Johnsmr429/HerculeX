@@ -1,20 +1,15 @@
-# Sheet layout
+# unwrapping/layout
 
-This stage places unwrapped pieces on one two-dimensional sheet.
+Stage 4 places a scan's pieces and their joins on one sheet along the roll. For a scan of several units, the pipeline
+uses `unwrapping.level.scroll_layout`; for a scan of one unit or one band, it uses `mosaic_layout.py`.
 
-## Files
-
-| File | Purpose |
+| File | Description |
 | --- | --- |
-| `mosaic_layout.py` | Joins connected pieces into mosaics and writes their sheet placement. |
-| `roll_placement.py` | Orders pieces from one height band by winding around the scroll. |
-| `tifxyz_export.py` | Exports a completed layout as a tifxyz grid for VC3D. |
-
-## Commands
+| `mosaic_layout.py` | Joins pieces into mosaics and places the mosaics on one sheet, in the scan's `sheet/layout.json`. |
+| `roll_placement.py` | Places the pieces of one height band along the roll by their winding. |
+| `tifxyz_export.py` | Exports a laid-out sheet as one tifxyz grid for VC3D. |
 
 ```sh
-./run.sh unwrapping.layout.mosaic_layout SCROLL SCAN
-./run.sh unwrapping.layout.tifxyz_export SCROLL SCAN PAGE
+./run.sh unwrapping.layout.mosaic_layout SCROLL SCAN [band]
+./run.sh unwrapping.layout.tifxyz_export SCROLL SCAN NAME    # writes website/sheets/NAME/tifxyz/ in the outputs
 ```
-
-The layout command writes `sheet/layout.json` under the scan's level-route output. The export command writes `tifxyz/` under the named website page.

@@ -141,7 +141,7 @@ def test_stock_review_preserves_the_written_face_and_removes_duplicate_images(tm
             name,
             layers.split(","),
             model=review_page.model_name(review_page.CHECKPOINT),
-            ink_name="stock ink",
+            ink_name="ink",
             written_face=True,
         )
 
@@ -169,7 +169,7 @@ def test_stock_review_preserves_the_written_face_and_removes_duplicate_images(tm
     (sheets / other / "card.jpg").unlink()
     review_page.site_pages.add_card(other, surface="rebuilt")
     titles = {card["href"]: card["title"] for card in review_page.site_pages.front_cards()}
-    assert titles[f"{other}/index.html"].startswith(f"{sample} · stock Reader v3 · rebuilt · ")
+    assert titles[f"{other}/index.html"].startswith(f"{sample} · Reader v3 · rebuilt · ")
     assert f"{other}/index.html" in (sheets / "index.html").read_text() and (sheets / other / "card.jpg").is_file()
     review_page.site_pages.add_card(other, remove=True)
     assert f"{other}/index.html" not in (sheets / "index.html").read_text()
