@@ -12,7 +12,7 @@ board to share the GPU, the Neural Engine, the network link and memory between l
 | `job_board.py` | Runs one queue for every long job, with resource slots, memory limits, priorities and a swap guard. |
 | `wait_for_queue.py` | Exits once none of the named board jobs can still run, however they end. |
 | `memory_trace.py` | Runs a module or script and reports where its memory footprint peaks, line by line, including C and GPU memory. |
-| `compiled_kernels.py` | Compiles the C and Objective-C kernels once per source digest into `runtime/kernels/`. |
+| `compiled_kernels.py` | Compiles the C and Objective-C kernels once per source digest into `runtime/kernels/` (with `cc` and OpenMP off macOS). |
 
 ## Run a scroll
 
@@ -63,6 +63,8 @@ To publish a read scan again, run `./run.sh runner.review_page SCROLL SCAN`.
 | `HERCULEX_SITE` | `http://127.0.0.1:8765` | Sets the local site that the `sheet` stage checks after it publishes. |
 | `HERCULEX_BOARD` | `runtime/board/` | Sets the folder for the board's database, logs and dispatcher lock. |
 | `HERCULEX_BOARD_MARGIN_GB` | `1.0` | Sets the memory, in GB, that the board leaves free. |
+| `HERCULEX_BOARD_CORES` | `10` | Sets the number of CPU cores the board shares out. |
+| `HERCULEX_UNIT_ROWS` | `12` | Sets the brick rows of each sheet-detection unit, which the level solve takes whole; fewer need less memory. |
 
 ## Job board
 
@@ -92,6 +94,10 @@ When a GPU job is held back only by cores or memory that lower-priority restarta
 them, at most one a minute, and the stopped job runs again once there is room. A job that a waiting GPU job needs
 within two steps, such as its layout, can make room the same way, but it stops only sharing jobs. When swap grows too large, the board stops the largest
 restartable job of the lowest priority. A job that exits with code 75 goes back to the queue and runs again later.
+
+On Linux the board reads process memory and groups from `/proc` and the GPU's load from `nvidia-smi`. A job's footprint
+is its resident memory, and the Neural Engine slot (`--engine`) is kept so that the same commands work; it guards
+nothing there.
 
 Before you run a test or a quick GPU check by hand, run `./run.sh board room GB` to check that it fits beside the
 running jobs. The first board command starts a dispatcher in the background. If you change `job_board.py`, stop the

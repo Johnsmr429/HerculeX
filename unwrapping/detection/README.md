@@ -1,12 +1,14 @@
 # unwrapping/detection
 
-Stage 2 turns CT bricks into sheet nodes. HerculeX processes each 8-voxel cell in one Metal threadgroup: it computes
-the structure tensor, takes the CT profile along the sheet normal, and keeps one node for each sheet peak.
+Stage 2 turns CT bricks into sheet nodes. HerculeX processes each 8-voxel cell in one GPU threadgroup (Metal on a Mac,
+one CUDA block on Linux): it computes the structure tensor, takes the CT profile along the sheet normal, and keeps one
+node for each sheet peak.
 
 | File | Description |
 | --- | --- |
 | `detect_nodes.py` | Runs the stage. It fetches chunks of 12 brick rows, finds their nodes, and packs them into `nodes/rows-*`, fetching the next chunk while it processes the current one. |
 | `gpu_nodes.py`, `gpu_nodes.metal`, `gpu_nodes_host.m` | Find the nodes on the GPU, one Metal threadgroup per cell. |
+| `gpu_nodes.cu`, `gpu_nodes_host.c` | The same kernel and host for CUDA, used off macOS. The host compiles the kernel at first use with NVRTC, which PyTorch's CUDA wheels carry, so no CUDA toolkit is needed. |
 | `cpu_nodes.py`, `node_kernels.c` | Find the same nodes on the CPU. This is the reference that the GPU path is tested against. |
 | `kernel_bindings.py` | Defines the ctypes signatures and the layout of the node record. |
 | `same_output_methods.txt` | Lists earlier code digests that are proven to give the same nodes. |

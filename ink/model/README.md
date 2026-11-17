@@ -13,8 +13,8 @@ Neural Engine.
 | `engine_calls.m` | Calls Core ML from C, so a thread that waits on the Neural Engine doesn't hold Python's global interpreter lock. |
 | `input_stack.py` | Defines the input: a 17-layer window placed from the stack's written face, with raw values scaled. |
 | `tile_filling.c` | Fills a tile's empty columns from shifted, flipped copies of its own stack. |
-| `portable_reader.py` | Runs the same arithmetic in PyTorch, in float32, on a CPU or a CUDA GPU. Start from this file to port the reader to other hardware. |
+| `portable_reader.py` | Runs the same arithmetic in PyTorch, in float32, on a CPU or a CUDA GPU. Off macOS, `tile_reader.reader()` gives this reader to the ink stage. Start from this file to port the reader to other hardware. |
 
 The tile reader fills empty columns so that per-tile normalization doesn't read the edge of a hole as ink.
 `tests/test_tile_reader_e2e.py` checks the Metal stem and the half-precision Neural Engine body against the float32
-network.
+network. `tests/test_portable_reader_e2e.py` checks the PyTorch reader's stream of stacks, on CUDA against the CPU.

@@ -6,7 +6,7 @@ references.
 | Files | What they test |
 | --- | --- |
 | `*_e2e.py` | A stage or tool run whole on synthetic inputs with known truth, such as a crushed scroll of known windings, a spiral, a small HTTP server, or a job board of its own. |
-| `*_golden.py` | A fast path against a trusted reference: the Metal sheet-node kernel against the C kernel, and the network simplex against a general LP solver. |
+| `*_golden.py` | A fast path against a trusted reference: the GPU sheet-node kernel (Metal, or CUDA off macOS) against the C kernel, the network simplex against a general LP solver, and, off macOS with clang, the `dispatch_apply` side of `parallel_blocks.h`. |
 | `test_reflatten.py` | The near-isometric flattening in `spots.reflatten`. |
 
 ```sh

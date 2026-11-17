@@ -17,6 +17,7 @@ everything made after them, to `unwrapping/level/` in the outputs folder.
 | `scroll_frame.py` | Fits one frame for a whole scan. |
 | `scroll_layout.py` | Places every piece on one sheet by that frame. |
 | `kernel_bindings.py`, `piece_kernel_bindings.py`, `piece_kernels.c` | Declare the ctypes signatures of the C kernels, and provide the piece kernels. |
+| `parallel_blocks.h` | Gives the C kernels one loop whose rounds run at once: `dispatch_apply` on macOS, OpenMP elsewhere. |
 | `same_output_methods.txt` | Lists earlier code digests that are proven to give the same pieces. |
 
 ## Commands
