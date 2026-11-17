@@ -1,5 +1,5 @@
 
-#include <dispatch/dispatch.h>
+#include "parallel_blocks.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -165,7 +165,7 @@ void hx_sort_edges(Edge *edges, int64_t count, Edge *scratch) {
 }
 
 void hx_turned_steps(const Edge *edges, int64_t count, const Node *nodes, Edge *out) {
-    dispatch_apply(EDGE_BLOCKS, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^(size_t block) {
+    EACH_BLOCK(block, EDGE_BLOCKS) {
         int64_t lo = count * (int64_t)block / EDGE_BLOCKS, hi = count * (int64_t)(block + 1) / EDGE_BLOCKS;
         for (int64_t e = lo; e < hi; e++) {
             if (e + AHEAD < hi) {
@@ -176,11 +176,11 @@ void hx_turned_steps(const Edge *edges, int64_t count, const Node *nodes, Edge *
             out[e] = edges[e];
             out[e].step = (int32_t)p->nx * q->nx + (int32_t)p->ny * q->ny + (int32_t)p->nz * q->nz < 0;
         }
-    });
+    } END_BLOCKS;
 }
 
 #define EACH_EDGE(values, test) \
-    dispatch_apply(EDGE_BLOCKS, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^(size_t block) { \
+    EACH_BLOCK(block, EDGE_BLOCKS) { \
         int64_t lo = count * (int64_t)block / EDGE_BLOCKS, hi = count * (int64_t)(block + 1) / EDGE_BLOCKS; \
         for (int64_t e = lo; e < hi; e++) { \
             if (e + AHEAD < hi) { \
@@ -190,7 +190,7 @@ void hx_turned_steps(const Edge *edges, int64_t count, const Node *nodes, Edge *
             int32_t a = edges[e].a, b = edges[e].b; \
             out[e] = (test); \
         } \
-    })
+    } END_BLOCKS
 
 void hx_same_label(const Edge *edges, int64_t count, const int32_t *label, uint8_t *out) { EACH_EDGE(label, label[a] == label[b]); }
 

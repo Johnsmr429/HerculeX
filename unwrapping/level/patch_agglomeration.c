@@ -1,6 +1,6 @@
 // Small sheet patches merged strongest first on the summed evidence between them: edges attract, rays repel.
 
-#include <dispatch/dispatch.h>
+#include "parallel_blocks.h"
 #include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -140,7 +140,7 @@ void hx_agglomerate(int64_t patches, const int32_t *patch, int64_t nodes, const 
     int32_t *parent = malloc(sizeof(int32_t) * (size_t)patches);
     float *mass = calloc((size_t)patches, sizeof(float));
     for (int64_t i = 0; i < nodes; i++) mass[patch[i]] += 1;
-    dispatch_apply(OWNERS, dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^(size_t owner) {
+    EACH_BLOCK(owner, OWNERS) {
         int64_t lo = patches * (int64_t)owner / OWNERS, hi = patches * (int64_t)(owner + 1) / OWNERS;
         for (int64_t i = lo; i < hi; i++) {
             table_init(&tables[i], 8);
@@ -167,7 +167,7 @@ void hx_agglomerate(int64_t patches, const int32_t *patch, int64_t nodes, const 
             if (a >= lo && a < hi) table_add(&tables[a], b, 0, rays[e].weight);
             if (b >= lo && b < hi) table_add(&tables[b], a, 0, rays[e].weight);
         }
-    });
+    } END_BLOCKS;
     int64_t pairs = 0;
     for (int64_t i = 0; i < patches; i++) pairs += tables[i].live;
     Heap heap = {malloc(sizeof(Item) * (size_t)(pairs / 2 + 16)), 0, pairs / 2 + 16};

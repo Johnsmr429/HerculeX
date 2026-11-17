@@ -1,4 +1,4 @@
-"""The Metal sheet-node kernel must find the same nodes as the C kernel on a spiral of known sheets."""
+"""The GPU sheet-node kernel (Metal, or CUDA off macOS) must find the same nodes as the C kernel on a spiral of known sheets."""
 
 import numpy as np
 

@@ -1,7 +1,7 @@
 // Exact minimiser of sum_t f_t(x[q_t] - x[p_t] - k_t) over integer x, each f_t convex with one kink: up*max(r,0) + dn*max(-r,0).
 
 #include <math.h>
-#include <dispatch/dispatch.h>
+#include "parallel_blocks.h"
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -73,7 +73,6 @@ static void pr_relabel_parallel(Graph *g, int32_t *label, int32_t *queue) {
     int32_t found_store[BFS_CHUNKS];
     int64_t *offset = offset_store;
     int32_t *found = found_store;
-    dispatch_queue_t pool = dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0);
     while (lo < hi) {
         int32_t size = hi - lo, next = depth + 1;
         if (size < BFS_PARALLEL_LEVEL) {
@@ -87,15 +86,15 @@ static void pr_relabel_parallel(Graph *g, int32_t *label, int32_t *queue) {
         } else {
             int32_t chunk = (size + BFS_CHUNKS - 1) / BFS_CHUNKS;
             const int32_t *frontier = queue + lo;
-            dispatch_apply(BFS_CHUNKS, pool, ^(size_t c) {
+            EACH_BLOCK(c, BFS_CHUNKS) {
                 int64_t arcs = 0;
                 int32_t a = (int32_t)c * chunk, b = a + chunk < size ? a + chunk : size;
                 for (int32_t i = a; i < b; i++) arcs += N[frontier[i]].last - N[frontier[i]].first;
                 offset[c + 1] = arcs;
-            });
+            } END_BLOCKS;
             offset[0] = 0;
             for (int c = 0; c < BFS_CHUNKS; c++) offset[c + 1] += offset[c];
-            dispatch_apply(BFS_CHUNKS, pool, ^(size_t c) {
+            EACH_BLOCK(c, BFS_CHUNKS) {
                 int32_t a = (int32_t)c * chunk, b = a + chunk < size ? a + chunk : size, got = 0;
                 int32_t *out = cand + offset[c];
                 for (int32_t i = a; i < b; i++) {
@@ -108,7 +107,7 @@ static void pr_relabel_parallel(Graph *g, int32_t *label, int32_t *queue) {
                     }
                 }
                 found[c] = got;
-            });
+            } END_BLOCKS;
             for (int c = 0; c < BFS_CHUNKS; c++) {
                 memcpy(queue + end, cand + offset[c], sizeof(int32_t) * (size_t)found[c]);
                 end += found[c];

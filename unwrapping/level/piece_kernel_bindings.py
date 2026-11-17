@@ -21,6 +21,7 @@ def library():
             HERE / "network_simplex.c",
             HERE / "patch_agglomeration.c",
         ],
+        headers=[HERE / "parallel_blocks.h"],
     )
     if id(lib) in _TYPES:
         return lib

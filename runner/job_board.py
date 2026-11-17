@@ -1,4 +1,4 @@
-"""One queue for every long job on this Mac."""
+"""One queue for every long job on this machine."""
 
 import argparse
 import collections
@@ -23,7 +23,7 @@ from storage.data_roots import HERE, LIBRARY, OUTPUTS, SCRATCH
 
 BOARD = Path(os.environ.get("HERCULEX_BOARD", HERE / "runtime" / "board"))
 MARGIN_GB = float(os.environ.get("HERCULEX_BOARD_MARGIN_GB", "1.0"))
-CORES = 10
+CORES = int(os.environ.get("HERCULEX_BOARD_CORES", "10"))
 DEFAULT_GB = 2.0
 SMALL_GB = 1.0
 NEGLIGIBLE_GB = 0.2
@@ -57,7 +57,8 @@ CREATE TABLE IF NOT EXISTS jobs(name TEXT PRIMARY KEY, kind TEXT, command TEXT, 
     written_gb REAL DEFAULT 0, why TEXT);
 CREATE TABLE IF NOT EXISTS samples(time REAL PRIMARY KEY, gpu REAL, room_gb REAL, swap_gb REAL, swapped_out_gb REAL, load REAL, running INTEGER, waiting INTEGER, gpu_waiting INTEGER);
 """
-LIBPROC = ctypes.CDLL("/usr/lib/libproc.dylib")
+APPLE = sys.platform == "darwin"  # elsewhere (Linux) the board reads /proc and nvidia-smi
+LIBPROC = ctypes.CDLL("/usr/lib/libproc.dylib") if APPLE else None
 RUSAGE_V4, READ, WRITTEN, START, FOOTPRINT, LIFETIME_PEAK = 4, 18, 19, 10, 9, 30
 
 
@@ -128,6 +129,23 @@ def gpu_of_others(device):
 
 def machine():
     """What the board goes by, in GB: memory no process holds, swap, swap written so far."""
+    if not APPLE:
+        memory = {
+            key: int(value.split()[0]) * 1024
+            for key, value in (line.split(":") for line in Path("/proc/meminfo").read_text().splitlines())
+        }
+        swapped = int(re.search(r"^pswpout (\d+)", Path("/proc/vmstat").read_text(), re.MULTILINE).group(1))
+        query = ("nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits")
+        found = re.search(r"\d+", text_of(*query) if shutil.which(query[0]) else "")
+        device = int(found.group()) if found else 0
+        return {
+            "room_gb": memory["MemAvailable"] / 1e9 - MARGIN_GB,
+            "swap_gb": (memory["SwapTotal"] - memory["SwapFree"]) / 1e9,
+            "swapped_out_gb": swapped * os.sysconf("SC_PAGE_SIZE") / 1e9,
+            "gpu": device,  # the display's share is not known here, so none is taken off
+            "gpu_device": device,
+            "load": os.getloadavg()[0],
+        }
     stats = text_of("vm_stat")
     page = int(re.search(r"page size of (\d+)", stats).group(1))
     pages = {name: int(value) for name, value in re.findall(r'^"?(.+?)"?:\s+(\d+)\.$', stats, re.MULTILINE)}
@@ -148,13 +166,42 @@ def machine():
 
 def usage_of(pid):
     """A process's kernel counters, read without touching it."""
-    words = (ctypes.c_uint64 * 42)()
-    return list(words) if LIBPROC.proc_pid_rusage(pid, RUSAGE_V4, ctypes.byref(words)) == 0 else None
+    if APPLE:
+        words = (ctypes.c_uint64 * 42)()
+        return list(words) if LIBPROC.proc_pid_rusage(pid, RUSAGE_V4, ctypes.byref(words)) == 0 else None
+    try:
+        stat = stat_of(pid)
+        status = Path(f"/proc/{pid}/status").read_text()
+    except OSError:
+        return None
+    if stat[0] == "Z":  # ended and not yet collected by its parent
+        return None
+    words = [0] * 42
+    words[START] = int(stat[19])
+    for index, key in ((FOOTPRINT, "VmRSS"), (LIFETIME_PEAK, "VmHWM")):
+        found = re.search(rf"^{key}:\s+(\d+) kB", status, re.MULTILINE)
+        words[index] = int(found.group(1)) * 1024 if found else 0
+    with contextlib.suppress(OSError):  # another user's process keeps its I/O counters to itself
+        counters = dict(line.split(": ") for line in Path(f"/proc/{pid}/io").read_text().splitlines())
+        words[READ], words[WRITTEN] = int(counters["read_bytes"]), int(counters["write_bytes"])
+    return words
+
+
+def stat_of(pid):
+    """Linux: the fields of /proc/PID/stat that follow the command name (state, parent, group, ...)."""
+    return Path(f"/proc/{pid}/stat").read_text().rpartition(")")[2].split()
 
 
 def group_of(pid):
-    pids = (ctypes.c_int * 1024)()
-    return list(pids[: max(LIBPROC.proc_listpgrppids(pid, pids, ctypes.sizeof(pids)), 0)])
+    if APPLE:
+        pids = (ctypes.c_int * 1024)()
+        return list(pids[: max(LIBPROC.proc_listpgrppids(pid, pids, ctypes.sizeof(pids)), 0)])
+    found = []
+    for entry in os.listdir("/proc"):
+        with contextlib.suppress(OSError):
+            if entry.isdecimal() and int(stat_of(entry)[2]) == pid:
+                found.append(int(entry))
+    return found
 
 
 def alive(job):
@@ -277,7 +324,7 @@ def decisions(jobs, state, room):
 def wrapped(job):
     command = json.loads(job["command"])
     if job["background"]:
-        command = ["taskpolicy", "-b", *command]
+        command = ["taskpolicy", "-b", *command] if APPLE else ["nice", "-n", "19", *command]
     return ["nice", "-n", str(job["nice"]), *command] if job["nice"] else command
 
 

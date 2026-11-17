@@ -13,7 +13,10 @@ _TYPED = {}
 
 def library():
     lib = load(
-        "level-solver", [HERE / "level_solver.c", HERE / "sheet_flattening.c"], ("-O3", "-mcpu=apple-m1", "-pthread")
+        "level-solver",
+        [HERE / "level_solver.c", HERE / "sheet_flattening.c"],
+        ("-O3", "-mcpu=apple-m1", "-pthread"),
+        headers=[HERE / "parallel_blocks.h"],
     )
     if id(lib) in _TYPED:
         return lib

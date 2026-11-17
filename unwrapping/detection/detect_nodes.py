@@ -1,8 +1,10 @@
 """Sheet detection stage: CT bricks to sheet nodes with normals."""
 
+import functools
 import json
 import os
 import shutil
+import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -20,15 +22,17 @@ from storage.brick_store import UNKNOWN, BrickStore
 from storage.data_roots import NODE_ROUTE, RAW_SCANS, UNWRAP_OUTPUTS, scan_folder, stage_folder
 from storage.node_store import pack_chunk
 from unwrapping.detection import cpu_nodes, gpu_nodes
-from unwrapping.detection.kernel_bindings import CELL
+from unwrapping.detection.kernel_bindings import CELL, GPU_SOURCES
 
 HERE = Path(__file__).parent
 METHOD = stage_queue.method_of(
-    HERE / "gpu_nodes.metal", HERE / "gpu_nodes_host.m", HERE / "gpu_nodes.py", HERE / "kernel_bindings.py"
+    *(HERE / source for source in GPU_SOURCES), HERE / "gpu_nodes.py", HERE / "kernel_bindings.py"
 )
 SAME_OUTPUT = (HERE / "same_output_methods.txt").read_text().split()
-CHUNK_ROWS = 12
-BAND_ROWS = 12
+CHUNK_ROWS = int(
+    os.environ.get("HERCULEX_UNIT_ROWS", "12")
+)  # brick rows a unit solves in one piece; fewer need less memory
+BAND_ROWS = CHUNK_ROWS
 PER_ROW = 128 // CELL
 EDGE = 2
 SEAM = PER_ROW // 2
@@ -142,9 +146,28 @@ def fetch_chunk(job):
     return work_folder(job)
 
 
+@functools.cache
+def gpu_ready():
+    """Off macOS, whether the CUDA kernel opens; if it doesn't, the reason is printed once and the CPU finds the nodes."""
+    if sys.platform == "darwin":
+        return True
+    try:
+        gpu_nodes.gpu_library()
+    except (OSError, RuntimeError, subprocess.CalledProcessError) as error:
+        print(
+            f"sheet detection runs on the CPU, several times slower, as CUDA is not usable: {error}",
+            file=sys.stderr,
+            flush=True,
+        )
+        return False
+    return True
+
+
 def detect_store(level, out, record, cell_planes=None, device="gpu"):
     """Packed nodes of a brick store's cell planes, with their record written last."""
     start = time.time()
+    fallback = device == "gpu" and not gpu_ready()
+    device = "cpu" if fallback else device
     store = BrickStore(level)
     Z, Y, X = store.shape
     grid = [-(-Z // CELL), -(-Y // CELL), -(-X // CELL)]
@@ -157,16 +180,20 @@ def detect_store(level, out, record, cell_planes=None, device="gpu"):
                 else (cpu_nodes.detect(store, planes, nodes, cells), 0.0)
             )
         pack_chunk(part)
-        record = record | {
-            "shape": list(store.shape),
-            "cell": CELL,
-            "grid": grid,
-            "cell_planes": list(planes),
-            "nodes": total,
-            "gpu_seconds": round(gpu, 1),
-            "seconds": round(time.time() - start, 1),
-            "method": METHOD,
-        }
+        record = (
+            record
+            | {
+                "shape": list(store.shape),
+                "cell": CELL,
+                "grid": grid,
+                "cell_planes": list(planes),
+                "nodes": total,
+                "gpu_seconds": round(gpu, 1),
+                "seconds": round(time.time() - start, 1),
+                "method": METHOD,
+            }
+            | ({"device": "cpu"} if fallback else {})
+        )
         stage_queue.finish(part, record)
     return record
 

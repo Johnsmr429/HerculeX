@@ -31,7 +31,8 @@ def load(name, sources, flags=C_FLAGS, headers=()):
     if not path.exists():
         KERNELS.mkdir(parents=True, exist_ok=True)
         temporary = path.with_name(f"{path.name}.{os.getpid()}.tmp")
-        link = ["clang", *flags, "-dynamiclib"] if APPLE else ["cc", *flags, "-shared", "-fPIC"]
+        # OpenMP runs the loops of parallel_blocks.h at once where cc has no blocks
+        link = ["clang", *flags, "-dynamiclib"] if APPLE else ["cc", *flags, "-fopenmp", "-shared", "-fPIC"]
         subprocess.run([*link, "-o", str(temporary), *map(str, sources), *([] if APPLE else ["-lm"])], check=True)
         os.replace(temporary, path)
         for old in KERNELS.glob(f"{name}-*.{suffix}"):
