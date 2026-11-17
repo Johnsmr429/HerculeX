@@ -241,7 +241,13 @@ The start page has one card per scroll, labelled `scroll · ink model · surface
 
 <p><img src="docs/images/viewer/whole-scroll.jpg" width="100%" alt="A whole scroll in the viewer"></p>
 
-<p><img src="docs/images/viewer/ink.jpg" width="49%" alt="Ink over the scan"> <img src="docs/images/viewer/heat.jpg" width="49%" alt="Ink strength in colour"></p>
+<p><img src="docs/images/viewer/letters.jpg" width="100%" alt="Letter forms in the ink"></p>
+
+These letter forms are on PHerc0125 and PHerc0191, at places circled during review.
+
+<p><img src="docs/images/viewer/heat.jpg" width="100%" alt="Ink strength in colour"></p>
+
+Heat mode shows the same kind of marked region by ink strength, from weak (blue) to strong (red).
 
 | Mode | What it shows | Keys |
 | --- | --- | --- |
@@ -256,7 +262,7 @@ The start page has one card per scroll, labelled `scroll · ink model · surface
 
 Move with `W` `A` `S` `D`, zoom with `E` `R`, or drag; `?` lists every key. Marks are saved as they are drawn, one JSON line each, with the exact placement of the pieces they were drawn on, so they stay attached to the scan when a layout changes.
 
-<p><img src="docs/images/viewer/label.jpg" width="100%" alt="The Label tools"></p>
+<p><img src="docs/images/viewer/labeling.jpg" width="100%" alt="Labels drawn around a candidate passage in the viewer"></p>
 
 ## 8. Working With Your Agent
 
