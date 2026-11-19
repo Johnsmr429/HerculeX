@@ -14,8 +14,10 @@ import pytest
 import tifffile
 import torch
 
-from ink.model import machine_reader, tile_reader
-from ink.model.neural_engine import DEPTH, SIDE, STEM_CHANNELS, EngineReader, package_of
+from ink.model import tiles
+from ink.model.reader_apple import tile_reader
+from ink.model.reader_apple.neural_engine import SIDE, EngineReader, package_of
+from ink.model.tiles import DEPTH, STEM_CHANNELS
 from ink.reading import piece_reading
 from ink.reading.piece_reading import parcelled, unparcelled
 from storage.brick_store import BrickStore
@@ -52,7 +54,7 @@ class StandInStem:
     def tiles(self, block, statistics, gap):
         for offset in (0, gap) if gap else (0,):
             tile = torch.from_numpy(block[:, :, offset : offset + SIDE].copy())
-            yield self(tile_reader.scaled(tile, statistics[0])[None], statistics)
+            yield self(tiles.scaled(tile, statistics[0])[None], statistics)
 
 
 def stand_in_reader(engine):
@@ -77,7 +79,7 @@ def stacks():
 def test_a_stream_of_stacks_is_read_as_each_stack_alone_in_tile_order():
     reader = stand_in_reader(engine)
     alone = [reader.read(stack) for stack in stacks()]
-    together = list(reader.maps((stack, tile_reader.measured(stack)) for stack in stacks()))
+    together = list(reader.maps((stack, tiles.measured(stack)) for stack in stacks()))
     assert len(together) == len(alone) and all(a.tobytes() == b.tobytes() for a, b in zip(alone, together))
 
 
@@ -86,9 +88,9 @@ def test_a_prepared_stack_keeps_the_original_tile_coverage():
     stack = rng.integers(1, 255, (17, 600, 820), dtype=np.uint8)
     stack[:, :, :550] = 0
     reader = stand_in_reader(engine)
-    prepared = tile_reader.prepare_stack(stack)
+    prepared = tiles.prepare_stack(stack)
     assert prepared.values[:, :, :512].any() and not prepared.coverage[:, :512].any()
-    (read,) = reader.maps([(prepared, tile_reader.measured(stack))])
+    (read,) = reader.maps([(prepared, tiles.measured(stack))])
     assert np.array_equal(read, reader.read(stack))
 
 
@@ -132,7 +134,7 @@ def test_failed_model_loading_leaves_prefetched_piece_unwritten(tmp_path, monkey
     monkeypatch.setattr(piece_reading, "_model", None)
     monkeypatch.setattr(piece_reading, "SAMPLERS", 1)
     monkeypatch.setattr(piece_reading, "sampled_piece", mark_before_sampling_writes)
-    monkeypatch.setattr(machine_reader, "reader", fail_model)
+    monkeypatch.setattr(piece_reading, "lane_reader", fail_model)
     with pytest.raises(ValueError, match="model could not open"):
         piece_reading.read_all([(folder, face, None, 1, "model")], store.folder, False)
     assert not list(tmp_path.glob("piece-0001*.png")) and not windows.exists() and store.folder.is_dir()
@@ -146,11 +148,7 @@ def test_a_stack_the_engine_fails_on_gives_its_error_and_the_next_is_read():
         return engine(features)
 
     first, second = stacks()[3], stacks()[0]
-    maps = list(
-        stand_in_reader(failing_once).maps(
-            [(first, tile_reader.measured(first)), (second, tile_reader.measured(second))]
-        )
-    )
+    maps = list(stand_in_reader(failing_once).maps([(first, tiles.measured(first)), (second, tiles.measured(second))]))
     assert isinstance(maps[0], ValueError) and maps[1].tobytes() == stand_in_reader(engine).read(second).tobytes()
 
 
@@ -165,7 +163,7 @@ class StandInSurveyReader(EngineReader):
     fixed = property(lambda self: (None, None), lambda self, value: None)
 
     def __init__(self):
-        self.tiles, self.torch, self.measuring = tile_reader, torch, threading.Lock()
+        self.tiles, self.torch, self.measuring = tiles, torch, threading.Lock()
         self.norms, self.stem = [StandInNorm(), StandInNorm()], lambda image: image
 
     def logits(self, image, norms):
@@ -179,8 +177,8 @@ def read_tile_by_tile(reader, stack):
     blend = np.outer(np.hanning(SIDE + 2)[1:-1], np.hanning(SIDE + 2)[1:-1]).astype(np.float32)
     total, weight = np.zeros((2, height, width), dtype=np.float32)
     block = np.zeros((DEPTH, SIDE, SIDE), dtype=np.uint8)
-    for y in sorted({*range(0, max(height - SIDE, 0) + 1, tile_reader.STEP), max(height - SIDE, 0)}):
-        for x in sorted({*range(0, max(width - SIDE, 0) + 1, tile_reader.STEP), max(width - SIDE, 0)}):
+    for y in sorted({*range(0, max(height - SIDE, 0) + 1, tiles.STEP), max(height - SIDE, 0)}):
+        for x in sorted({*range(0, max(width - SIDE, 0) + 1, tiles.STEP), max(width - SIDE, 0)}):
             part = stack[:, y : y + SIDE, x : x + SIDE]
             h, w = part.shape[1:]
             block[:] = 0
@@ -243,7 +241,7 @@ def test_reader_resumes_missing_or_stale_images(tmp_path, monkeypatch):
     taught.write_bytes(b"archived ink")
     assert not reading.done(job)
     scan = np.zeros((8, 8), dtype=np.uint8)
-    monkeypatch.setattr(reading, "sampled", lambda *_: (scan, scan, None, 9.4))
+    monkeypatch.setattr(reading, "sampled", lambda *_: (scan, scan, None))
     assert "failed" not in reading.sampled_piece(job)["row"]
     assert taught.read_bytes() == b"archived ink"
     assert reading.done(job)
@@ -252,6 +250,8 @@ def test_reader_resumes_missing_or_stale_images(tmp_path, monkeypatch):
     assert not reading.done(job)
     meta.write_text('{"voxel_um": 4.7}')
     os.utime(meta, (1, 1))
+    assert not reading.done(job), "a piece finer than the reader's training scans still needs its ink"
+    taught.write_bytes(b"archived ink")
     assert reading.done(job)
     os.utime(meta, (2e9, 2e9))
     assert not reading.done(job)
@@ -291,24 +291,24 @@ def test_earlier_maps_are_reused_only_for_the_equivalent_checkpoint(tmp_path, mo
 
 def test_empty_columns_are_filled_from_the_sheet_and_the_sheet_is_left_alone():
     stack = np.random.default_rng(1).integers(1, 255, (5, 64, 48), dtype=np.uint8)
-    assert tile_reader.filled(stack) is stack
+    assert tiles.filled(stack) is stack
     holed = stack.copy()
     holed[:, 10:30, 5:40] = 0
-    filled = tile_reader.filled(holed)
+    filled = tiles.filled(holed)
     kept = holed.any(axis=0)
     assert np.array_equal(filled[:, kept], holed[:, kept]) and filled.any(axis=0).all()
     columns = {column.tobytes() for column in holed[:, kept].T}
     assert all(column.tobytes() in columns for column in filled[:, ~kept].T)
-    assert np.array_equal(filled, tile_reader.filled(holed))
+    assert np.array_equal(filled, tiles.filled(holed))
     with pytest.raises(ValueError, match="cannot reshape"):
-        tile_reader.filled(holed, kept[:-1])
+        tiles.filled(holed, kept[:-1])
 
 
 def test_a_sparse_stack_keeps_the_original_fill_when_the_tries_run_out():
     stack = np.random.default_rng(73).integers(1, 255, (5, 64, 48), dtype=np.uint8)
     stack[:, :61] = 0
     stack[:, :, :43] = 0
-    filled = tile_reader.filled(np.asfortranarray(stack))
+    filled = tiles.filled(np.asfortranarray(stack))
     assert (
         hashlib.sha256(filled.tobytes()).hexdigest()
         == "358a905e407ab9ebe11c0f0b47e9b5d415741b0af66a29bd8cb101ab137e546c"

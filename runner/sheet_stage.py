@@ -5,7 +5,7 @@ import os
 import subprocess
 import sys
 
-from runner import stage_queue
+from runner import events, stage_queue
 from storage.data_roots import HERE, ROUTE_OUTPUTS, stage_folder
 
 SITE = os.environ.get("HERCULEX_SITE", "http://127.0.0.1:8765")  # where a running viewer is checked
@@ -91,12 +91,13 @@ def laid_out(sample, volume):
     if pieces_changed:
         (stage_folder(base, "sheet") / "joints.json").unlink(missing_ok=True)
     if pieces_changed or (framed and newer([base / "pieces" / "frame" / stage_queue.RECORD], layout)):
-        step(
-            "unwrapping.level.scroll_layout" if framed else "unwrapping.layout.mosaic_layout",
-            sample,
-            volume,
-            *(["band"] if units[0].name.startswith("band-") else []),
-        )
+        with events.span("layout", scan=volume):
+            step(
+                "unwrapping.level.scroll_layout" if framed else "unwrapping.layout.mosaic_layout",
+                sample,
+                volume,
+                *(["band"] if units[0].name.startswith("band-") else []),
+            )
         layout = stage_folder(base, "sheet") / "layout.json"
     return json.loads(layout.read_text())["pieces"]
 
@@ -116,7 +117,8 @@ def sheet_of(sample, volume):
     step("ink.reading.piece_reading", sample, volume)
     from runner import review_page
 
-    review_page.publish(sample, volume, SITE)
+    with events.span("publish", scan=volume):
+        review_page.publish(sample, volume, SITE)
 
 
 def run(samples=(), *, volume=None, mode="sheet", require_ready=False):

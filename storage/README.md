@@ -17,15 +17,28 @@ HerculeX keeps its data in two folders under one data root, `data/` in the check
 | Folder | Variable | Contents |
 | --- | --- | --- |
 | `data/library/` | `HERCULEX_LIBRARY` | What the pipeline reads and knows: the scan catalog, published products, model weights, datasets, controls, studies and hand marks (`marks/`). |
-| `data/outputs/` | `HERCULEX_OUTPUTS` | What the pipeline makes: `unwrapping/` (sheet nodes, pieces and layouts), `stacks/` (layer stacks) and `website/`. |
+| `data/outputs/` | `HERCULEX_OUTPUTS` | What the pipeline makes: `unwrapping/` (sheet nodes, pieces and layouts, and the winding network's fields, training labels and checkpoints), `stacks/` (layer stacks), `website/`, the bench's truth and scores (`bench/`) and the CT chunk store (`cache/chunks/`). |
 
 `HERCULEX_DATA` moves both folders at once; `HERCULEX_LIBRARY` and `HERCULEX_OUTPUTS` move one each. HerculeX resolves
 symbolic links, so `data/library` or `data/outputs` can link to another drive. Fetched CT bricks go to the library's
-`cache/bricks/`, and `HERCULEX_BRICKS` moves them.
+`cache/bricks/`, and `HERCULEX_BRICKS` moves them. The chunk store of the ml module and the bench is the outputs'
+`cache/chunks/`, and `HERCULEX_CHUNKS` moves it.
 
-Sheet nodes are stored in `unwrapping/grown/` (`NODE_ROUTE`). Every later stage writes to `unwrapping/level/`
+Sheet nodes are stored in `unwrapping/nodes/` (`NODE_ROUTE`). Every later stage writes to `unwrapping/level/`
 (`LEVEL_ROUTE`), where each scan's `nodes` folder links to its sheet nodes. The index of finished units is
 `unwrapping/level_route.sqlite`; `./run.sh runner.pipeline index` rebuilds it.
+
+The ml module and the bench use these folders in the outputs:
+
+| Folder | Name in `data_roots.py` | Contents |
+| --- | --- | --- |
+| `unwrapping/network/` | `ML_OUTPUTS` | The winding network's fields, in `field/` of each scan, and each scan's CT axis. |
+| `unwrapping/network-training/labels/` | `WINDING_LABELS` | Training labels built from the bench's truth packages. |
+| `unwrapping/network-training/cylinders/` | | The winding network's cached training and validation windows. |
+| `unwrapping/network-training/models/` | `WINDING_MODELS` | Checkpoints of the winding network; `net/best.npy` is the default (`WINDING_WEIGHTS`). |
+| `bench/` | `SURFACE_BENCH` | Truth packages, scores, the results database and the holdout log. |
+| `cache/chunks/` | `CT_CHUNKS` | CT chunks of OME-Zarr level 0, and `arrays.sqlite`. |
+| `cache/open_data/` | `OPEN_DATA_EXTRA` | Published meshes that the library's mirror holds as empty files. |
 
 ## Paths in code
 

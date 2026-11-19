@@ -5,8 +5,9 @@ These modules run the ink stage over every laid-out piece, and read selected pla
 | File | Description |
 | --- | --- |
 | `piece_reading.py` | Runs the ink stage. For each piece, it samples the layer stack, writes the scan images, finds the written face, and reads the ink map. It fetches the next CT store while it reads the current one. |
+| `unit_fetch.py` | Fetches each unit's CT stores for the read as soon as the pieces stage writes the unit, so the link works while later units are unwrapped. A store is locked while one process fetches into it and stamped with its unit's record, so a rebuilt unit fetches again. |
 | `spot_depths.py` | Reads the places circled with the viewer's Spot tool again at three nearby depths, and writes a page of them. |
-| `passage_reads.py` | Reads listed pieces again from freshly sampled stacks with each checkpoint you name, at depths -4 to +4 and as a mean over depths, and writes a page beside the site's map. |
+| `passage_reads.py` | Reads listed pieces again from freshly sampled stacks with each ink model you name, at depths -4 to +4 and as a mean over depths, and writes a page beside the site's map. |
 | `same_output_models.txt` | Lists, one line per checkpoint, its current read digest followed by earlier digests that give byte-identical maps. |
 
 ## Commands
@@ -18,6 +19,9 @@ These modules run the ink stage over every laid-out piece, and read selected pla
 # Read one scan directly. ORDER.json optionally lists the stores and pieces to read first.
 ./run.sh ink.reading.piece_reading SCROLL SCAN [ORDER.json]
 
+# Fetch every unit's CT as the pieces stage writes it, until the layout is written (the pipeline's fetch stage).
+./run.sh ink.reading.unit_fetch SCROLL SCAN
+
 # Fetch the CT of a read's first STORES stores without reading, for example while the GPU is busy.
 ./run.sh ink.reading.piece_reading ahead SCROLL SCAN STORES [ORDER.json]
 
@@ -25,7 +29,7 @@ These modules run the ink stage over every laid-out piece, and read selected pla
 ./run.sh ink.reading.spot_depths SCROLL SCAN SHEET_NAME [MARKS.json] [PAGE_NAME]
 
 # Read the pieces listed in PLACES.json again with one or more checkpoints.
-./run.sh ink.reading.passage_reads SCROLL SCAN PLACES.json PAGE_NAME WEIGHTS...
+./run.sh ink.reading.passage_reads SCROLL SCAN PLACES.json PAGE_NAME MODEL...
 ```
 
 For a whole scroll, run the read as a job on the [job board](../../runner/README.md#run-a-scroll).
@@ -41,7 +45,7 @@ in place for the next attempt.
 
 | Variable | Default | Effect |
 | --- | --- | --- |
-| `HERCULEX_WEIGHTS` | Reader v3 | Reads with another checkpoint of the same network. |
+| `HERCULEX_INK_MODEL` | `reader-v3` | Reads with another ink model of `./run.sh ink.model.models`, into its own faces folder. |
 | `HERCULEX_SAMPLERS` | `4` | Sets the number of processes that build stacks ahead of the reader. |
 | `HERCULEX_WINDOWS` | `stacks/level/` in the outputs | Sets the folder for kept layer stacks. |
 | `HERCULEX_KEEP_STACKS` | `1` | Set to `0` to skip keeping layer stacks. |

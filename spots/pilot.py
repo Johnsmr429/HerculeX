@@ -24,7 +24,7 @@ def spot_of(spot_id):
 
 
 def sheet_of(spot):
-    return next(s for s in sheets_of(spot["sheet_key"]) if s.part == spot["part"])
+    return next(iter(sheets_of(spot["sheet_key"])))
 
 
 def status(spot, value):

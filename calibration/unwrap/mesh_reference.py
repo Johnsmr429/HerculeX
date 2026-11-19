@@ -11,7 +11,6 @@ from scipy.spatial import cKDTree
 VOXEL_UM = 7.91
 TOLERANCE_UM = 40.0
 LATERAL_UM = 160.0
-MARGIN = 64
 GROUP_PAIRS = 200
 LINK_PAIRS = 1000
 LINK_SHARE = 0.2
@@ -30,7 +29,6 @@ TIER_A = [
     "20231221180251",
 ]
 EXCLUDED = ["20260926044226-spiral-output-generation-19"]
-BLOCK_VOXELS = 4000.0 / VOXEL_UM
 
 
 def named_windings(segment):

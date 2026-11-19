@@ -1,25 +1,121 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>HerculeX</title>
-<style>
-*{box-sizing:border-box}
-html,body{margin:0;background:#000;color:#8a8a8a;font:10pt Calibri,Carlito,sans-serif}
-a{color:inherit;text-decoration:none}
-nav{position:sticky;top:0;z-index:5;display:flex;gap:20px;padding:8px 14px;background:#000}
-nav a:hover,nav a.here{color:#fff}
-nav span{margin-left:auto;font-variant-numeric:tabular-nums}
-main{display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:minmax(48vh,1fr);min-height:calc(100vh - 32px);gap:2px}
-main a{position:relative;display:block;overflow:hidden;background:#000}
-main img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-main span{position:absolute;left:0;bottom:0;padding:2px 10px;background:#000}
-main a:hover{color:#fff}
-@media(max-width:800px){main{grid-template-columns:1fr}}
-</style></head><body>
-<nav><a class="here" href="index.html">HerculeX</a>__ATLAS__<span id="status"></span></nav>
-<main id="cards"></main>
-<script>
-const S=__STATUS__,cards=__CARDS__,n=new Intl.NumberFormat('en-US',{maximumFractionDigits:0});
-document.getElementById('status').textContent=n.format(S.ink_cm2)+' of '+n.format(S.laid_cm2)+' cm² read'+(S.scrolls?' on '+S.scrolls+' scrolls':'');
-const main=document.getElementById('cards');
-for(const c of cards){const a=document.createElement('a');a.href=c.href;const i=document.createElement('img');i.src=c.image;i.alt='';const t=document.createElement('span');t.textContent=c.title;a.append(i,t);main.append(a)}
-</script></body></html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>HerculeX</title>
+    <style>
+    * {
+      box-sizing: border-box;
+    }
+    html,
+    body {
+      margin: 0;
+      background: #000;
+      color: #8a8a8a;
+      font:
+        10pt Calibri,
+        Carlito,
+        sans-serif;
+    }
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      gap: 20px;
+      padding: 8px 14px;
+      background: #000;
+    }
+    nav a:hover,
+    nav a.here {
+      color: #fff;
+    }
+    nav span {
+      margin-left: auto;
+      font-variant-numeric: tabular-nums;
+    }
+    main {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-auto-rows: minmax(48vh, 1fr);
+      min-height: calc(100vh - 32px);
+      gap: 2px;
+    }
+    main a {
+      position: relative;
+      display: block;
+      overflow: hidden;
+      background: #000;
+    }
+    main img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    main span {
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      padding: 2px 10px;
+      background: #000;
+    }
+    main a:hover {
+      color: #fff;
+    }
+    @media (max-width: 800px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+    </style>
+  </head>
+  <body>
+    <nav><a class="here" href="index.html">HerculeX</a>__ATLAS__<span id="status"></span></nav>
+    <main id="cards"></main>
+    <script>
+    const S = __STATUS__,
+      cards = __CARDS__,
+      n = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+    const line = document.getElementById("status");
+    const show = (s) => {
+      const on = s.read_scrolls ?? s.scrolls;
+      line.textContent =
+        n.format(s.ink_cm2) +
+        " of " +
+        n.format(s.laid_cm2) +
+        " cm² read" +
+        (s.scrolls ? " on " + (on === s.scrolls ? "" : on + " of ") + s.scrolls + " scrolls" : "");
+    };
+    const live = async () => {
+      if (document.hidden) return;
+      try {
+        const r = await fetch("/status", { cache: "no-store" });
+        if (r.ok) show(await r.json());
+      } catch (_) {}
+    };
+    show(S);
+    live();
+    setInterval(live, 30000);
+    document.addEventListener("visibilitychange", live);
+    const main = document.getElementById("cards");
+    for (const c of cards) {
+      const a = document.createElement("a");
+      a.href = c.href;
+      const i = document.createElement("img");
+      i.src = c.image;
+      i.alt = "";
+      const t = document.createElement("span");
+      t.textContent = c.title;
+      a.append(i, t);
+      main.append(a);
+    }
+    </script>
+  </body>
+</html>

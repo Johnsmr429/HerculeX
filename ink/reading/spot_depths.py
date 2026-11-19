@@ -11,8 +11,8 @@ from pathlib import Path
 import numpy as np
 from PIL import Image, ImageDraw
 
-from ink.model import machine_reader
 from ink.model.input_stack import DEPTH, PAST_FACE, face_layer_of
+from ink.model.reader import lane_reader
 from ink.model.stock_model import SURE
 from ink.reading.piece_reading import WEIGHTS, digest
 from sampling import column_sampling as sampler
@@ -323,7 +323,7 @@ def read_pieces(sample, volume, pieces, model):
         jobs = [(base / "pieces" / p["unit"] / f"piece-{p['piece']:04d}", None, axis) for p in batch]
         fetch_bricks(sample, volume, jobs, folder)
         store = BrickStore(folder)
-        reader = reader or machine_reader.reader(WEIGHTS)
+        reader = reader or lane_reader(WEIGHTS)
         for p, job in zip(batch, jobs):
             began = time.time()
             side = json.loads(piece_png(faces, p, "-taught-side").with_suffix(".json").read_text())

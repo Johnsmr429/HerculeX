@@ -12,8 +12,8 @@ static inline int output_at(int position, int shift, int length, int flip) {
     return to;
 }
 
-int64_t hx_fill_pending(int32_t *source, const uint8_t *keep, int32_t *rows, int32_t *cols,
-                        int height, int width, int dy, int dx, int flip_y, int flip_x, int64_t count) {
+int64_t hx_fill_pending(int32_t *source, const uint8_t *keep, int32_t *rows, int32_t *cols, int height, int width,
+                        int dy, int dx, int flip_y, int flip_x, int64_t count) {
     int64_t left = 0;
     for (int64_t k = 0; k < count; k++) {
         int row = rows[k], col = cols[k];
@@ -29,8 +29,8 @@ int64_t hx_fill_pending(int32_t *source, const uint8_t *keep, int32_t *rows, int
 }
 
 // When the sheet is sparse, visit its covered columns and apply the inverse mapping.
-int64_t hx_fill_valid(int32_t *source, const int32_t *rows, const int32_t *cols, int height, int width,
-                      int dy, int dx, int flip_y, int flip_x, int64_t count) {
+int64_t hx_fill_valid(int32_t *source, const int32_t *rows, const int32_t *cols, int height, int width, int dy, int dx,
+                      int flip_y, int flip_x, int64_t count) {
     int64_t added = 0;
     for (int64_t k = 0; k < count; k++) {
         int row = rows[k], col = cols[k];

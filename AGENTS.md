@@ -1,75 +1,137 @@
 # HerculeX for agents
 
-HerculeX unwraps Herculaneum scrolls from X-ray CT on an Apple silicon Mac. A person reads the results in a local
-viewer while you run the pipeline and act on what they label. This page lists the rules and commands you need. Each
-folder's README describes its files, commands and outputs.
+HerculeX unwraps Herculaneum scrolls from X-ray CT and reads their ink. A person reads the results in a local viewer
+while you run the pipeline and act on what they label. This page is your map: the rules, how the modules fit together,
+the commands for each task, and what failures mean. Each folder's README lists its files and settings.
 
 ## Rules
 
-- Run every module as `./run.sh MODULE ARGS` from the repository root.
-- Put long jobs on the job board: anything that runs for more than a few minutes or uses the GPU, the Neural Engine or
-  the network. Use `./run.sh board add NAME [slots] -- COMMAND`. Before you run a test or a quick GPU check, run
-  `./run.sh board room GB` to check that it fits beside the running jobs.
-- Get data paths only from `storage/data_roots.py` (`LIBRARY`, `OUTPUTS` and the paths built on them). Don't write
-  absolute paths into code. `HERCULEX_DATA`, `HERCULEX_LIBRARY` and `HERCULEX_OUTPUTS` move the data folders.
-- Stages resume from finished units. Each unit's `record.json` names the digest of the code that made it, so when you
-  edit a stage, its units become out of date. `same_output_methods.txt` lists digests that give the same output.
-- Don't edit the viewer's pages by hand. The pipeline publishes scroll pages; add any other page to the start page
-  with `./run.sh website.site_pages card PAGE`. Card and page titles follow `scroll · ink model · surface · date`.
-- Treat the label logs in `data/library/marks/` as the person's data: they are append-only, so never rewrite or
-  delete them.
-- When you report a number, say what data it was measured on.
-- Before you finish a change, run `./run.sh check cpu`. If the change touches the GPU or the ink reader, also run
-  `./run.sh check`. Format and lint with `runtime/python/bin/python -m ruff format .` and `-m ruff check .`
-  (120 columns). Write one-sentence docstrings and avoid comments that repeat the code.
+- Run every module from the repository root as `./run.sh MODULE ARGS`. `./run.sh list` shows every module and what it
+  does.
+- Get data paths only from `storage/data_roots.py`; never write absolute paths into code. `HERCULEX_DATA`,
+  `HERCULEX_LIBRARY` and `HERCULEX_OUTPUTS` move the data folders.
+- Keep code that only one lane runs in that lane's folder (`*_apple`, `*_cuda`) and shared code outside. When you
+  change one lane's kernel or reader, make the same change in the other lane's.
+- A unit's `record.json` names the digest of the code that made it, so editing that code makes its units stale. If you
+  prove with a byte comparison that the new code gives the same output, add the old digest to the module's
+  `same_output_methods.txt` (or `ink/reading/same_output_models.txt`). Never add one without that proof.
+- On the apple lane, put anything that runs for more than a few minutes or uses the GPU, the Neural Engine or the
+  network on the job board, and run `./run.sh board room GB` before a test or a quick GPU check.
+- Treat the label logs in `data/library/marks/` as the person's data: append-only, never rewritten or deleted.
+- Never edit the viewer's pages by hand. The pipeline publishes scroll pages; `./run.sh website.site_pages card PAGE`
+  puts any other page on the start page. Titles read `scroll · ink model · surface · date`.
+- Write no comments in code and one-sentence docstrings. Before you finish, run `./run.sh check cpu`, also
+  `./run.sh check` if you touched a GPU path or the reader, and `./run.sh check lint` (`--fix` formats first).
+- When you report a number, name the data it was measured on.
+
+## How it fits together
+
+```text
+scans/catalog          which scan of which scroll, from the open data's metadata
+  │ scans/transfer       CT bricks fetched by byte range into brick stores
+  ▼
+unwrapping/detection   sheets stage: sheet nodes per unit of brick rows             unwrapping/nodes/SCROLL/SCAN/nodes
+  ▼
+unwrapping/level       pieces stage: exact winding levels, pieces, joins, the frame  unwrapping/level/SCROLL/SCAN/pieces
+  ▼
+unwrapping/layout      every piece placed on one sheet                               unwrapping/level/SCROLL/SCAN/sheet
+  ▼
+sampling + ink         sheet stage: layer stacks, the written face, ink maps         unwrapping/level/SCROLL/SCAN/faces
+  ▼
+website                tile pyramid, viewer page, start-page card                    website/sheets/sheet-PHerc0826-113keV-level
+  ▲
+spots                  the person's circles rebuilt and read at every depth          website/sheets/spot-candidates
+```
+
+The right-hand paths are in `data/outputs`. A read by another ink model than Reader v3 writes `faces/level-0-MODEL`
+and a page whose name ends in `-MODEL`.
+
+| Module | What it holds |
+| --- | --- |
+| `runner/` | The stages (`pipeline.py`), each lane's unwrap and machine probes (`machine_apple/`, `machine_cuda/`), the job board, kernel builds, the test and lint runners. |
+| `storage/` | Data roots, brick stores, node stores, tile stores. |
+| `scans/` | The scan catalog and CT transfer. |
+| `unwrapping/` | Detection (`nodes_apple/`, `nodes_cuda/`), the level fit (`threads_apple/`, `threads_cuda/`), layout. |
+| `sampling/` | Layer stacks along piece normals and the written face. |
+| `ink/` | Reader v3 and the other ink models (`model/`: `reader_apple/`, `reader_cuda/`, `models.py`), the ink stage (`reading/`). |
+| `website/` | Tiles, the viewer templates in `assets/`, the start page, the local server and its mark store. |
+| `spots/` | Circled spots to rebuilt surfaces, depth sweeps and verdicts. |
+| `calibration/` | The bench that scores fits against published meshes (`bench/`), and earlier unwrap studies. |
+| `tests/` | `*_e2e.py` run a stage on synthetic inputs; `*_golden.py` hold fast paths to a reference. |
+
+Two lanes run the same stages: `apple` on a Mac (Metal and the Neural Engine) and `cuda` on Linux with NVIDIA GPUs
+(CUDA and PyTorch). `runner/lane.py` picks the lane from the machine. Tests marked `apple` or `cuda` skip on the other.
 
 ## Unwrap and publish a scroll
 
-Queue three jobs. The last one reads the ink and adds the scroll to the start page:
-
 ```sh
-S=PHerc0826
-./run.sh board add $S-sheets --gpu --link --share --memory 5 --setting HERCULEX_LIST_CT_BRICKS=1 -- ./run.sh runner.pipeline run sheets $S
-./run.sh board add $S-pieces --memory 5 --cores 3 --restartable --after $S-sheets -- ./run.sh runner.pipeline run pieces $S
-./run.sh board add $S-sheet --gpu --engine --link --memory 5 --cores 5 --after $S-pieces --setting HERCULEX_KEEP_STACKS=0 -- ./run.sh runner.pipeline run sheet $S
+./run.sh setup                      # once: the lane's packages and Reader v3
+./run.sh unwrap PHerc0826           # SCROLL[:SCAN] ..., CT to published page
 ```
 
-To follow the jobs, run `./run.sh board status`, `./run.sh board log NAME` and `./run.sh runner.pipeline status $S`.
-If a job fails, fix the cause and run `./run.sh board retry NAME`. When the scroll is published, check that its page
-loads, and tell the person that it's ready.
+- On the apple lane, `unwrap` queues four board jobs per scroll: `SCROLL-sheets`, `SCROLL-pieces`, `SCROLL-fetch`
+  (the CT for the read, fetched while units are unwrapped) and `SCROLL-sheet` (read and publish). Follow them with
+  `./run.sh board status` and `./run.sh board log NAME`; after a fix, `./run.sh board retry NAME`.
+- On the cuda lane, `unwrap` runs every scroll named in the foreground until its page is published and prints why any
+  scroll stopped. Job logs go to `logs/unwrap/`. Rerun the same command after a fix: it skips finished work.
+- `./run.sh runner.pipeline status SCROLL` shows what is done. `./run.sh runner.pipeline run STAGE SCROLL` runs one
+  stage: `sheets`, `pieces`, `fetch`, `layout`, `ink` (read without publishing) or `sheet`. Add `--scan ID` for another
+  scan than the survey scan.
+- When a page is published, start the viewer (`./run.sh website.site_server`), check that the page loads at
+  `http://localhost:8765/sheets/index.html`, and tell the person.
 
 | Task | Command |
 | --- | --- |
-| Republish a scan that was read | `./run.sh runner.review_page SCROLL SCAN` |
-| Add another published page to the start page | `./run.sh website.site_pages card PAGE [SCROLL] [--surface WORD]`; `--remove` takes it off |
-| Read with another checkpoint of the Reader v3 network | Set `HERCULEX_WEIGHTS=/path.pth` and `HERCULEX_MODEL_NAME="name"` on the `sheet` job |
-| Read separately from the published ink, for example at several depths | Set `HERCULEX_FACES=NAME` and `HERCULEX_DEPTH_SHIFTS=-4,-2,0,2,4`, then run `website.sheet_tiles` and `website.site_pages part` |
-| Draw a top-down picture of a scroll | `./run.sh website.overview PAGE OUT.jpg [--width 2400]` |
-| Start the viewer | `./run.sh website.site_server`, then open http://localhost:8765/sheets/index.html |
+| Read with another ink model | `./run.sh ink.model.models` lists them; set `HERCULEX_INK_MODEL=NAME` on `unwrap` or the `sheet` job. Its faces and page are its own. |
+| Add a checkpoint of the Reader v3 network | `./run.sh ink.model.models add NAME "TITLE" FILE` |
+| Read apart from the published ink, such as at several depths | `HERCULEX_FACES=NAME HERCULEX_DEPTH_SHIFTS=-4,-2,0,2,4`, then `website.sheet_tiles` and `website.site_pages part` |
+| Republish a read scan | `./run.sh runner.review_page SCROLL SCAN` |
+| Draw a scroll as one picture | `./run.sh website.overview PAGE OUT.jpg` |
+| See where a run's time went | `./run.sh runner.timeline "SCROLL-*"` |
+| Find space to free | `./run.sh runner.disk` (it lists, never deletes) |
+| Score pieces against the bench's truth | `./run.sh calibration.bench.score CONTROL PATH/TO/pieces/UNIT` |
 
 ## Act on the person's labels
 
-The viewer saves every label as one JSON line in `data/library/marks/ROUTE/SCROLL/SCAN/marks.jsonl`: `kind` is `ink`,
-`blank` or `spot`, `points` are millimeters on the unrolled sheet, and `layout` names the snapshot of the piece layout
-in `layouts/` beside the log. A line with `remove` withdraws an earlier label. Spot circles mark places that may hold
-letters. To work on them while the person keeps reading:
+The viewer saves each label as one JSON line in `data/library/marks/ROUTE/SCROLL/SCAN/marks.jsonl`: `kind` is `ink`,
+`blank` or `spot`, `points` are millimeters on the unrolled sheet, and `layout` names the piece layout it was drawn on
+(saved in `layouts/` beside the log). A line with `remove` withdraws an earlier label.
 
-1. Run `./run.sh spots.catalogue`. It maps every standing circle to its pieces, windings and bounding box in scan
-   voxels, and writes the spots table to `data/library/studies/shared/spot-candidates/db/`.
-2. For each spot, queue two jobs, a build on the network link and a read on the GPU and Neural Engine. The spot is
-   rebuilt as a continuous surface, read at every depth from -15 to +15, and published as a page under
-   `/sheets/spot-candidates/`. See `spots/README.md`.
-3. The person chooses the depth and judges the letters on those pages. Record each verdict with
+1. `./run.sh spots.catalogue` maps every standing circle to its pieces, windings and box in scan voxels.
+2. For each spot, queue a build and a read:
+   `./run.sh board add spot-SPOT-build --link --memory 3 -- ./run.sh spots.pilot SPOT build render` and
+   `./run.sh board add spot-SPOT-read --gpu --engine --memory 5 --after spot-SPOT-build -- ./run.sh spots.pilot SPOT read images`.
+   Each spot gets a page under `/sheets/spot-candidates/` with reads at every depth from -15 to +15.
+3. The person judges the letters. Record each verdict with
    `./run.sh spots.database verdict SPOT SURFACE --by NAME --readable no|traces|letters|passage`.
-4. For a First Letters submission (10 legible letters in 4 cm²), package the chosen spot's surface, image and depth,
-   and the commands that reproduce them. Keep the package plain, and state what you didn't run.
+
+## When something fails
+
+| You see | It means | Do |
+| --- | --- | --- |
+| `unwrapping failed on N unit(s)` | Some units of the pieces stage failed; the others finished and joined. | Read the error above it, fix the cause, rerun. |
+| `no finished sheet-node units` or `no ready pieces` | The stage before isn't done for that scan. | Run or finish that stage first. |
+| `holds units not cut to HERCULEX_UNIT_ROWS` | The scan's units were cut to another number of brick rows. | Use the number they were cut to. |
+| Units rerun that you didn't change | Their recorded digest isn't the current one or in the same-output list. | Find the edit that changed the digest; prove same output before listing it. |
+| `this machine runs the apple lane` | `HERCULEX_LANE` names the other lane. | Unset it. |
+| `the CUDA lane reads ink on an NVIDIA GPU, and PyTorch sees none` or `needs libcuda.so.1` | No usable NVIDIA driver or GPU. | Check `nvidia-smi`. |
+| `HERCULEX_INK_MODEL=NAME: the ink models are ...` or `no checkpoint at` | The model isn't listed, or its weights are missing. | `./run.sh ink.model.models`, then `./run.sh setup` or `add`. |
+| `HerculeX data folder is unavailable` | The data drive isn't mounted. | Mount it or set `HERCULEX_DATA`. |
+| `pieces still need ink` when publishing | The read isn't finished. | Run the `ink` stage. |
+| A board job waits for room, or is stopped under swap | Memory is short beside the other jobs. | Let it wait; never raise its reservation to force it. |
+| A first Neural Engine read is slow | The body is compiled once per checkpoint. | Wait. |
+| A fetch fails or a disc fills | The CT server or the disc. | Rerun to resume; `./run.sh runner.disk` for space. |
+| `./run.sh check lint` fails | A file isn't formatted, or a linter found a bug. | `./run.sh check lint --fix`, then fix what remains by hand. |
 
 ## Where things are
 
 ```text
-README.md            what HerculeX is, how it works, results, setup, the viewer and labels
-runner/README.md     the stages, the job board and running a scan
-storage/README.md    data folders and file formats
-spots/README.md      from circled spots to depth sweeps and verdicts
-tests/README.md      the two kinds of tests
+README.md                    what HerculeX is, results, setup and the viewer
+runner/README.md             stages, the job board, each lane's unwrap, settings
+unwrapping/*/README.md       detection and the level fit, their kernels and settings
+ink/model/README.md          the readers and the ink models
+spots/README.md              from circled spots to depth sweeps and verdicts
+storage/README.md            data folders and file formats
+calibration/bench/README.md  the bench that scores the level fit against published meshes
+tests/README.md              the kinds of tests
 ```

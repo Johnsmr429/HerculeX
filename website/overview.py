@@ -10,13 +10,13 @@ close (their empty rows dropped) unless --loose keeps the viewer's spacing.
 
 import argparse
 import json
-import re
 
 import numpy as np
 from PIL import Image
 
 from storage.data_roots import SHEETS
 from storage.tile_store import TileStore
+from website.refresh_viewers import META
 
 TILE = 512
 TINTS = {
@@ -27,7 +27,7 @@ TINTS = {
 
 def meta_of(page):
     html = (SHEETS / page / "index.html").read_text()
-    return json.loads(re.search(r"const M=(.*?),TOP=", html)[1])
+    return json.loads(META.search(html)[1])
 
 
 def cut(store, layer, level, mm, x0, y0, x1, y1):

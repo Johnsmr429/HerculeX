@@ -5,6 +5,10 @@ import re
 
 from storage.data_roots import BROWSER_ASSETS, SHEETS
 
+META = re.compile(r"const M\s*=\s*(.*?),\s*TOP\s*=", re.DOTALL)
+FLOOR = re.compile(r"floor\s*=\s*kept\.floor\s*\?\?\s*([\d.]+)")
+SCAN = re.compile(r"scan\s*=\s*kept\.scan\s*\?\?\s*([\d.]+)")
+
 
 def refresh(root=None, titles=None, extra=None):
     """Every viewer rebuilt from its template; `titles` (page folder name to title) retitles those pages and `extra`
@@ -12,15 +16,14 @@ def refresh(root=None, titles=None, extra=None):
     updated = []
     for target in sorted((root or SHEETS).glob("*/index.html")):
         old = target.read_text()
-        match = re.search(r"const M=(.*?),TOP=", old)
+        match = META.search(old)
         if not match:
             continue
         meta = json.loads(match[1])
         meta["title"] = (titles or {}).get(target.parent.name, meta["title"])
         meta |= (extra or {}).get(target.parent.name, {})
-        template = "two_unwraps.html" if meta["scan"].startswith("two-unwraps/") else "sheet_viewer.html"
-        floor = re.search(r"floor=kept.floor\?\?([\d.]+)", old).group(1)
-        scan = re.search(r"scan=kept.scan\?\?([\d.]+)", old).group(1)
+        template = "sheet_viewer.html"
+        floor, scan = FLOOR.search(old).group(1), SCAN.search(old).group(1)
         html = (
             (BROWSER_ASSETS / template)
             .read_text()

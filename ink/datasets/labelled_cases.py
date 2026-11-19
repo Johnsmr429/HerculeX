@@ -217,23 +217,6 @@ def load_truth(record, step=1):
     return ink, supervised
 
 
-def richest_window(ink, known, side):
-    """The crop of a case with the most labelled ink, among fixed 128-pixel positions."""
-    h, w = ink.shape
-    sh, sw = min(side, h), min(side, w)
-    mass = np.pad((ink & known).astype(np.int64), ((1, 0), (1, 0))).cumsum(0).cumsum(1)
-    spots = [
-        (y, x)
-        for y in sorted({*range(0, h - sh + 1, 128), h - sh})
-        for x in sorted({*range(0, w - sw + 1, 128), w - sw})
-    ]
-    y, x = max(
-        spots,
-        key=lambda s: mass[s[0] + sh, s[1] + sw] - mass[s[0], s[1] + sw] - mass[s[0] + sh, s[1]] + mass[s[0], s[1]],
-    )
-    return y, y + sh, x, x + sw
-
-
 IR_FRAGMENTS = (
     ("Frag1", "PHercParis2Fr47", "development"),
     ("Frag2", "PHercParis2Fr143", "development"),

@@ -6,6 +6,7 @@ The `scans` package lists the available scans and downloads them (stage 1).
 | --- | --- |
 | `catalog/` | Indexes the Vesuvius Challenge open-data bucket and dl.ash2txt.org, and chooses the scan to survey for each scroll. |
 | `transfer/` | Fetches OME-Zarr levels by byte range into brick stores, mirrors published products, and fetches fragments. |
+| `chunks/` | Reads OME-Zarr levels chunk by chunk through a local chunk store, for the ml module and the bench. |
 
 These tools write to the following folders in the library:
 
@@ -15,5 +16,7 @@ These tools write to the following folders in the library:
 | `cache/bricks/SCROLL/STORE/` | CT bricks fetched for a read; each store is removed once it's read. `HERCULEX_BRICKS` moves this cache. |
 | `published/open_data/` | A mirror of the products published in the open-data bucket. |
 | `published/dl_ash2txt/` | A mirror of the products that only dl.ash2txt.org holds. |
+
+The chunk store keeps its chunks in the outputs folder's `cache/chunks/`; `HERCULEX_CHUNKS` moves it.
 
 All downloads share one network link. Run long fetches as board jobs with `--link`.

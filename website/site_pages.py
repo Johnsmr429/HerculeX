@@ -25,7 +25,6 @@ from scans.catalog.scan_choice import prize_order
 from storage.data_roots import (
     BROWSER_ASSETS,
     FACES,
-    GROWN_ROUTE,
     LEVEL_ROUTE,
     PRODUCTION_FACES,
     ROUTE_OUTPUTS,
@@ -49,13 +48,9 @@ SHELF_GAP_MM = 20.0
 CARDS = "cards.json"
 # the atlas pages the start page links to, once website.atlas_build has made them
 ATLAS_LINKS = (
-    ("index", "Atlas"),
-    ("alphabet", "Alphabet"),
-    ("fragments", "Infrared"),
+    ("index", "Alphabet"),
+    ("lines", "Lines"),
     ("published", "Published"),
-    ("windows", "Lines"),
-    ("letters", "Letters"),
-    ("compare", "Scans"),
 )
 
 
@@ -224,7 +219,7 @@ def scans(root=ROUTE_OUTPUTS):
     """Every scan laid out on a sheet by one route, the prize scrolls first."""
     energy = {r["volume"]: r["energy_kev"] for r in survey_volumes(load())}
     found = sorted((path.parts[-4], path.parts[-3]) for path in stage_entries(root, "sheet", "layout.json"))
-    route = "-level" if root == LEVEL_ROUTE else ""
+    route = {LEVEL_ROUTE: "-level"}.get(root, "")
     kev = {v: f"{e:.0f}" if e else "" for v, e in energy.items()}  # a scan without a recorded energy goes by its id
     return [
         (
@@ -251,10 +246,7 @@ def read_on(name, layer):
 
 
 # a page's surface in one word, by its name, the first match winning, unless its card names one
-SURFACES = (
-    ("two-unwraps-", "grown+level"),
-    ("-continuous-frame", "frame"),
-)
+SURFACES = (("-continuous-frame", "frame"),)
 INK_LAYERS = ("taught", "new-ink", "ink")
 
 
@@ -284,17 +276,16 @@ def ink_stamp(name):
 
 
 def start_status():
-    """The start page's line: every scroll it lists, by the one scan of its card (the level route's where a scroll
-    has both), summed: area laid and area read."""
-    both = {p.name.removeprefix("two-unwraps-") for p in SHEETS.glob("two-unwraps-*") if (p / "index.html").exists()}
+    """The start page's line over every scroll laid out on a sheet, by the scan of its page where it has one, as it
+    stands on disc: area laid, area read so far and the scrolls read on."""
     chosen = {}
-    for root in (GROWN_ROUTE, LEVEL_ROUTE):
-        for sample, volume, tag, _ in scans(root):
-            if sample in both or (SHEETS / f"sheet-{tag}" / "index.html").exists():
-                chosen[sample] = (root, volume)
-    reports = [snapshot(sample, volume, root=root) for sample, (root, volume) in chosen.items()]
+    for sample, volume, tag, _ in scans(LEVEL_ROUTE):
+        if sample not in chosen or (SHEETS / f"sheet-{tag}" / "index.html").exists():
+            chosen[sample] = volume
+    reports = [snapshot(sample, volume, root=LEVEL_ROUTE) for sample, volume in chosen.items()]
     return {
         "scrolls": len(reports),
+        "read_scrolls": sum(r["ink_cm2"] > 0 for r in reports),
         "laid_cm2": sum(r["laid_cm2"] for r in reports),
         "ink_cm2": sum(r["ink_cm2"] for r in reports),
     }
@@ -302,30 +293,9 @@ def start_status():
 
 def front_cards():
     """The scrolls on the start page, one card per scroll page, the newest read first."""
-    cards, both = (
-        [],
-        {p.name.removeprefix("two-unwraps-") for p in (SHEETS).glob("two-unwraps-*") if (p / "index.html").exists()},
-    )
-    for sample, _, tag, _ in scans(GROWN_ROUTE):
-        if (SHEETS / f"sheet-{tag}" / "index.html").exists():
-            cards.append(
-                {
-                    "href": f"sheet-{tag}/index.html",
-                    "image": f"sheet-{tag}/card.jpg",
-                    "title": card_title(sample, f"sheet-{tag}", "grown"),
-                }
-            )
-    for sample in sorted(both, key=prize_order):
-        name = f"two-unwraps-{sample}"
-        cards.append(
-            {
-                "href": f"{name}/index.html",
-                "image": f"{name}/card.jpg",
-                "title": card_title(sample, name),
-            }
-        )
+    cards = []
     for sample, _, tag, _ in scans(LEVEL_ROUTE):
-        if sample not in both and (SHEETS / f"sheet-{tag}" / "index.html").exists():
+        if (SHEETS / f"sheet-{tag}" / "index.html").exists():
             cards.append(
                 {
                     "href": f"sheet-{tag}/index.html",
@@ -374,7 +344,7 @@ def add_card(name, sample=None, surface=None, remove=False):
 
 
 def sample_of(name):
-    """The scroll a page folder is named for (sheet-PHerc0191-113keV-level, two-unwraps-PHerc0211, ...)."""
+    """The scroll a page folder is named for, such as sheet-PHerc0191-113keV-level."""
     return next(part for part in name.split("-") if part.startswith("PHerc"))
 
 
@@ -394,6 +364,8 @@ def write_start_page(report, cards):
     html = (BROWSER_ASSETS / "start_page.html").read_text()
     built = [(page, name) for page, name in ATLAS_LINKS if (SITE_ATLAS / f"{page}.html").is_file()]
     atlas = "".join(f'<a href="../atlas/{page}.html">{name}</a>' for page, name in built)
+    if (SHEETS / "synthetic" / "index.html").is_file():
+        atlas += '<a href="synthetic/index.html">Synthetic</a>'
     for key, value in {"__STATUS__": json.dumps(report), "__CARDS__": json.dumps(cards), "__ATLAS__": atlas}.items():
         html = html.replace(key, value)
     target = SHEETS / "index.html"

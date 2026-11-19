@@ -25,4 +25,5 @@ stopped, and `verify` accounts for every planned file and compares a random samp
 inventories in [`scans/catalog`](../catalog/README.md) first.
 
 `HERCULEX_FETCH_CONNECTIONS` sets the default number of connections that `parallel_fetch` opens (default `32`). Sheet
-detection reads the same variable with a default of `16`.
+detection reads the same variable with a default of `16`. `HERCULEX_FETCHER` picks the client for brick lists: `curl`
+(the default, the libcurl client in `scans/chunks/fetch_urls.c`) or `python` (threads).

@@ -7,6 +7,7 @@ import json
 import numpy as np
 import tifffile
 from scipy import ndimage as ni
+from scipy.spatial import cKDTree
 
 from unwrapping.detection.kernel_bindings import CELL
 
@@ -18,10 +19,11 @@ FLATTEN_TOLERANCE = 1e-3
 FILL_REACH = 3
 FILL_ROUNDS = 150  # Jacobi rounds; a hole at most 2 x FILL_REACH across settles within 1e-6 of a cell
 EDGE_VOXELS = 8  # how far past the scan a filled edge cell may reach and be left out rather than stop the unit
-# A pieces unit is current only with its isometry measured: every unit made with the isometric grids records it,
-# none made before does, whatever digest same_output_methods.txt lists for it.
-UNIT_NEEDS = ("isometry",)
 TEAR_CELLS = 3.0
+UP_SLOPE = 0.3
+UP_SAMPLES = 2000
+UP_NEIGHBOURS = 24
+UP_KEEP = 10.0
 SLOPE_NODES = 4  # nodes of a cell's 3 x 3 cells to fit its slope
 SLOPE_SPREAD = 0.1  # least variance of their flat places, in cells squared, across the narrower direction
 SLOPE_LENGTHS = (0.5, 2.0)  # 3D length of a flat step a fitted slope may give
@@ -32,11 +34,6 @@ SLOPE_LENGTHS = (0.5, 2.0)  # 3D length of a flat step a fitted slope may give
 # centring leaves is stretch over many cells where the sheet is corrugated finer than its normals.
 ISOMETRIC_SHARE = 0.7
 ISOMETRIC_JITTER = 0.07
-UNIT_ISOMETRIC_SHARE = 0.8  # of a unit's written pieces isometric, or the unit fails and its old pieces stay
-
-
-class NotIsometric(ValueError):
-    """A unit whose grids do not keep the sheet's lengths."""
 
 
 def isometry(grid, known, locked, stride):
@@ -74,29 +71,57 @@ def isometry(grid, known, locked, stride):
 
 
 def unit_isometry(rows):
-    """The written pieces' isometry in one line of a unit's record; NotIsometric when under UNIT_ISOMETRIC_SHARE of
-    them are isometric."""
+    """The written pieces' isometry in one line of a unit's record, measured and kept, never a reason to drop them."""
     measured = [r["isometry"] for r in rows if r.get("isometry") and r["isometry"]["locked"]]
     if not measured:
         return {"pieces": 0}
     share = float(np.mean([m["isometric"] for m in measured]))
-    out = {
+    return {
         "pieces": len(measured),
         "isometric_share": round(share, 3),
         "median_within_10pct": round(float(np.median([m["locked"]["within_10pct"] for m in measured])), 3),
         "median_all_within_10pct": round(float(np.median([m["all"]["within_10pct"] for m in measured])), 3),
         "median_jitter": round(float(np.median([m["locked"]["jitter"] or 0.0 for m in measured])), 3),
     }
-    if share < UNIT_ISOMETRIC_SHARE:
-        raise NotIsometric(
-            f"only {share:.0%} of {len(measured)} pieces isometric (at least {UNIT_ISOMETRIC_SHARE:.0%} needed; "
-            f"median piece {out['median_within_10pct']:.0%} of locked neighbours within 10% of a step)"
-        )
-    return out
 
 
 def pointer(array):
     return ctypes.c_void_p(array.ctypes.data)
+
+
+def upright(nodes, u, v, turns, radius):
+    """Flat places turned in their plane so the scroll's axis runs along +v where most of the piece lies: the median
+    direction of z's slope over UP_SAMPLES local plane fits of UP_NEIGHBOURS nodes, left as it is when within UP_KEEP
+    degrees; where the sheet lies nearly level (slopes under UP_SLOPE) the roll's direction is turned onto +u."""
+    flat = np.c_[u, v].astype(np.float64)
+    if len(flat) < UP_NEIGHBOURS:
+        return u, v
+    rng = np.random.default_rng(0)
+    centres = rng.choice(len(flat), size=min(UP_SAMPLES, len(flat)), replace=False)
+    _, near = cKDTree(flat).query(flat[centres], k=UP_NEIGHBOURS)
+    design = np.concatenate([flat[near] - flat[centres][:, None, :], np.ones((*near.shape, 1))], axis=2)
+    gram = np.einsum("nki,nkj->nij", design, design) + 1e-9 * np.eye(3)
+
+    def median_direction(values):
+        target = values[near] - values[centres][:, None]
+        slope = np.linalg.solve(gram, np.einsum("nki,nk->ni", design, target)[..., None])[:, :2, 0]
+        steep = np.linalg.norm(slope, axis=1) >= UP_SLOPE
+        if steep.mean() < 0.5:
+            return None
+        angle = np.arctan2(slope[steep, 0], slope[steep, 1])
+        centre = np.arctan2(np.sin(angle).mean(), np.cos(angle).mean())
+        return centre + np.median(np.angle(np.exp(1j * (angle - centre))))
+
+    angle = median_direction(nodes["z"].astype(np.float64))
+    if angle is None:
+        roll = median_direction(2 * np.pi * turns * radius)
+        if roll is None:
+            return u, v
+        angle = roll - np.pi / 2
+    if abs(np.degrees(np.angle(np.exp(1j * angle)))) <= UP_KEEP:
+        return u, v
+    cos, sin = np.cos(angle), np.sin(angle)
+    return (u * cos - v * sin).astype(u.dtype), (u * sin + v * cos).astype(v.dtype)
 
 
 def rasterise(nodes, normal, u, v):

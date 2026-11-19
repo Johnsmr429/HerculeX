@@ -18,11 +18,11 @@ import numpy as np
 import zstandard
 from PIL import Image
 
-from ink.model import input_stack, machine_reader, tile_reader
+from ink.model import input_stack, models, tiles
 from ink.model.input_stack import DEPTH, PAST_FACE, face_layer_of, scrambled
+from ink.model.reader import SOURCES, lane_reader
 from ink.model.stock_model import SURE, checkpoint_hash
-from ink.model.weights import STOCK_READER
-from runner.compiled_kernels import APPLE
+from runner import events
 from sampling import column_sampling as sampler
 from sampling.fibre_faces import recto_face
 from sampling.piece_images import (
@@ -30,10 +30,11 @@ from sampling.piece_images import (
     axis_points,
     fetch_bricks,
     shown,
+    store_lock,
     surface_of,
 )
 from sampling.sheet_images import across_sheet
-from storage.brick_store import BrickStore
+from storage.brick_store import UNKNOWN, BrickStore
 from storage.data_roots import (
     FACES,
     INK_LAYER_STACKS,
@@ -46,7 +47,8 @@ from storage.data_roots import (
 )
 
 Image.MAX_IMAGE_PIXELS = None  # Faces are generated locally and may exceed Pillow's default limit.
-WEIGHTS = Path(os.environ.get("HERCULEX_WEIGHTS", STOCK_READER))  # stock Reader v3 unless a checkpoint is named
+MODEL = models.chosen()
+WEIGHTS = MODEL.weights
 STACK_ROUTE = route_id(ROUTE_OUTPUTS)
 WINDOWS = Path(
     os.environ.get("HERCULEX_WINDOWS", named_folder(INK_LAYER_STACKS, STACK_ROUTE.removesuffix("_route"), STACK_ROUTE))
@@ -58,7 +60,6 @@ CORE_LAYERS = sampler.LAYERS
 if REACH:
     sampler.LAYERS = CORE_LAYERS + 2 * REACH  # Bricks are fetched deep enough for the farthest shift.
 KEEP_FREE_BYTES = 40 * 2**30
-FINEST_INK_UM = 8.0
 LOOK_SIDE, LOOKS = 512, 2
 LOOKED_PIXELS = 2**20
 SAMPLERS = int(os.environ.get("HERCULEX_SAMPLERS", "4"))
@@ -75,6 +76,7 @@ SAME_OUTPUT = {
         if line.strip()
     )
 }
+READING = "reading.started"  # written when a read starts; the early fetch (unit_fetch) leaves the stores to it then
 _store = None
 _store_folder = None
 _model = None
@@ -83,10 +85,8 @@ _model_ready = None
 
 def digest():
     model = checkpoint_hash(WEIGHTS)
-    reader = Path(tile_reader.__file__)
-    model.update(reader.read_bytes())
-    model.update(reader.with_name("depth_stem.metal" if APPLE else "portable_reader.py").read_bytes())
-    model.update(reader.with_name("tile_filling.c").read_bytes())
+    for source in SOURCES:
+        model.update(source.read_bytes())
     model.update(sampler.SAMPLING.encode())
     if (FACES, SHIFTS) != (PRODUCTION_FACES, (0,)):
         model.update(json.dumps([FACES, SHIFTS]).encode() + Path(input_stack.__file__).read_bytes())
@@ -125,7 +125,7 @@ def depth_reads(kept, measure=None):
     others = [np.ascontiguousarray(kept[REACH + shift : REACH + shift + DEPTH]) for shift in SHIFTS if shift]
     return [
         (np.ascontiguousarray(kept[REACH : REACH + DEPTH]), measure),
-        *((w, tile_reader.measured(w)) for w in others),
+        *((w, tiles.measured(w)) for w in others),
     ]
 
 
@@ -170,7 +170,7 @@ def faces_of(cube, sheet):
     wide = DEPTH + 2 * REACH
     if sheet.sum() < LOOKED_PIXELS:
         kept = window(cube[::-1] if written == "far" else cube, layers=wide)
-        return kept, written, looks, depth_reads(kept, tile_reader.measured(kept[REACH : REACH + DEPTH])), []
+        return kept, written, looks, depth_reads(kept, tiles.measured(kept[REACH : REACH + DEPTH])), []
     faces = {"near": window(cube, contiguous=written == "near"), "far": window(cube[::-1], contiguous=written == "far")}
     kept = window(cube[::-1] if written == "far" else cube, layers=wide) if REACH else faces[written]
     rng = np.random.default_rng(cube.shape[1] * 31 + cube.shape[2])
@@ -178,7 +178,7 @@ def faces_of(cube, sheet):
     stacks, seen = [], []
     for name in sorted(faces, key=lambda face: face == written):
         windows = [np.ascontiguousarray(faces[name][:, y : y + side, x : x + side]) for y, x in spots]
-        stacks += [(part, tile_reader.measured(faces[name]) if k == 0 else None) for k, part in enumerate(windows)]
+        stacks += [(part, tiles.measured(faces[name]) if k == 0 else None) for k, part in enumerate(windows)]
         seen += [name] * len(windows)
     return kept, written, looks, [*stacks, (scrambled(windows[0], rng), None), *depth_reads(kept)], [*seen, "scrambled"]
 
@@ -269,16 +269,25 @@ def kept_face(path):
     ).reshape(shape)
 
 
+def complete_store(folder):
+    """A fetched store; one with bricks still unknown would read as zeros there, so it is refused."""
+    store = BrickStore(folder)
+    unknown = int((store.offsets == UNKNOWN).sum())
+    if unknown:
+        raise RuntimeError(f"{folder} holds {unknown} bricks never fetched; rerun to fetch them")
+    return store
+
+
 def sampled(folder, axis, turn):
     """A piece's stack along its normals and its scan images."""
     global _store
     if _store is None:
-        _store = BrickStore(_store_folder)
+        _store = complete_store(_store_folder)
     xyz, meta = sampler.load_surface(folder)
     margined, normal = surface_of(xyz, meta, axis)
     stack = sampler.flatten(margined, meta["stride"], normal * turn, _store, layers=CORE_LAYERS + 2 * REACH)
     sheet, layers = across_sheet(stack, meta["voxel_um"], all_layers=False)
-    return sheet, layers[0], stack.cube, meta["voxel_um"]
+    return sheet, layers[0], stack.cube
 
 
 def write_faces(out, sheet, central, *, replace_ink=True):
@@ -327,7 +336,7 @@ def unparcelled(name, shapes):
 
 def sampled_piece(job):
     """One piece as far as the reader."""
-    folder, out, axis, turn, model = job
+    folder, out, axis, turn, _ = job
     start = time.time()
     record = side_of(out)
     try:
@@ -336,15 +345,11 @@ def sampled_piece(job):
         if cached:
             face, sheet = kept_face(kept_window(folder)), np.asarray(Image.open(out))
             written = looks.pop("written")
-            stacks, seen = depth_reads(face, tile_reader.measured(face[REACH : REACH + DEPTH])), []
+            stacks, seen = depth_reads(face, tiles.measured(face[REACH : REACH + DEPTH])), []
         else:
-            sheet, central, cube, voxel = sampled(folder, axis, turn)
-            ink_ready = ink_is_current(job)
-            if ink_ready or voxel < FINEST_INK_UM:
-                write_faces(out, sheet, central, replace_ink=not ink_ready)
-                if not ink_ready:
-                    taught_png(out).unlink(missing_ok=True)
-                    write_side(record, {"written": "near", "model": model, "turn": turn, "near": 0.0, "far": 0.0})
+            sheet, central, cube = sampled(folder, axis, turn)
+            if ink_is_current(job):
+                write_faces(out, sheet, central, replace_ink=False)
                 return {
                     "row": {
                         "piece": folder.name,
@@ -355,7 +360,7 @@ def sampled_piece(job):
                 }
             face, written, looks, stacks, seen = faces_of(cube, sheet > 0)
         measures = [m for _, m in stacks if m is not None]
-        prepared = [tile_reader.prepare_stack(stack) for stack, _ in stacks]
+        prepared = [tiles.prepare_stack(stack) for stack, _ in stacks]
         if cached:
             wait_for_model()
         else:
@@ -385,7 +390,7 @@ def opened(piece):
     count = len(scales)
     stacks, masks, measures = arrays[:count], arrays[count : 2 * count], iter(arrays[2 * count :])
     return [
-        (tile_reader.PreparedStack(stack, mask), scale and (next(measures), scale))
+        (tiles.PreparedStack(stack, mask), scale and (next(measures), scale))
         for stack, mask, scale in zip(stacks, masks, scales)
     ], sheet
 
@@ -466,7 +471,7 @@ def read_all(jobs, store_folder, keep):
         maps = []
         try:
             if ready is not None:
-                _model = machine_reader.reader(WEIGHTS)
+                _model = lane_reader(WEIGHTS)
                 ready.set()
             for read in _model.maps(stacks_of(pieces)):
                 maps.append(read)
@@ -498,7 +503,7 @@ def queue_of(sample, volume, first=None):
         if not UNITS or p["unit"] in UNITS
     }
     if not WEIGHTS.is_file():
-        raise FileNotFoundError(f"ink checkpoint missing: {WEIGHTS}. Set HERCULEX_WEIGHTS to the checkpoint path.")
+        raise FileNotFoundError(f"{MODEL.name}: no checkpoint at {WEIGHTS}; see ./run.sh ink.model.models")
     model = digest()
     queue = []
     for store, pieces in json.loads(Path(first).read_text()) if first else ():
@@ -561,24 +566,30 @@ def run(sample, volume, first=None):
         print(f"{sample} {volume}: no ink maps to update", flush=True)
         return
     print(f"{sample} {volume}: {sum(len(jobs) for _, jobs in queue)} pieces queued", flush=True)
+    started = stage_folder(ROUTE_OUTPUTS / sample / volume, "sheet") / READING
+    started.parent.mkdir(parents=True, exist_ok=True)
+    started.write_text(f"{time.time()}\n")
     planned = planned_stores(queue)
 
     def fetched(folder):
         """A store's planes once, for all it will read."""
         if folder in planned:
-            fetch_bricks_for_read(sample, volume, planned.pop(folder), folder)
+            with events.span("fetch", store=folder.name):
+                fetch_bricks_for_read(sample, volume, planned.pop(folder), folder)
 
     with ThreadPoolExecutor(1) as ahead:
         coming = ahead.submit(fetched, queue[0][0])
         for k, (folder, jobs) in enumerate(queue):
             sampler.reader_waiting.set()
             try:
-                coming.result()
+                with events.span("wait-fetch", store=folder.name):
+                    coming.result()
             finally:
                 sampler.reader_waiting.clear()
             if k + 1 < len(queue):
                 coming = ahead.submit(fetched, queue[k + 1][0])
-            read_all(jobs, folder, KEEP_BRICKS or any(folder == later[0] for later in queue[k + 1 :]))
+            with events.span("read", store=folder.name, pieces=len(jobs)), store_lock(folder):
+                read_all(jobs, folder, KEEP_BRICKS or any(folder == later[0] for later in queue[k + 1 :]))
 
 
 def ink_is_current(job):
@@ -586,7 +597,7 @@ def ink_is_current(job):
     record = side_of(out)
     if not (current(record, folder) and read_by(record, model, turn)):
         return False
-    return taught_png(out).is_file() or json.loads((folder / "meta.json").read_text())["voxel_um"] < FINEST_INK_UM
+    return taught_png(out).is_file()
 
 
 def done(job):

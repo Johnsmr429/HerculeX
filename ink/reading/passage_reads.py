@@ -8,8 +8,9 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 
-from ink.model import machine_reader
+from ink.model import models as ink_models
 from ink.model.input_stack import DEPTH, PAST_FACE, face_layer_of, scrambled
+from ink.model.reader import lane_reader
 from ink.model.stock_model import SURE
 from ink.reading import spot_depths
 from sampling import column_sampling as sampler
@@ -30,9 +31,11 @@ def work_of(sample, model):
     return calibration_output("passage_reads") / sample / model
 
 
-def read_all(sample, volume, pieces, weights):
-    """Each piece sampled once from its fetched bricks and read by every model at every depth of DEPTHS, kept per model."""
-    models = {Path(w).stem: Path(w) for w in weights}
+def read_all(sample, volume, pieces, names):
+    """Each piece sampled once from its fetched bricks and read by every model named at every depth of DEPTHS, kept per
+    model."""
+    known = ink_models.models()
+    models = {name: known[name].weights for name in names}
     wanted = [
         p
         for p in {spot_depths.piece_key(p): p for p in pieces}.values()
@@ -43,7 +46,7 @@ def read_all(sample, volume, pieces, weights):
     sampler.LAYERS = spot_depths.READ_LAYERS + 2 * EXTRA
     base = ROUTE_OUTPUTS / sample / volume
     axis, faces = spot_depths.axis_of(sample, volume), spot_depths.faces_folder(sample, volume)
-    readers = {m: machine_reader.reader(w) for m, w in models.items()}
+    readers = {m: lane_reader(w) for m, w in models.items()}
     for start in range(0, len(wanted), spot_depths.PIECES_A_STORE):
         batch = wanted[start : start + spot_depths.PIECES_A_STORE]
         folder = ct_bricks(sample, "passages")
@@ -148,11 +151,11 @@ def panels_of(sample, volume, p, models):
     return panels
 
 
-def run(sample, volume, places_path, page_name, *weights):
-    """Every listed piece read by every model, then one page of panels."""
+def run(sample, volume, places_path, page_name, *names):
+    """Every listed piece read by every model named (ink.model.models), then one page of panels."""
     places = json.loads(Path(places_path).read_text())
-    read_all(sample, volume, places, weights)
-    models = [Path(w).stem for w in weights]
+    read_all(sample, volume, places, names)
+    models = list(names)
     out = SHEETS / page_name
     for p in places:
         folder = out / spot_depths.piece_key(p)

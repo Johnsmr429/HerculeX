@@ -16,10 +16,10 @@ from unwrapping.detection.kernel_bindings import CELL
 from unwrapping.level import level_pieces, scroll_axis, scroll_frame, scroll_layout
 from unwrapping.level.piece_flattening import (
     MIN_PIECE_NODES,
-    UNIT_NEEDS,
     bridge_holes,
     isometry,
     unit_isometry,
+    upright,
     write_piece,
 )
 from unwrapping.level.piece_joiner import SEAM_PLANES, boundary_labels, join, seam_joins
@@ -44,7 +44,6 @@ METHOD = stage_queue.method_of(
         )
     ]
 )
-MIN_WRITTEN_MM2 = 25.0
 BLOCK_BASE = 1_000_000
 WRITERS = 4
 
@@ -73,12 +72,13 @@ def piece_rows(
     block=None,
     overlap=0,
 ):
-    """Write every piece large enough to hold text, in blocks of at most block cells a side when given, each carrying overlap cells of its neighbours' real mesh."""
+    """Write every piece with a locked cell, however small, in blocks of at most block cells a side when given, each carrying overlap cells of its neighbours' real mesh."""
 
     def piece(rank):
         group = members[piece_first[rank] : piece_first[rank + 1]]
-        flat, locked, crowding = rasterise(nodes[group], normal[group], u[group], v[group])
-        if locked.sum() < MIN_PIECE_NODES:
+        gu, gv = upright(nodes[group], u[group], v[group], potential[group] + theta[group] / (2 * np.pi), radius[group])
+        flat, locked, crowding = rasterise(nodes[group], normal[group], gu, gv)
+        if not locked.any():
             return []
         filled, known = bridge_holes(flat, locked)
         rows_used, cols_used = np.nonzero(known.any(axis=1))[0], np.nonzero(known.any(axis=0))[0]
@@ -98,9 +98,7 @@ def piece_rows(
             "height_mm": float(locked.shape[0]) * side,
             "median_radius_mm": float(np.median(radius[group])) * voxel_um * scale / 1000,
         }
-        row["written"] = row["area_mm2"] >= MIN_WRITTEN_MM2
-        if not row["written"]:
-            return [row]
+        row["written"] = True
         grid, seen, kept = filled[:, box[0], box[1]], known[box], locked[box]
         if block is None or max(seen.shape) <= block:
             row["isometry"] = isometry(grid, seen, kept, CELL)
@@ -112,7 +110,7 @@ def piece_rows(
             for c0 in range(0, width, block):
                 r1, c1 = min(height, r0 + block), min(width, c0 + block)
                 cells = int(kept[r0:r1, c0:c1].sum())
-                if cells < MIN_PIECE_NODES // 4:
+                if not cells:
                     continue
                 top, left, bottom, right = (
                     min(overlap, r0),
@@ -132,10 +130,9 @@ def piece_rows(
                     "width_mm": float(seen[here].shape[1]) * side,
                     "height_mm": float(seen[here].shape[0]) * side,
                 }
-                part["written"] = part["area_mm2"] >= MIN_WRITTEN_MM2
-                if part["written"]:
-                    part["isometry"] = isometry(grid[:, here[0], here[1]], seen[here], kept[here], CELL)
-                    write_piece(out / piece_name(name), grid[:, here[0], here[1]], seen[here], kept[here], scale, part)
+                part["written"] = True
+                part["isometry"] = isometry(grid[:, here[0], here[1]], seen[here], kept[here], CELL)
+                write_piece(out / piece_name(name), grid[:, here[0], here[1]], seen[here], kept[here], scale, part)
                 rows.append(part)
         return rows
 
@@ -235,7 +232,7 @@ def extract(chunks, out, sample, volume, voxel_um, level, planes=None, shared=()
         overlap,
     )
     clock.append(("write", time.time()))
-    isometric = unit_isometry(rows)  # fails the unit, its old pieces kept, when its grids do not keep lengths
+    isometric = unit_isometry(rows)
     sized = np.array([r["area_mm2"] for r in rows] or [0.0])
     frames = np.bincount(frame_of[frame_of >= 0]) if (frame_of >= 0).any() else np.zeros(1, dtype=np.int64)
     in_frame = frame_of == frames.argmax()
@@ -286,7 +283,7 @@ def units(samples, band=False, volume=None):
         if not band and nodes.name.startswith("band-") and any(nodes.parent.glob("rows-*")):
             continue
         out = LEVEL_ROUTE / sample / nodes.parts[-3] / "pieces" / nodes.name
-        if not stage_queue.done(out, METHOD, SAME_OUTPUT, UNIT_NEEDS):
+        if not stage_queue.done(out, METHOD, SAME_OUTPUT):
             yield nodes, out
 
 
@@ -362,7 +359,7 @@ def join_scan(scan):
     chunks = sorted(stage_folder(scan, "nodes").glob("rows-*"))
     units = [scan / "pieces" / c.name for c in chunks]
     if len(units) < 2 or not all(
-        stage_queue.done(u, METHOD, SAME_OUTPUT, UNIT_NEEDS) and stage_queue.done(c) for u, c in zip(units, chunks)
+        stage_queue.done(u, METHOD, SAME_OUTPUT) and stage_queue.done(c) for u, c in zip(units, chunks)
     ):
         return
     method = stage_queue.method_of(HERE / "piece_joiner.py", *[u / stage_queue.RECORD for u in units])
@@ -439,7 +436,7 @@ def one_unit(sample, name):
     share_nodes(nodes)
     out = LEVEL_ROUTE / sample / nodes.parts[-3] / "pieces" / name
     with stage_queue.claimed(out) as mine:
-        if mine and not stage_queue.done(out, METHOD, SAME_OUTPUT, UNIT_NEEDS):
+        if mine and not stage_queue.done(out, METHOD, SAME_OUTPUT):
             run_unit(nodes, out, scan_curl(rows_of(sample)))
 
 

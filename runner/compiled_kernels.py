@@ -1,42 +1,46 @@
-"""C and Objective-C kernels compiled once per source digest into runtime/kernels, older builds removed."""
+"""C and Objective-C kernels compiled once per source digest into runtime/kernels, older builds removed, with the
+compiler and flags of this machine's lane (runner/machine_apple/build.py, runner/machine_cuda/build.py)."""
 
 import ctypes
 import hashlib
 import os
 import subprocess
-import sys
 from pathlib import Path
 
+from runner.lane import APPLE
 from storage.data_roots import KERNELS
 
-C_FLAGS = ("-O3", "-mcpu=apple-m1")
-APPLE = (
-    sys.platform == "darwin"
-)  # elsewhere (Linux, as in the submission's container) kernels build as plain shared objects
+if APPLE:
+    from runner.machine_apple import build
+else:
+    from runner.machine_cuda import build
+
+C_FLAGS = build.C_FLAGS
 _LOADED = {}
 
 
-def load(name, sources, flags=C_FLAGS, headers=()):
+def load(name, sources, flags=C_FLAGS, headers=(), libraries=()):
     """A process keeps the build it first loaded, whatever lands in the checkout while it runs."""
     if name in _LOADED:
         return _LOADED[name]
     sources = [Path(s) for s in sources]
     key = hashlib.sha256(
-        b"".join(s.read_bytes() for s in [*sources, *map(Path, headers)]) + " ".join(flags).encode()
+        b"".join(s.read_bytes() for s in [*sources, *map(Path, headers)])
+        + " ".join(build.key_words(flags, libraries)).encode()
     ).hexdigest()[:20]
-    if not APPLE:
-        flags = tuple(f for f in flags if f != "-mcpu=apple-m1")
-    suffix = "dylib" if APPLE else "so"
-    path = KERNELS / f"{name}-{key}.{suffix}"
+    path = KERNELS / f"{name}-{key}.{build.SUFFIX}"
     if not path.exists():
         KERNELS.mkdir(parents=True, exist_ok=True)
         temporary = path.with_name(f"{path.name}.{os.getpid()}.tmp")
-        # OpenMP runs the loops of parallel_blocks.h at once where cc has no blocks
-        link = ["clang", *flags, "-dynamiclib"] if APPLE else ["cc", *flags, "-fopenmp", "-shared", "-fPIC"]
-        subprocess.run([*link, "-o", str(temporary), *map(str, sources), *([] if APPLE else ["-lm"])], check=True)
+        subprocess.run(build.command(flags, temporary, sources, libraries), check=True)
         os.replace(temporary, path)
-        for old in KERNELS.glob(f"{name}-*.{suffix}"):
+        for old in KERNELS.glob(f"{name}-*.{build.SUFFIX}"):
             if old != path:
                 old.unlink(missing_ok=True)
     _LOADED[name] = ctypes.CDLL(str(path))
     return _LOADED[name]
+
+
+def pointer(array):
+    """A NumPy array's buffer as a ctypes void pointer."""
+    return array.ctypes.data_as(ctypes.c_void_p)

@@ -1,4 +1,5 @@
-// Exact minimiser of sum_t f_t(x[q_t] - x[p_t] - k_t) over integer x, each f_t convex with one kink: up*max(r,0) + dn*max(-r,0).
+// Exact minimiser of sum_t f_t(x[q_t] - x[p_t] - k_t) over integer x, each f_t convex with one kink: up*max(r,0) +
+// dn*max(-r,0).
 
 #include <math.h>
 #include "parallel_blocks.h"
@@ -20,7 +21,9 @@ typedef struct {
     uint8_t sink, queued;
 } Node;
 
-typedef struct { int32_t head, sister; } Arc;
+typedef struct {
+    int32_t head, sister;
+} Arc;
 
 typedef struct {
     Node *nodes;
@@ -32,7 +35,8 @@ typedef struct {
     int32_t *cand, workers, relabels;
 } Graph;
 
-// Maximum flow by push-relabel from what excess and deficit the nodes hold, distances renewed by breadth-first search from the deficits;
+// Maximum flow by push-relabel from what excess and deficit the nodes hold, distances renewed by breadth-first search
+// from the deficits;
 static void pr_relabel_all(Graph *g, int32_t *label, int32_t *queue) {
     Node *N = g->nodes;
     const Arc *A = g->arcs;
@@ -80,7 +84,10 @@ static void pr_relabel_parallel(Graph *g, int32_t *label, int32_t *queue) {
                 int32_t v = queue[at];
                 for (int32_t e = N[v].first; e < N[v].last; e++) {
                     int32_t u = A[e].head;
-                    if (label[u] == n && C[A[e].sister] > 0) { label[u] = next; queue[end++] = u; }
+                    if (label[u] == n && C[A[e].sister] > 0) {
+                        label[u] = next;
+                        queue[end++] = u;
+                    }
                 }
             }
         } else {
@@ -91,7 +98,8 @@ static void pr_relabel_parallel(Graph *g, int32_t *label, int32_t *queue) {
                 int32_t a = (int32_t)c * chunk, b = a + chunk < size ? a + chunk : size;
                 for (int32_t i = a; i < b; i++) arcs += N[frontier[i]].last - N[frontier[i]].first;
                 offset[c + 1] = arcs;
-            } END_BLOCKS;
+            }
+            END_BLOCKS;
             offset[0] = 0;
             for (int c = 0; c < BFS_CHUNKS; c++) offset[c + 1] += offset[c];
             EACH_BLOCK(c, BFS_CHUNKS) {
@@ -103,11 +111,14 @@ static void pr_relabel_parallel(Graph *g, int32_t *label, int32_t *queue) {
                         int32_t u = A[e].head;
                         if (__atomic_load_n(&label[u], __ATOMIC_RELAXED) != n || C[A[e].sister] <= 0) continue;
                         int32_t expected = n;
-                        if (__atomic_compare_exchange_n(&label[u], &expected, next, 0, __ATOMIC_RELAXED, __ATOMIC_RELAXED)) out[got++] = u;
+                        if (__atomic_compare_exchange_n(&label[u], &expected, next, 0, __ATOMIC_RELAXED,
+                                                        __ATOMIC_RELAXED))
+                            out[got++] = u;
                     }
                 }
                 found[c] = got;
-            } END_BLOCKS;
+            }
+            END_BLOCKS;
             for (int c = 0; c < BFS_CHUNKS; c++) {
                 memcpy(queue + end, cand + offset[c], sizeof(int32_t) * (size_t)found[c]);
                 end += found[c];
@@ -201,24 +212,44 @@ static void maxflow(Graph *g, int64_t offered) {
         }
     }
     if (g->flow == offered) return;
-    for (int32_t i = 0; i < n; i++) { N[i].parent = FREE; N[i].sink = 0; N[i].queued = 0; }
+    for (int32_t i = 0; i < n; i++) {
+        N[i].parent = FREE;
+        N[i].sink = 0;
+        N[i].queued = 0;
+    }
     int32_t end = 0, at = 0;
-    for (int32_t i = 0; i < n; i++) if (N[i].terminal > 0) { N[i].parent = TERMINAL; fifo[end++] = i; }
+    for (int32_t i = 0; i < n; i++)
+        if (N[i].terminal > 0) {
+            N[i].parent = TERMINAL;
+            fifo[end++] = i;
+        }
     while (at < end) {
         int32_t u = fifo[at++];
         for (int32_t e = N[u].first; e < N[u].last; e++) {
             int32_t v = A[e].head;
-            if (C[e] > 0 && N[v].parent == FREE) { N[v].parent = TERMINAL; fifo[end++] = v; }
+            if (C[e] > 0 && N[v].parent == FREE) {
+                N[v].parent = TERMINAL;
+                fifo[end++] = v;
+            }
         }
     }
     g->source_side = end;
     end = at = 0;
-    for (int32_t i = 0; i < n; i++) if (N[i].terminal < 0) { N[i].parent = TERMINAL; N[i].sink = 1; fifo[end++] = i; }
+    for (int32_t i = 0; i < n; i++)
+        if (N[i].terminal < 0) {
+            N[i].parent = TERMINAL;
+            N[i].sink = 1;
+            fifo[end++] = i;
+        }
     while (at < end) {
         int32_t v = fifo[at++];
         for (int32_t e = N[v].first; e < N[v].last; e++) {
             int32_t u = A[e].head;
-            if (C[A[e].sister] > 0 && N[u].parent == FREE) { N[u].parent = TERMINAL; N[u].sink = 1; fifo[end++] = u; }
+            if (C[A[e].sister] > 0 && N[u].parent == FREE) {
+                N[u].parent = TERMINAL;
+                N[u].sink = 1;
+                fifo[end++] = u;
+            }
         }
     }
     g->sink_side = end;
@@ -226,14 +257,16 @@ static void maxflow(Graph *g, int64_t offered) {
 
 static inline int64_t cost(int64_t r, int64_t up, int64_t dn) { return r >= 0 ? up * r : -dn * r; }
 
-int64_t hx_lnat_energy(int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k, const int32_t *up, const int32_t *dn, const int32_t *x) {
+int64_t hx_lnat_energy(int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k, const int32_t *up,
+                       const int32_t *dn, const int32_t *x) {
     int64_t total = 0;
     for (int64_t t = 0; t < terms; t++) total += cost((int64_t)x[q[t]] - x[p[t]] - k[t], up[t], dn[t]);
     return total;
 }
 
 // The proof of a finished solve: every flow a slope of its term at x, and none left over at any node.
-static int proven(Graph *g, int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k, const int32_t *up, const int32_t *dn, const int32_t *x, const int32_t *forward) {
+static int proven(Graph *g, int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k,
+                  const int32_t *up, const int32_t *dn, const int32_t *x, const int32_t *forward) {
     const Arc *A = g->arcs;
     int32_t *C = g->cap;
     int64_t *balance = calloc((size_t)count, sizeof(int64_t));
@@ -250,7 +283,9 @@ static int proven(Graph *g, int64_t count, int64_t terms, const int32_t *p, cons
     return good;
 }
 
-static int64_t unit_steps(Graph *g, int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k, const int32_t *up, const int32_t *dn, int32_t *x, const int32_t *forward, const int32_t *term_of, int64_t cuts, int64_t *moved) {
+static int64_t unit_steps(Graph *g, int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k,
+                          const int32_t *up, const int32_t *dn, int32_t *x, const int32_t *forward,
+                          const int32_t *term_of, int64_t cuts, int64_t *moved) {
     Node *N = g->nodes;
     const Arc *A = g->arcs;
     int32_t *C = g->cap;
@@ -335,7 +370,10 @@ static void shape_open(Shape *s, int64_t count, int64_t terms, const int32_t *p,
     s->forward = malloc(sizeof(int32_t) * (size_t)(terms + 1));
     s->term_of = malloc(sizeof(int32_t) * (size_t)(2 * terms + 1));
     int32_t *degree = calloc((size_t)count + 1, sizeof(int32_t));
-    for (int64_t t = 0; t < terms; t++) { degree[p[t]]++; degree[q[t]]++; }
+    for (int64_t t = 0; t < terms; t++) {
+        degree[p[t]]++;
+        degree[q[t]]++;
+    }
     int32_t at = 0;
     for (int64_t i = 0; i < count; i++) {
         s->nodes[i].first = at;
@@ -387,8 +425,10 @@ static void graph_close(Graph *g) {
     free(g->cand);
 }
 
-// x improved in place to a global minimum; step starts at first_step and halves, each scale run until neither direction helps.
-int64_t hx_level_minimize(int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k, const int32_t *up, const int32_t *dn, int32_t *x, int32_t first_step, int64_t *log) {
+// x improved in place to a global minimum; step starts at first_step and halves, each scale run until neither direction
+// helps.
+int64_t hx_level_minimize(int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k,
+                          const int32_t *up, const int32_t *dn, int32_t *x, int32_t first_step, int64_t *log) {
     Shape s;
     shape_open(&s, count, terms, p, q);
     Graph solve, *g = &solve;
@@ -420,7 +460,10 @@ int64_t hx_level_minimize(int64_t count, int64_t terms, const int32_t *p, const 
                 if (g->nodes[i].terminal > 0) offered += g->nodes[i].terminal;
             maxflow(g, offered);
             cuts++;
-            if (g->flow - offered >= 0) { quiet++; continue; }
+            if (g->flow - offered >= 0) {
+                quiet++;
+                continue;
+            }
             quiet = 0;
             for (int64_t i = 0; i < count; i++) {
                 if (g->nodes[i].parent != FREE && !g->nodes[i].sink) {
@@ -439,7 +482,8 @@ int64_t hx_level_minimize(int64_t count, int64_t terms, const int32_t *p, const 
     return cuts;
 }
 
-int64_t hx_level_two_labels(int64_t count, int64_t terms, const int32_t *a, const int32_t *b, const int32_t *weight, const int64_t *unary, uint8_t *label) {
+int64_t hx_level_two_labels(int64_t count, int64_t terms, const int32_t *a, const int32_t *b, const int32_t *weight,
+                            const int64_t *unary, uint8_t *label) {
     Shape s;
     shape_open(&s, count, terms, a, b);
     Graph solve, *g = &solve;
@@ -458,7 +502,9 @@ int64_t hx_level_two_labels(int64_t count, int64_t terms, const int32_t *a, cons
     return flow;
 }
 
-typedef struct { int32_t q, k, element; } Entry;
+typedef struct {
+    int32_t q, k, element;
+} Entry;
 
 static int compare_entries(const void *a, const void *b) {
     const Entry *x = a, *y = b;
@@ -467,21 +513,33 @@ static int compare_entries(const void *a, const void *b) {
     return 0;
 }
 
-typedef struct { int32_t a, b; float weight; int32_t step; } Edge;
-typedef struct { int32_t a, b, rank; } Pair;
+typedef struct {
+    int32_t a, b;
+    float weight;
+    int32_t step;
+} Edge;
+typedef struct {
+    int32_t a, b, rank;
+} Pair;
 
-typedef struct { int64_t terms; int32_t *p, *q, *k; } Terms;
+typedef struct {
+    int64_t terms;
+    int32_t *p, *q, *k;
+} Terms;
 
-static inline int element_ends(int64_t e, const int32_t *patch, const int32_t *inner, const Edge *edges, int64_t edge_count, const Pair *rays, const float *ray_weight, const float *theta,
+static inline int element_ends(int64_t e, const int32_t *patch, const int32_t *inner, const Edge *edges,
+                               int64_t edge_count, const Pair *rays, const float *ray_weight, const float *theta,
                                int32_t chirality, int32_t *p, int32_t *q, int32_t *k, int *swapped) {
     int32_t a, b, offset;
     if (e < edge_count) {
-        a = edges[e].a; b = edges[e].b;
+        a = edges[e].a;
+        b = edges[e].b;
         if (patch[a] == patch[b]) return 0;
         offset = chirality * (edges[e].step + inner[a] - inner[b]);
     } else {
         int64_t r = e - edge_count;
-        a = rays[r].a; b = rays[r].b;
+        a = rays[r].a;
+        b = rays[r].b;
         if (patch[a] == patch[b] || ray_weight[r] <= 0) return 0;
         int32_t turns = -(int32_t)rint(((double)theta[b] - theta[a]) / (2 * 3.14159265358979323846));
         offset = chirality * (turns + inner[a] - inner[b]) + 1;
@@ -493,14 +551,16 @@ static inline int element_ends(int64_t e, const int32_t *patch, const int32_t *i
     return 1;
 }
 
-int64_t hx_level_terms(int64_t count, const int32_t *patch, const int32_t *inner, const Edge *edges, int64_t edge_count, const Pair *rays, const float *ray_weight, int64_t ray_count,
-                       const float *theta, int32_t chirality, int32_t *element_term, uint64_t *handle) {
+int64_t hx_level_terms(int64_t count, const int32_t *patch, const int32_t *inner, const Edge *edges, int64_t edge_count,
+                       const Pair *rays, const float *ray_weight, int64_t ray_count, const float *theta,
+                       int32_t chirality, int32_t *element_term, uint64_t *handle) {
     int64_t elements = edge_count + ray_count;
     int64_t *start = calloc((size_t)count + 2, sizeof(int64_t));
     int32_t p, q, k;
     int swapped;
     for (int64_t e = 0; e < elements; e++)
-        if (element_ends(e, patch, inner, edges, edge_count, rays, ray_weight, theta, chirality, &p, &q, &k, &swapped)) start[p + 1]++;
+        if (element_ends(e, patch, inner, edges, edge_count, rays, ray_weight, theta, chirality, &p, &q, &k, &swapped))
+            start[p + 1]++;
     for (int64_t i = 0; i < count; i++) start[i + 1] += start[i];
     int64_t used = start[count];
     Entry *entries = malloc(sizeof(Entry) * (size_t)(used + 1));
@@ -508,7 +568,8 @@ int64_t hx_level_terms(int64_t count, const int32_t *patch, const int32_t *inner
     memcpy(fill, start, sizeof(int64_t) * (size_t)(count + 1));
     for (int64_t e = 0; e < elements; e++) {
         element_term[e] = -1;
-        if (!element_ends(e, patch, inner, edges, edge_count, rays, ray_weight, theta, chirality, &p, &q, &k, &swapped)) continue;
+        if (!element_ends(e, patch, inner, edges, edge_count, rays, ray_weight, theta, chirality, &p, &q, &k, &swapped))
+            continue;
         Entry *out = &entries[fill[p]++];
         out->q = q;
         out->k = k;
@@ -519,7 +580,8 @@ int64_t hx_level_terms(int64_t count, const int32_t *patch, const int32_t *inner
     for (int64_t i = 0; i < count; i++) {
         int64_t from = start[i], to = start[i + 1];
         if (to - from > 1) qsort(entries + from, (size_t)(to - from), sizeof(Entry), compare_entries);
-        for (int64_t j = from; j < to; j++) terms += j == from || entries[j].q != entries[j - 1].q || entries[j].k != entries[j - 1].k;
+        for (int64_t j = from; j < to; j++)
+            terms += j == from || entries[j].q != entries[j - 1].q || entries[j].k != entries[j - 1].k;
     }
     Terms *list = malloc(sizeof(Terms));
     list->terms = terms;
@@ -551,7 +613,10 @@ void hx_level_terms_take(uint64_t handle, int32_t *p, int32_t *q, int32_t *k) {
     memcpy(p, list->p, sizeof(int32_t) * (size_t)list->terms);
     memcpy(q, list->q, sizeof(int32_t) * (size_t)list->terms);
     memcpy(k, list->k, sizeof(int32_t) * (size_t)list->terms);
-    free(list->p); free(list->q); free(list->k); free(list);
+    free(list->p);
+    free(list->q);
+    free(list->k);
+    free(list);
 }
 
 static inline void add_element(float *sum_up, float *sum_dn, int32_t v, float up, float dn) {
@@ -564,10 +629,15 @@ static inline void add_element(float *sum_up, float *sum_dn, int32_t v, float up
     }
 }
 
-void hx_level_weights(int64_t terms, const Edge *edges, int64_t edge_count, const float *ray_weight, int64_t ray_count, float hidden, const int32_t *element_term, int32_t scale, int32_t *up, int32_t *dn) {
+void hx_level_weights(int64_t terms, const Edge *edges, int64_t edge_count, const float *ray_weight,
+                      const float *ray_up, int64_t ray_count, float hidden, const int32_t *element_term, int32_t scale,
+                      int32_t *up, int32_t *dn) {
     float *sum_up = calloc((size_t)terms + 1, sizeof(float)), *sum_dn = calloc((size_t)terms + 1, sizeof(float));
-    for (int64_t e = 0; e < edge_count; e++) add_element(sum_up, sum_dn, element_term[e], edges[e].weight, edges[e].weight);
-    for (int64_t r = 0; r < ray_count; r++) add_element(sum_up, sum_dn, element_term[edge_count + r], ray_weight[r] * hidden, ray_weight[r]);
+    for (int64_t e = 0; e < edge_count; e++)
+        add_element(sum_up, sum_dn, element_term[e], edges[e].weight, edges[e].weight);
+    for (int64_t r = 0; r < ray_count; r++)
+        add_element(sum_up, sum_dn, element_term[edge_count + r], ray_up ? ray_up[r] : ray_weight[r] * hidden,
+                    ray_weight[r]);
     for (int64_t t = 0; t < terms; t++) {
         int64_t a = llrintf(sum_up[t] * scale), b = llrintf(sum_dn[t] * scale);
         up[t] = a < 1 ? 1 : a > MOST_COST ? MOST_COST : (int32_t)a;
@@ -585,7 +655,12 @@ static int32_t find(int32_t *parent, int32_t i) {
     return i;
 }
 
-typedef struct { float x, y, z; int8_t nx, ny, nz; uint8_t prominence, width, coherence; uint16_t pad; } SheetNode;
+typedef struct {
+    float x, y, z;
+    int8_t nx, ny, nz;
+    uint8_t prominence, width, coherence;
+    uint16_t pad;
+} SheetNode;
 
 static inline int agreeing(const SheetNode *nodes, const Edge *e) {
     const SheetNode *a = &nodes[e->a], *b = &nodes[e->b];
@@ -594,11 +669,13 @@ static inline int agreeing(const SheetNode *nodes, const Edge *e) {
 
 static inline int one_block(const SheetNode *nodes, const Edge *e, float side) {
     const SheetNode *a = &nodes[e->a], *b = &nodes[e->b];
-    return floorf(a->x / side) == floorf(b->x / side) && floorf(a->y / side) == floorf(b->y / side) && floorf(a->z / side) == floorf(b->z / side);
+    return floorf(a->x / side) == floorf(b->x / side) && floorf(a->y / side) == floorf(b->y / side) &&
+           floorf(a->z / side) == floorf(b->z / side);
 }
 
 // Nodes joined by agreeing edges inside one block of the given side, numbered from zero. Returns how many.
-int64_t hx_level_blocks(int64_t count, const SheetNode *nodes, const int64_t *runs, const int64_t *lengths, int64_t run_count, float side, int32_t *block) {
+int64_t hx_level_blocks(int64_t count, const SheetNode *nodes, const int64_t *runs, const int64_t *lengths,
+                        int64_t run_count, float side, int32_t *block) {
     int32_t *parent = malloc(sizeof(int32_t) * (size_t)(count + 1));
     for (int64_t i = 0; i < count; i++) parent[i] = (int32_t)i;
     for (int64_t r = 0; r < run_count; r++) {
@@ -618,7 +695,8 @@ int64_t hx_level_blocks(int64_t count, const SheetNode *nodes, const int64_t *ru
 }
 
 // Agreeing edges between blocks, one pair each with weights summed, for hx_level_terms_take with the weight as k.
-int64_t hx_level_block_pairs(int64_t blocks, const int32_t *block, const SheetNode *nodes, const int64_t *runs, const int64_t *lengths, int64_t run_count, int32_t units, uint64_t *handle) {
+int64_t hx_level_block_pairs(int64_t blocks, const int32_t *block, const SheetNode *nodes, const int64_t *runs,
+                             const int64_t *lengths, int64_t run_count, int32_t units, uint64_t *handle) {
     int64_t *start = calloc((size_t)blocks + 2, sizeof(int64_t));
     for (int64_t r = 0; r < run_count; r++) {
         const Edge *run = (const Edge *)runs[r];
@@ -646,7 +724,8 @@ int64_t hx_level_block_pairs(int64_t blocks, const int32_t *block, const SheetNo
     free(fill);
     int64_t pairs = 0;
     for (int64_t i = 0; i < blocks; i++) {
-        if (start[i + 1] - start[i] > 1) qsort(entries + start[i], (size_t)(start[i + 1] - start[i]), sizeof(Entry), compare_entries);
+        if (start[i + 1] - start[i] > 1)
+            qsort(entries + start[i], (size_t)(start[i + 1] - start[i]), sizeof(Entry), compare_entries);
         for (int64_t j = start[i]; j < start[i + 1]; j++) pairs += j == start[i] || entries[j].q != entries[j - 1].q;
     }
     Terms *list = malloc(sizeof(Terms));
@@ -673,7 +752,8 @@ int64_t hx_level_block_pairs(int64_t blocks, const int32_t *block, const SheetNo
     return pairs;
 }
 
-int64_t hx_level_domains(int64_t count, const SheetNode *nodes, const int64_t *runs, const int64_t *lengths, int64_t run_count, const uint8_t *flip, uint8_t *keep, int64_t *log) {
+int64_t hx_level_domains(int64_t count, const SheetNode *nodes, const int64_t *runs, const int64_t *lengths,
+                         int64_t run_count, const uint8_t *flip, uint8_t *keep, int64_t *log) {
     int32_t *parent = malloc(sizeof(int32_t) * (size_t)(count + 1));
     int64_t *gain = calloc((size_t)count + 1, sizeof(int64_t));
     for (int64_t i = 0; i < count; i++) parent[i] = (int32_t)i;
@@ -723,7 +803,7 @@ typedef struct {
     const int32_t *p, *q, *k, *element_term, *x0;
     const Shape *shape;
     const Edge *edges;
-    const float *ray_weight;
+    const float *ray_weight, *ray_up;
     float hidden;
     int32_t draws, scale, boot, join_shape;
     uint64_t seed;
@@ -732,7 +812,10 @@ typedef struct {
     int64_t failed, cuts;
 } Work;
 
-typedef union { float sum; int32_t units; } Cost;
+typedef union {
+    float sum;
+    int32_t units;
+} Cost;
 
 static inline void add_cost(Cost *up, Cost *dn, int32_t v, float a, float b) {
     if (v >= 0) {
@@ -770,8 +853,8 @@ static void *draw_worker(void *argument) {
         for (int64_t r = 0; r < w->ray_count; r++) {
             int32_t v = w->element_term[w->edge_count + r];
             if (v == -1) continue;
-            float weight = w->ray_weight[r] * (w->boot ? exponential(&state) : 1.0f);
-            add_cost(up, dn, v, weight * w->hidden, weight);
+            float factor = w->boot ? exponential(&state) : 1.0f, weight = w->ray_weight[r] * factor;
+            add_cost(up, dn, v, w->ray_up ? w->ray_up[r] * factor : weight * w->hidden, weight);
         }
         for (int64_t t = 0; t < w->terms; t++) {
             float gain = 0;
@@ -783,23 +866,31 @@ static void *draw_worker(void *argument) {
         }
         memcpy(x, w->x0, sizeof(int32_t) * (size_t)w->count);
         int64_t moved = 0;
-        int64_t cuts = unit_steps(&g, w->count, w->terms, w->p, w->q, w->k, (const int32_t *)up, (const int32_t *)dn, x, w->shape->forward, w->shape->term_of, 0, &moved);
+        int64_t cuts = unit_steps(&g, w->count, w->terms, w->p, w->q, w->k, (const int32_t *)up, (const int32_t *)dn, x,
+                                  w->shape->forward, w->shape->term_of, 0, &moved);
         if (cuts < 0) __atomic_fetch_add(&w->failed, 1, __ATOMIC_RELAXED);
         __atomic_fetch_add(&w->cuts, cuts, __ATOMIC_RELAXED);
         for (int64_t t = 0; t < w->terms; t++)
             if (x[w->q[t]] - x[w->p[t]] == w->k[t]) __atomic_fetch_add(&w->votes[t], 1, __ATOMIC_RELAXED);
     }
-    free(up); free(dn); free(x);
+    free(up);
+    free(dn);
+    free(x);
     graph_close(&g);
     return NULL;
 }
 
 // Bootstrap draws use independent exponential weights.
-int64_t hx_level_votes(int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k, const Edge *edges, int64_t edge_count, const float *ray_weight, int64_t ray_count, float hidden, const int32_t *element_term,
-                       const int32_t *x0, int32_t draws, int32_t threads, int32_t scale, int32_t boot, int32_t join_shape, uint64_t seed, int32_t *votes, int64_t *log) {
+int64_t hx_level_votes(int64_t count, int64_t terms, const int32_t *p, const int32_t *q, const int32_t *k,
+                       const Edge *edges, int64_t edge_count, const float *ray_weight, const float *ray_up,
+                       int64_t ray_count, float hidden, const int32_t *element_term, const int32_t *x0, int32_t draws,
+                       int32_t threads, int32_t scale, int32_t boot, int32_t join_shape, uint64_t seed, int32_t *votes,
+                       int64_t *log) {
     Shape shape;
     shape_open(&shape, count, terms, p, q);
-    Work w = {count, terms, edge_count, ray_count, p, q, k, element_term, x0, &shape, edges, ray_weight, hidden, draws, scale, boot, join_shape, seed, 0, votes, 0, 0};
+    Work w = {count, terms,      edge_count, ray_count,  p,      q,      k,     element_term,
+              x0,    &shape,     edges,      ray_weight, ray_up, hidden, draws, scale,
+              boot,  join_shape, seed,       0,          votes,  0,      0};
     if (threads < 1) threads = 1;
     pthread_t pool[64];
     for (int32_t i = 0; i < threads && i < 64; i++) pthread_create(&pool[i], NULL, draw_worker, &w);

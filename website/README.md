@@ -6,19 +6,19 @@ scan values, and the viewer stretches each layer between the two gray levels rec
 
 | File | Description |
 | --- | --- |
-| `site_server.py` | Serves the site at `http://localhost:8765/sheets/index.html`: `/sheets/` and `/atlas/` from the outputs and `/website/` from `assets/`. It appends marks to the library's `marks/`. |
+| `site_server.py` | Serves the site at `http://localhost:8765/sheets/index.html`: `/sheets/` and `/atlas/` from the outputs and `/website/` from `assets/`. It serves each sheet's tile map and decoded tiles to the viewer, and appends marks to the library's `marks/`. |
+| `tile_decode.c` | Unfilters 8-bit grey PNG tiles for the site server, built once by `runner.compiled_kernels`. |
 | `sheet_tiles.py` | Composes one continuous sheet from every piece's images as a tile store, with the scan's own values without loss at level 0 and previews above it. |
 | `site_pages.py` | Writes the start page, a viewer for each sheet and its largest area, the window proposals, and viewers of selected units. |
 | `panel_pages.py` | Writes pages of pictures place by place, such as spots or passages; each place's pictures switch in place. |
-| `two_unwraps.py` | Shows two unwraps of one scan, from `unwrapping/grown/` and `unwrapping/level/`, on one page. |
 | `window_proposals.py` | Proposes 2 x 2 cm windows of a sheet where the ink map is most confident. |
 | `suggested_areas.py` | Lists the squares that a page suggests for a first look. |
 | `mosaic_outline.py` | Draws the outline of a mosaic on its sheet's viewer, without recomposing tiles or changing marks. |
-| `atlas_build.py` | Builds the letter atlas from known letters, infrared fragments, published maps and a Greek alphabet. |
+| `atlas_build.py` | Builds the letter atlas from known letters, infrared fragments, published maps and a Greek alphabet, on three pages: Alphabet (the alphabet, letter sizes by scroll and every known letter), Lines (the infrared fragments, the same places across scans, and lines of letters) and Published (the published ink maps). |
 | `refresh_viewers.py` | Updates the viewer controls of published pages in place, without recomposing tiles or changing marks. |
 | `survey_status.py` | Reports the measured coverage of a scan as JSON. |
 | `overview.py` | Draws a published page as one picture: the whole unrolled sheet, shelf under shelf. |
-| `assets/` | Holds the viewer HTML, the byte-range tile reader, the WebGL decoder, and the keyboard shortcuts that every page shares. Press `?` in the viewer to list them. |
+| `assets/` | Holds the viewer template (`sheet_viewer.html`), the WebGL2 viewer every sheet page loads (`sheet_gl.js`), its mark writes (`mark_writes.js`), spot coordinates (`spot_coordinates.js`) and keyboard shortcuts (`shortcuts.js`, press `?` in the viewer), the start page (`start_page.html`), the template of `panel_pages` (`panel_page.html`), and the letter atlas's script, style and read letters (`atlas.js`, `atlas.css`, `atlas_eye_reads.json`). |
 
 ## Commands
 
@@ -29,10 +29,10 @@ scan values, and the viewer stretches each layer between the two gray levels rec
 ./run.sh website.site_pages part NAME TITLE SCROLL SCAN [UNIT,UNIT]
 ./run.sh website.sheet_tiles SCROLL SCAN PIXEL_MM NAME [LAYERS] [largest] [--units UNIT,UNIT] [--model NAME]
 ./run.sh website.panel_pages NAME...
-./run.sh website.two_unwraps SCROLL SCAN PIXEL_MM
 ./run.sh website.mosaic_outline PAGE SCROLL SCAN [RANK]
 ./run.sh website.survey_status SCROLL SCAN
 ./run.sh website.atlas_build everything          # needs the labeled cases from ink.datasets.labelled_cases
+./run.sh website.atlas_build pages               # rewrites only the pages, from website/atlas-work/ in the outputs
 ./run.sh website.overview PAGE OUT.jpg [--width 2400]
 ```
 
@@ -44,7 +44,29 @@ lists the page in `website/sheets/cards.json`, makes its card picture, and rewri
 the card off again. Don't edit the start page by hand.
 
 Every card and viewer is labeled `scroll · ink model · surface · date` from the page's `layers.json`. The ink model is
-`Reader v3` for the stock checkpoint, and `HERCULEX_MODEL_NAME` or the checkpoint's file name for any other.
+the title of the model that read the page (`ink.model.models`).
+
+## The viewer
+
+A sheet page holds only its metadata; `assets/sheet_gl.js` draws its tiles with WebGL2 and its marks on a Canvas 2D
+layer above them:
+
+- On load the page fetches `GET /tilemap?dir=/sheets/NAME/`: the tile store's layers and one bit per tile cell, set
+  where a tile is stored.
+- Tiles arrive in batches from `POST /tiles` with `{"dir", "stamp", "size", "tiles": [[layer, level, column, row]]}`.
+  The server decodes them on a small thread pool (`TILE_THREADS`) and returns raw 8-bit rows; a stale `stamp` gets
+  409, and the page reloads the map. A worker makes the requests, so the main thread only uploads.
+- Tiles live in 512 x 512 x 128 texture arrays, added as needed up to a budget sized to the screen, and are evicted
+  least recently used first, tiles seen in a still view last. Each shelf and layer pass is one instanced draw. While
+  the view moves, at most two batches are in flight.
+- While a tile loads, the page draws its four finer tiles if all are held, else the nearest coarser one. Once the view
+  has been still for 400 ms, it fetches the ring of tiles around the screen.
+- Marks, boxes, outlines and suggested squares are stroked on the Canvas 2D layer, so they look exactly as Chrome
+  draws them; the layer is redrawn only when they or the view change, and not at all while it is empty.
+
+`window.viewer` exposes `go`, `voxel`, `fit` and `view()` for tests and benchmarks.
+
+The viewer's JavaScript, CSS and HTML are formatted and linted with Biome, pinned, as part of `./run.sh check lint`.
 
 ## Hand marks
 
@@ -59,3 +81,5 @@ delete them.
 | --- | --- | --- |
 | `HERCULEX_FACES` | `level-0` | Makes `sheet_tiles` and `site_pages part` use a separate read in the scan's `faces/NAME/`. Such a sheet keeps its own placement and marks, under the key `part/NAME`. |
 | `HERCULEX_COMPOSE_PROCESSES` | `4` | Sets the number of processes that compose tiles. |
+| `HERCULEX_ATLAS_WORK` | `atlas-work/` in the website outputs | Sets the folder where the letter atlas builds its pictures. |
+| `HERCULEX_ATLAS_SECONDS` | unlimited | Stops the letter atlas's rendering after this many seconds. |

@@ -5,9 +5,11 @@ from pathlib import Path
 
 import numpy as np
 
-from runner.compiled_kernels import load
+from runner.compiled_kernels import C_FLAGS, load
+from runner.lane import LANE
 
 HERE = Path(__file__).parent
+THREADS = HERE / f"threads_{LANE}"
 _TYPED = {}
 
 
@@ -15,8 +17,8 @@ def library():
     lib = load(
         "level-solver",
         [HERE / "level_solver.c", HERE / "sheet_flattening.c"],
-        ("-O3", "-mcpu=apple-m1", "-pthread"),
-        headers=[HERE / "parallel_blocks.h"],
+        (*C_FLAGS, "-pthread", f"-I{THREADS}"),
+        headers=[THREADS / "parallel_blocks.h"],
     )
     if id(lib) in _TYPED:
         return lib
@@ -33,9 +35,9 @@ def library():
         "hx_level_two_labels": ([i64, i64, ptr, ptr, ptr, ptr, ptr], i64),
         "hx_level_terms": ([i64, ptr, ptr, ptr, i64, ptr, ptr, i64, ptr, i32, ptr, ptr], i64),
         "hx_level_terms_take": ([u64, ptr, ptr, ptr], None),
-        "hx_level_weights": ([i64, ptr, i64, ptr, i64, f32, ptr, i32, ptr, ptr], None),
+        "hx_level_weights": ([i64, ptr, i64, ptr, ptr, i64, f32, ptr, i32, ptr, ptr], None),
         "hx_level_votes": (
-            [i64, i64, ptr, ptr, ptr, ptr, i64, ptr, i64, f32, ptr, ptr, i32, i32, i32, i32, i32, u64, ptr, ptr],
+            [i64, i64, ptr, ptr, ptr, ptr, i64, ptr, ptr, i64, f32, ptr, ptr, i32, i32, i32, i32, i32, u64, ptr, ptr],
             i64,
         ),
         "hx_level_flatten": ([ptr, ptr, ptr, i32, ptr, ptr, ptr, ptr, ptr, ptr, ptr, i32, f64, f64, i32], None),
@@ -106,14 +108,17 @@ def level_terms(patch, inner, count, edges, rays, ray_weight, theta, chirality):
     return p, q, k, term
 
 
-def term_weights(terms, term, edges, ray_weight, hidden, scale):
-    """Integer costs each way of every term."""
+def term_weights(terms, term, edges, ray_weight, hidden, scale, ray_up=None):
+    """Integer costs each way of every term; a ray's cost of skipping sheets is ray_up when given, else hidden times
+    its weight."""
     up, dn = np.empty(terms, dtype=np.int32), np.empty(terms, dtype=np.int32)
+    skip = None if ray_up is None else np.ascontiguousarray(ray_up, dtype=np.float32)
     library().hx_level_weights(
         terms,
         edges.ctypes.data,
         len(edges),
         ray_weight.ctypes.data,
+        None if skip is None else skip.ctypes.data,
         len(ray_weight),
         hidden,
         term.ctypes.data,
@@ -124,10 +129,28 @@ def term_weights(terms, term, edges, ray_weight, hidden, scale):
     return up, dn
 
 
-def votes(count, p, q, k, term, edges, ray_weight, hidden, x0, draws, threads, scale, seed, boot=True, join_shape=0):
+def votes(
+    count,
+    p,
+    q,
+    k,
+    term,
+    edges,
+    ray_weight,
+    hidden,
+    x0,
+    draws,
+    threads,
+    scale,
+    seed,
+    boot=True,
+    join_shape=0,
+    ray_up=None,
+):
     """How many reweighted solves keep each term."""
     kept = np.zeros(len(p), dtype=np.int32)
     log = np.zeros(1, dtype=np.int64)
+    up = None if ray_up is None else np.ascontiguousarray(ray_up, dtype=np.float32)
     failed = library().hx_level_votes(
         count,
         len(p),
@@ -137,6 +160,7 @@ def votes(count, p, q, k, term, edges, ray_weight, hidden, x0, draws, threads, s
         edges.ctypes.data,
         len(edges),
         ray_weight.ctypes.data,
+        None if up is None else up.ctypes.data,
         len(ray_weight),
         hidden,
         term.ctypes.data,

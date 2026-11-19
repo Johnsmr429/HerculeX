@@ -15,21 +15,11 @@ import os
 import urllib.error
 import urllib.request
 
-from ink.model.weights import STOCK_READER
 from ink.reading import piece_reading
 from runner import sheet_stage
 from storage.data_roots import FACES, PRODUCTION_FACES, ROUTE_OUTPUTS, SHEETS, stage_folder
 from storage.tile_store import TileStore
 from website import site_pages, survey_status
-
-CHECKPOINT = STOCK_READER
-
-
-def model_name(weights):
-    """The ink model's name on the page: HERCULEX_MODEL_NAME, else Reader v3 for its checkpoint, else the file's name."""
-    if named := os.environ.get("HERCULEX_MODEL_NAME"):
-        return named
-    return "Reader v3" if weights.resolve() == CHECKPOINT.resolve() else weights.stem
 
 
 def live(url):
@@ -90,8 +80,7 @@ def render_page(sheet, folder, title, scan):
 def publish(sample, volume, url):
     if FACES != PRODUCTION_FACES or piece_reading.UNITS:
         raise ValueError("whole-scroll review requires every unit in the scan's production face folder")
-    weights = piece_reading.WEIGHTS
-    model_label = model_name(weights)
+    model = piece_reading.MODEL
     base = ROUTE_OUTPUTS / sample / volume
     sheet = stage_folder(base, "sheet")
     layout = sheet / "layout.json"
@@ -100,15 +89,15 @@ def publish(sample, volume, url):
     if entry is None:
         raise ValueError(f"{scan}: no layout to publish")
     tag, _ = entry
-    name = f"sheet-{tag}"
+    name = f"sheet-{tag}{model.page_suffix}"
     folder = SHEETS / name
-    receipt = sheet / "review.json"
-    model = piece_reading.digest()
+    receipt = sheet / f"review{model.page_suffix}.json"
+    digest = piece_reading.digest()
     SHEETS.mkdir(parents=True, exist_ok=True)
     with (SHEETS / ".publish.lock").open("a") as lock:
         fcntl.flock(lock, fcntl.LOCK_EX)
         kept = json.loads(receipt.read_text()) if receipt.is_file() else {}
-        if kept.get("model_digest") != model or receipt.stat().st_mtime < layout.stat().st_mtime:
+        if kept.get("model_digest") != digest or receipt.stat().st_mtime < layout.stat().st_mtime:
             pending = piece_reading.queue_of(sample, volume)
             if pending:
                 raise ValueError(f"{scan}: {sum(len(jobs) for _, jobs in pending)} pieces still need ink")
@@ -123,7 +112,7 @@ def publish(sample, volume, url):
                 name,
                 ",".join(LAYERS),
                 "--model",
-                model_label,
+                model.title,
                 "--ink-name",
                 "ink",
                 "--written-face",
@@ -132,15 +121,18 @@ def publish(sample, volume, url):
             # the receipt is kept once the page is composed, so a check that fails is retried without composing again
             kept = {
                 "page": f"/sheets/{name}/index.html",
-                "weights": str(weights),
-                "model_digest": model,
+                "weights": str(model.weights),
+                "model_digest": digest,
                 "pack_bytes": TileStore(folder).pack.stat().st_size,
                 "coverage": coverage,
             }
             pending_receipt = receipt.with_suffix(".json.part")
             pending_receipt.write_text(json.dumps(kept, indent=2))
             pending_receipt.replace(receipt)
-        site_pages.write_start_page(site_pages.start_status(), site_pages.front_cards())
+        if model.page_suffix and name not in {entry["page"] for entry in site_pages.registered()}:
+            site_pages.add_card(name, sample)
+        else:
+            site_pages.write_start_page(site_pages.start_status(), site_pages.front_cards())
         if live(url):
             with urllib.request.urlopen(f"{url}/sheets/index.html", timeout=15) as response:
                 if f"{name}/index.html" not in response.read().decode():

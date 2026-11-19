@@ -163,27 +163,6 @@ def fetched_all(base, items, deliver, report=None, fetch=fetch_all):
     return failures
 
 
-def fetch_near(store, base, surfaces):
-    """Fetch every brick within a stack's reach of the surfaces' grid points that a store lacks."""
-    b, grid = np.array(store.brick), np.array(store.grid)
-    reach = LAYERS // 2 + 2
-    corners = np.array(np.meshgrid(*[[-reach, reach]] * 3)).reshape(3, -1).T
-    wanted = np.zeros(store.grid, dtype=bool)
-    for xyz in surfaces:
-        points = xyz[:, xyz[0] > 0].T[:, ::-1]
-        for corner in corners:
-            index = ((points + corner) // b).astype(np.int64)
-            wanted[tuple(index[((index >= 0) & (index < grid)).all(axis=1)].T)] = True
-    todo = np.argwhere(wanted & (store.offsets == -1)).tolist()
-    failures = fetched_all(
-        base, [(tuple(i), "/".join(map(str, i))) for i in todo], store.put, report=lambda _: keep_room(store)
-    )
-    store.save()
-    if failures:
-        raise OSError(f"{len(failures)} bricks failed")
-    return len(todo)
-
-
 def column_cells(cells, stride):
     """Each voxel column's grid cell and fraction along one axis of a grid of so many cells."""
     place = np.minimum(np.arange((cells - 1) * stride + 1) / stride, cells - 1.000001)

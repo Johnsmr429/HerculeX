@@ -1,7 +1,7 @@
 [project]
 name = "herculex"
 version = "0.1.0"
-description = "Unwrapping Herculaneum scrolls from CT and reading their ink on one Apple-silicon Mac"
+description = "Unwrapping Herculaneum scrolls from CT and reading their ink, on Apple silicon or an NVIDIA GPU"
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.11,<3.12"
@@ -16,7 +16,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-ink = [
+apple = ["herculex[reader]", "coremltools>=9.0", "mlx>=0.29"]
+cuda = ["herculex[reader]"]
+reader = [
     "torch>=2.6,<3",
     "timm>=1.0",
     "einops>=0.8",
@@ -28,18 +30,16 @@ ink = [
     "pynrrd>=1.1",
     "edt>=3.0",
     "nest-asyncio>=1.6",
-    "coremltools>=9.0",
     "scikit-image>=0.26",
-    "mlx>=0.29",
 ]
 
 [dependency-groups]
-dev = ["pytest>=8.3", "ruff>=0.6"]
+dev = ["pytest>=8.3", "ruff==0.17.4", "clang-format==23.1.5", "clang-tidy==23.1.4", "shellcheck-py==0.11.0.1", "shfmt-py==4.2.0"]
 
 [tool.ruff]
 target-version = "py311"
 line-length = 120
-extend-exclude = ["runtime", "records", "ideas", "backups"]
+extend-exclude = ["runtime", "records", "backups", "logs/runs"]
 
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP", "SIM", "C4", "PIE", "RET", "PERF", "PLE", "PLW", "RUF", "PT", "FURB", "T10", "ARG002", "ARG003", "ARG004"]
@@ -66,3 +66,9 @@ docstring-code-format = false
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "ports: the native ports of community tools in ports/, which the pipeline does not call",
+    "apple: needs the Apple lane (Metal, the Neural Engine)",
+    "cuda: needs the CUDA lane (an NVIDIA GPU)",
+]
+tmp_path_retention_policy = "failed"

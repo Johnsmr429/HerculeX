@@ -8,7 +8,7 @@ from website import panel_pages
 
 
 def meta_of(page):
-    return json.loads(re.search(r"const M=(\{.*?\}),main=", page, re.DOTALL)[1].replace("<\\/", "</"))
+    return json.loads(re.search(r"const M\s*=\s*(\{.*?\}),\s*main\s*=", page, re.DOTALL)[1].replace("<\\/", "</"))
 
 
 def test_places_and_pictures_keep_their_order_in_the_site_look(tmp_path):
@@ -27,5 +27,5 @@ def test_places_and_pictures_keep_their_order_in_the_site_look(tmp_path):
     assert [p["name"] for p in meta["places"]] == ["b-place", "rows-0000-0012-piece-0139"]
     assert [p["title"] for p in meta["places"][1]["pictures"]] == ["scan", "site", "model depth mean"]
     assert meta["places"][1]["pictures"][2]["src"] == "rows-0000-0012-piece-0139/10-model-depth-mean.png"
-    assert "background:#000" in page and "font:10pt Calibri,Carlito,sans-serif" in page
+    assert re.search(r"background:\s*#000", page) and re.search(r"font:\s*10pt Calibri,\s*Carlito,\s*sans-serif", page)
     assert "<h1" not in page and "<p" not in page

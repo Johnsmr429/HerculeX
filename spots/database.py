@@ -7,8 +7,9 @@ Tables and their keys:
     reads      spot_id, surface, model, side, depth     each ink map of a surface: one model, one side, one depth
     verdicts   spot_id, surface, judged_at              what a reader of the images saw, appended, never replaced
 
-Writing a row whose key is already there replaces that row; verdicts only ever grow. Writes take a lock and go
-through a temporary file, so a reader never sees half a table.
+Writing a row whose key is already there replaces that row; verdicts only ever grow. A circle erased in the viewer
+leaves spots, surfaces and reads at the next catalogue build (forget). Writes take a lock and go through a temporary
+file, so a reader never sees half a table.
 """
 
 import fcntl
@@ -59,6 +60,16 @@ def key_of(table, row):
     return tuple(row.get(k) for k in KEYS[table])
 
 
+def stored(table, all_rows):
+    """A whole table written in place of the old one; call with the lock held."""
+    columns = list(dict.fromkeys(k for r in all_rows for k in r))
+    data = pa.Table.from_pylist([{c: r.get(c) for c in columns} for r in all_rows])
+    path = path_of(table)
+    part = path.with_suffix(".parquet.part")
+    pq.write_table(data, part, compression="zstd")
+    os.replace(part, path)
+
+
 def write(table, new_rows):
     """Rows added to a table, replacing any with the same key."""
     if not new_rows:
@@ -67,14 +78,19 @@ def write(table, new_rows):
     new_rows = [{**r, "written_at": r.get("written_at", stamp)} for r in new_rows]
     with locked():
         fresh = {key_of(table, r) for r in new_rows}
-        kept = [r for r in rows(table) if key_of(table, r) not in fresh]
-        columns = list(dict.fromkeys(k for r in kept + new_rows for k in r))
-        whole = [{c: r.get(c) for c in columns} for r in kept + new_rows]
-        data = pa.Table.from_pylist(whole)
-        path = path_of(table)
-        part = path.with_suffix(".parquet.part")
-        pq.write_table(data, part, compression="zstd")
-        os.replace(part, path)
+        stored(table, [r for r in rows(table) if key_of(table, r) not in fresh] + new_rows)
+
+
+def forget(spot_ids):
+    """Erased spots dropped from spots, surfaces and reads; verdicts keep what a reader saw."""
+    gone = set(spot_ids)
+    if not gone:
+        return
+    with locked():
+        for table in ("spots", "surfaces", "reads"):
+            old = rows(table)
+            if any(r["spot_id"] in gone for r in old):
+                stored(table, [r for r in old if r["spot_id"] not in gone])
 
 
 def summary():

@@ -300,7 +300,7 @@ def write_index():
         link = f'<a href="{r["spot_id"]}/index.html">{r["spot_id"]}</a>' if r["spot_id"] in found else r["spot_id"]
         said = "; ".join(f"{v['by']}: {v['readable']} {v['letters']}" for v in verdicts.get(r["spot_id"], []))
         rows.append(
-            f"<tr><td>{link}</td><td>{r['scroll']}</td><td>{r['page']} {r['part']}</td><td>{r['place']}</td>"
+            f"<tr><td>{link}</td><td>{r['scroll']}</td><td>{r['page']}</td><td>{r['place']}</td>"
             f"<td>{r['area_cm2']}</td><td>{r['covered_share']}</td><td>{r['n_pieces']}</td>"
             f"<td>{len(r['windings'])}</td><td>{r['main_share']}</td><td>{r.get('status', '')}</td><td>{said}</td></tr>"
         )

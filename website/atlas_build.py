@@ -25,7 +25,7 @@ from storage.data_roots import (
 )
 
 Image.MAX_IMAGE_PIXELS = None
-WORK = Path(os.environ.get("HERCULEX_ATLAS_WORK", WEBSITE / "atlas_build_work"))
+WORK = Path(os.environ.get("HERCULEX_ATLAS_WORK", WEBSITE / "atlas-work"))
 BODY_UM = 19.0
 MIN_BODY_MM2, MAX_BODY_MM2 = 0.08, 30.0
 RENDER_SECONDS = float(os.environ.get("HERCULEX_ATLAS_SECONDS", "1e9"))
@@ -1105,18 +1105,20 @@ def compare():
 
 NAV = (
     ("../sheets/index.html", "HerculeX"),
-    ("index.html", "Atlas"),
-    ("alphabet.html", "Alphabet"),
-    ("fragments.html", "Infrared"),
+    ("index.html", "Alphabet"),
+    ("lines.html", "Lines"),
     ("published.html", "Published"),
-    ("windows.html", "Lines"),
-    ("letters.html", "Letters"),
-    ("compare.html", "Scans"),
-)
-BAR = (
-    '<div class="bar" id="bar"><button id="back">←</button><button id="next">→</button><span id="status"></span></div>'
 )
 SCRIPTS = '<script src="data.js"></script><script src="atlas.js"></script>'
+
+
+def gallery(name, grid, heading=""):
+    """A section of pictures with its own filters and pages, filled by `gallery` in atlas.js."""
+    title = f"<h2>{heading}</h2>" if heading else ""
+    return (
+        f'<section id="{name}">{title}<div class="bar"><button class="back">←</button>'
+        f'<button class="next">→</button><span class="status"></span></div><div class="{grid} gallery"></div></section>'
+    )
 
 
 def line_spacing(cards):
@@ -1177,44 +1179,10 @@ def pages():
         for (s, e), v in sorted(groups.items())
     )
     best = next(iter(sorted(segments, key=lambda s: -s.get("rows", 0))), None)
-    fronts = [(f"{f['ir']}", "fragments.html") for f in frags[:1]] + (
+    fronts = [(f"{f['ir']}", "lines.html#infrared") for f in frags[:1]] + (
         [(best["file"], "published.html")] if best else []
     )
     tiles = "".join(f'<a href="{link}"><img src="{image}" alt=""></a>' for image, link in fronts)
-    page(
-        "index.html",
-        "Atlas",
-        f"""<a href="alphabet.html"><img class="strip" src="alphabet/strip.png" alt=""></a><div class="grid two">{tiles}</div><table><tr><th>Scroll</th><th class=n>Energy</th><th class=n>Letters</th><th class=n>Height mm</th><th class=n>Width mm</th><th class=n>Line mm</th></tr>{table}</table>""",
-    )
-    page(
-        "letters.html",
-        "Letters",
-        f"""{BAR}<div class="grid" id="gallery"></div>""",
-        SCRIPTS
-        + """<script>gallery(ATLAS.cards,[{label:"Scroll",get:i=>i.sample},{label:"Energy",get:i=>i.energy+" keV"},{label:"Letter",get:i=>i.letter},{label:"Voxel",get:i=>i.um+" µm"}],i=>`<figure><a href="${i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.energy} keV · ${i.um} µm${i.letter?" · "+i.letter:""}</figcaption></figure>`)</script>""",
-    )
-    page(
-        "windows.html",
-        "Lines",
-        f"""{BAR}<div class="grid wide" id="gallery"></div>""",
-        SCRIPTS
-        + """<script>gallery(ATLAS.windows,[{label:"Scroll",get:i=>i.sample},{label:"Energy",get:i=>i.energy+" keV"},{label:"Segment",get:i=>i.segment}],i=>`<figure><a href="${i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.energy} keV · ${i.um} µm</figcaption></figure>`)</script>""",
-    )
-    page(
-        "published.html",
-        "Published",
-        f"""{BAR}<div class="grid" id="gallery"></div>""",
-        SCRIPTS
-        + """<script>gallery(ATLAS.segments,[{label:"Scroll",get:i=>i.sample},{label:"Kind",get:i=>i.kind},{label:"Scan",get:i=>i.scan},{label:"Recipe",get:i=>i.recipe}],i=>`<figure><a href="${i.full||i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.scan}</figcaption></figure>`)</script>""",
-    )
-    sections = []
-    for f in frags:
-        whole = "".join(f'<a href="{f[k]}"><img src="{f[k]}" alt=""></a>' for k in ("ir", "face", "labels") if k in f)
-        close = "".join(f'<a href="{w}"><img src="{w}" alt=""></a>' for w in f["windows"])
-        sections.append(
-            f'<h2>{f["name"]} · {f["sample"]}</h2><div class="grid three">{whole}</div><div class="grid wide">{close}</div>'
-        )
-    page("fragments.html", "Infrared", "".join(sections))
     rows = []
     for row in alphabet["table"]:
         models = "".join(f'<img src="{m}" alt="">' for m in row["models"])
@@ -1227,17 +1195,37 @@ def pages():
             f"""<tr><td class="glyph">{row["capital"]}<small>{row["small"]}</small></td><td class="models">{models}</td><td class=n>{row["matched"]}</td><td><div class="examples">{examples}</div></td></tr>"""
         )
     page(
-        "alphabet.html",
+        "index.html",
         "Alphabet",
-        f"""<img class="strip" src="alphabet/strip.png" alt=""><table class="alphabet">{"".join(rows)}</table>""",
+        f"""<a href="#alphabet"><img class="strip" src="alphabet/strip.png" alt=""></a><div class="grid two">{tiles}</div><table><tr><th>Scroll</th><th class=n>Energy</th><th class=n>Letters</th><th class=n>Height mm</th><th class=n>Width mm</th><th class=n>Line mm</th></tr>{table}</table><table class="alphabet" id="alphabet">{"".join(rows)}</table>{gallery("letters", "grid", "Letters")}""",
+        SCRIPTS
+        + """<script>gallery("letters",ATLAS.cards,[{label:"Scroll",get:i=>i.sample},{label:"Energy",get:i=>i.energy+" keV"},{label:"Letter",get:i=>i.letter},{label:"Voxel",get:i=>i.um+" µm"}],i=>`<figure><a href="${i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.energy} keV · ${i.um} µm${i.letter?" · "+i.letter:""}</figcaption></figure>`)</script>""",
+    )
+    sections = []
+    for f in frags:
+        whole = "".join(f'<a href="{f[k]}"><img src="{f[k]}" alt=""></a>' for k in ("ir", "face", "labels") if k in f)
+        close = "".join(f'<a href="{w}"><img src="{w}" alt=""></a>' for w in f["windows"])
+        sections.append(
+            f'<h2>Infrared · {f["name"]} · {f["sample"]}</h2><div class="grid three">{whole}</div><div class="grid wide">{close}</div>'
+        )
+    page(
+        "lines.html",
+        "Lines",
+        f"""<section id="infrared">{"".join(sections)}</section>{gallery("scans", "grid wide", "Scans")}{gallery("lines", "grid wide", "Lines")}""",
+        SCRIPTS
+        + """<script>gallery("scans",ATLAS.compare,[{label:"Scroll",get:i=>i.sample},{label:"Segment",get:i=>i.segment}],i=>`<figure><a href="${i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.scans}</figcaption></figure>`)
+gallery("lines",ATLAS.windows,[{label:"Scroll",get:i=>i.sample},{label:"Energy",get:i=>i.energy+" keV"},{label:"Segment",get:i=>i.segment}],i=>`<figure><a href="${i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.energy} keV · ${i.um} µm</figcaption></figure>`)</script>""",
     )
     page(
-        "compare.html",
-        "Scans",
-        f"""{BAR}<div class="grid wide" id="gallery"></div>""",
+        "published.html",
+        "Published",
+        gallery("published", "grid"),
         SCRIPTS
-        + """<script>gallery(ATLAS.compare,[{label:"Scroll",get:i=>i.sample},{label:"Segment",get:i=>i.segment}],i=>`<figure><a href="${i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.scans}</figcaption></figure>`)</script>""",
+        + """<script>gallery("published",ATLAS.segments,[{label:"Scroll",get:i=>i.sample},{label:"Kind",get:i=>i.kind},{label:"Scan",get:i=>i.scan},{label:"Recipe",get:i=>i.recipe}],i=>`<figure><a href="${i.full||i.file}"><img src="${i.file}" alt=""></a><figcaption>${i.sample} · ${i.scan}</figcaption></figure>`)</script>""",
     )
+    for old in SITE_ATLAS.glob("*.html"):
+        if old.name not in {file for file, _ in NAV}:
+            old.unlink()
 
 
 def everything():
