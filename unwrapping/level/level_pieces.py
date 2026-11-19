@@ -40,6 +40,8 @@ BOOT = 1
 JOIN_SHAPE = 0
 SPREAD = 0.30
 FLOOR_MM2 = 100.0
+GUARD_CUT = 2
+GUARD_ROUNDS = 2
 CURVE_VOXELS = 8
 HELD_TO_AXIS = 0.01
 FLATTEN_THREADS = 8
@@ -291,7 +293,7 @@ def along_curve(nodes, patch, count):
     return rank[patch]
 
 
-def levels_of_pieces(root, potential, attract, pairs, rays, theta, chirality):
+def levels_of_pieces(root, potential, attract, pairs, rays, theta, chirality, rays_up=None):
     """Each node's level from the exact solve over grown pieces."""
     ids, piece = np.unique(root, return_inverse=True)
     piece = piece.astype(np.int32)
@@ -301,7 +303,7 @@ def levels_of_pieces(root, potential, attract, pairs, rays, theta, chirality):
         p,
         q,
         k,
-        *kb.term_weights(len(p), term, attract, rays, HIDDEN, UNITS),
+        *kb.term_weights(len(p), term, attract, rays, HIDDEN, UNITS, rays_up),
         np.zeros(len(ids), dtype=np.int32),
         COARSE_STEP,
     )
@@ -311,21 +313,24 @@ def levels_of_pieces(root, potential, attract, pairs, rays, theta, chirality):
 def firm_edges(
     nodes, theta, attract, pairs, quality, chirality, grown_root, grown_potential, patch, count, inner, clock
 ):
-    """Levels of every node by one exact solve, a mask of the edges every reweighted solve keeps, of those the solve keeps, and the rays' weights."""
-    rays = pg.ray_weights(nodes, pairs, quality, pg.FIELD_RAY_RIM)
+    """Levels of every node by one exact solve, a mask of the edges every reweighted solve keeps, of those the solve keeps, and the rays' weights and skip costs."""
+    rays, rays_up = pg.field_rays(nodes, pairs, quality, attract, pg.FIELD_RAY_RIM)
     patch = along_curve(nodes, patch, count)
     start = np.zeros(count, dtype=np.int32)
     start[patch] = (
-        levels_of_pieces(grown_root, grown_potential, attract, pairs, rays, theta, chirality) - chirality * inner
+        levels_of_pieces(grown_root, grown_potential, attract, pairs, rays, theta, chirality, rays_up)
+        - chirality * inner
     )
     clock("start")
     p, q, k, term = kb.level_terms(patch, inner, count, attract, pairs, rays, theta, chirality)
     clock("terms")
-    x, log = kb.minimize(count, p, q, k, *kb.term_weights(len(p), term, attract, rays, HIDDEN, UNITS), start)
+    x, log = kb.minimize(count, p, q, k, *kb.term_weights(len(p), term, attract, rays, HIDDEN, UNITS, rays_up), start)
     del start
     clock("solve")
     threads = max(1, min(THREADS, int(DRAW_BYTES / (20 * len(p) + 56 * count))))
-    votes = kb.votes(count, p, q, k, term, attract, rays, HIDDEN, x, DRAWS, threads, UNITS, SEED, BOOT, JOIN_SHAPE)
+    votes = kb.votes(
+        count, p, q, k, term, attract, rays, HIDDEN, x, DRAWS, threads, UNITS, SEED, BOOT, JOIN_SHAPE, rays_up
+    )
     clock("draws")
     kept = (x[q] - x[p]) == k
     firm_term = kept & (votes >= DRAWS)
@@ -339,6 +344,7 @@ def firm_edges(
         np.ascontiguousarray(edge_kept),
         y.astype(np.int32),
         rays,
+        rays_up,
         {
             "patches": count,
             "terms": len(p),
@@ -356,14 +362,16 @@ def node_area(nodes, scan_voxel_um, level):
     return ((CELL * 2**level * scan_voxel_um / 1000) ** 2 / np.maximum(spread, 1.0)).astype(np.float32)
 
 
-def refused_pieces(nodes, root, potential, attract, area_node):
-    """Nodes of pieces that fail the guard."""
+def refused_pieces(nodes, root, potential, attract, area_node, cells=False):
+    """Nodes of pieces that fail the guard; with cells, also each node of such a piece that lies in a cell of two
+    layers."""
     inside = pg.same_label(attract, root) & pg.potential_agrees(attract, potential)
     a, b = np.ascontiguousarray(attract["a"][inside]), np.ascontiguousarray(attract["b"][inside])
     members, first, flip, u, v = flatten_pieces(nodes, root, a, b)
     ids, piece = np.unique(root, return_inverse=True)
     area = np.bincount(piece, weights=area_node)
     refused = np.zeros(len(ids), dtype=bool)
+    doubled = np.zeros(len(nodes), dtype=bool)
     report = []
     for r in np.argsort(-np.diff(first)):
         group = members[first[r] : first[r + 1]]
@@ -377,8 +385,54 @@ def refused_pieces(nodes, root, potential, attract, area_node):
         grid, locked, _ = pf.rasterise(nodes[group], normal, u[group], v[group])
         spread = 1 - float(locked.sum() / max(int((grid[0] != 0).sum()), 1))
         refused[pid] = spread > SPREAD
+        if cells and refused[pid]:
+            doubled[group] = second_layer(nodes[group], normal, u[group], v[group], grid, locked)
         report.append((round(float(area[pid]) / 100, 1), round(spread, 3)))
-    return refused[piece], report
+    return (refused[piece], doubled, report) if cells else (refused[piece], report)
+
+
+def second_layer(nodes, normal, u, v, grid, locked):
+    """Nodes of a piece's cells of two layers that the cut drops: all of them, or with GUARD_CUT 2 all but the layer
+    nearest the depth the cell's locked neighbours give (as contact_cells keeps it when writing)."""
+    iu = ((u - u.min()) / CELL).astype(np.int64)
+    iv = ((v - v.min()) / CELL).astype(np.int64)
+    open_node = ~locked[iv, iu]
+    if GUARD_CUT < 2 or not open_node.any():
+        return open_node
+    weight = ni.uniform_filter(locked.astype(np.float64), CONTACT_CELLS, mode="constant")
+    near = np.stack([ni.uniform_filter(np.where(locked, g, 0.0), CONTACT_CELLS, mode="constant") for g in grid])
+    near /= np.maximum(weight, 1e-9)
+    xyz = np.stack([nodes["x"], nodes["y"], nodes["z"]], axis=1).astype(np.float64)
+    depth = ((xyz - near[:, iv, iu].T) * normal).sum(axis=1)
+    flat = iv * locked.shape[1] + iu
+    nearest = np.full(locked.size, np.inf)
+    np.minimum.at(nearest, flat[open_node], np.abs(depth[open_node]))
+    guided = weight[iv, iu] > 1.5 / CONTACT_CELLS**2
+    keep = open_node & guided & (np.abs(depth) <= nearest[flat] + CONTACT_LAYERS)
+    return open_node & ~keep
+
+
+def guard_cut(nodes, root, potential, attract, area_node):
+    """The guard, cutting a refused piece out of its cells of two layers: the rest splits along the piece's own
+    edges, and each part passes or is cut again, up to GUARD_ROUNDS times; what still fails is refused."""
+    refused, doubled, report = refused_pieces(nodes, root, potential, attract, area_node, cells=True)
+    out = refused & doubled
+    trial = refused & ~doubled
+    for _ in range(GUARD_ROUNDS):
+        if not trial.any():
+            break
+        use = pg.same_label(attract, root) & pg.potential_agrees(attract, potential)
+        use &= trial[attract["a"]] & trial[attract["b"]]
+        group = np.where(trial, root + 1, 0).astype(np.int32)
+        cut_root, cut_potential = pg.settled(nodes, attract, use, group).labels()
+        root = np.where(trial, cut_root, root).astype(np.int32)
+        potential = np.where(trial, cut_potential, potential).astype(np.int32)
+        probe = np.where(trial, root, np.arange(len(nodes), dtype=np.int32)).astype(np.int32)
+        again, doubled, more = refused_pieces(nodes, probe, potential, attract, area_node, cells=True)
+        out |= trial & again & doubled
+        trial &= again & ~doubled
+        report += more
+    return root, potential, out | trial, report
 
 
 def fallen_back(nodes, attract, kept, root, potential, refused, coarse_root):
@@ -406,7 +460,11 @@ def quick_pieces(nodes, theta, loose, pairs, quality, record, curl=None):
     attract = merged_edges(loose)
     loose.clear()
     repel = np.zeros(len(pairs), dtype=attract.dtype)
-    repel["a"], repel["b"], repel["weight"] = pairs["a"], pairs["b"], pg.ray_weights(nodes, pairs, quality)
+    repel["a"], repel["b"], repel["weight"] = (
+        pairs["a"],
+        pairs["b"],
+        pg.field_rays(nodes, pairs, quality, attract, pg.RAY_RIM)[0],
+    )
     repel = file_backed(np.ascontiguousarray(repel[np.argsort(-repel["weight"], kind="stable")]))
     kept = np.ones(len(attract), dtype=bool)
     patch, count, inner = pg.patches_of(nodes, attract, kept, repel)
@@ -419,7 +477,7 @@ def quick_pieces(nodes, theta, loose, pairs, quality, record, curl=None):
     return attract, root, potential, patch, count, inner, curl or chirality, stats
 
 
-def piece_terms(root, potential, level, attract, pairs, rays, theta, chirality):
+def piece_terms(root, potential, level, attract, pairs, rays, theta, chirality, rays_up=None):
     """What the scan's one frame needs of a unit."""
     sizes = np.bincount(root, minlength=len(root))
     big = np.flatnonzero(sizes >= MIN_PIECE_NODES)
@@ -433,7 +491,7 @@ def piece_terms(root, potential, level, attract, pairs, rays, theta, chirality):
     )
     for curl, name in ((1, "plus"), (-1, "minus")):
         p, q, k, term = kb.level_terms(label, potential, len(big) + 1, attract, pairs, rays, theta, curl)
-        up, dn = kb.term_weights(len(p), term, attract, rays, HIDDEN, UNITS)
+        up, dn = kb.term_weights(len(p), term, attract, rays, HIDDEN, UNITS, rays_up)
         real = (p < len(big)) & (q < len(big))
         out |= {
             f"p_{name}": p[real],
@@ -459,21 +517,24 @@ def grow_pieces(nodes, theta, pairs, record, curl=None):
         nodes, theta, record.pop("edges"), pairs, quality, record, curl
     )
     clock("quick pieces")
-    firm, kept, level, rays, report = firm_edges(
+    firm, kept, level, rays, rays_up, report = firm_edges(
         nodes, theta, attract, pairs, quality, chirality, coarse_root, coarse_potential, patch, count, inner, clock
     )
     area_node = node_area(nodes, record["scan_voxel_um"], record["level"])
     root, potential = two_tiers(nodes, attract, firm, kept, area_node)
     del firm
     clock("firm pieces")
-    refused, pieces = refused_pieces(nodes, root, potential, attract, area_node)
+    if GUARD_CUT:
+        root, potential, refused, pieces = guard_cut(nodes, root, potential, attract, area_node)
+    else:
+        refused, pieces = refused_pieces(nodes, root, potential, attract, area_node)
     clock("guard")
     if refused.any():
         root, potential = fallen_back(nodes, attract, kept, root, potential, refused, coarse_root)
     del kept, coarse_root, coarse_potential
     same = pg.same_label(attract, root)
     inside = same & pg.potential_agrees(attract, potential)
-    record["piece_terms"] = piece_terms(root, potential, level, attract, pairs, rays, theta, chirality)
+    record["piece_terms"] = piece_terms(root, potential, level, attract, pairs, rays, theta, chirality, rays_up)
     record["node_level"] = level
     record["level_route"] = report | {"refused_share": float(refused.mean()), "pieces": pieces[:40], "seconds": times}
     print("level route", {k: v for k, v in record["level_route"].items() if k != "pieces"}, flush=True)

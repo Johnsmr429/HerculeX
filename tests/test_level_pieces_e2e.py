@@ -54,8 +54,10 @@ def exact_share(record, nodes, theta, root, potential):
 
 def test_solver_equals_brute_force():
     rng = np.random.default_rng(0)
+    count, terms = 6, 12
+    every = np.array(list(itertools.product(range(-6, 7), repeat=count - 1)), dtype=np.int32)
+    every = np.hstack([np.zeros((len(every), 1), dtype=np.int32), every])
     for _ in range(30):
-        count, terms = 6, 12
         p = rng.integers(0, count, terms).astype(np.int32)
         q = (p + rng.integers(1, count, terms)).astype(np.int32) % count
         k = rng.integers(-2, 3, terms).astype(np.int32)
@@ -63,11 +65,10 @@ def test_solver_equals_brute_force():
         x, log = kb.minimize(count, p, q, k, up, dn, np.zeros(count, dtype=np.int32))
 
         def energy(v):
-            r = v[q] - v[p] - k
-            return int(np.where(r > 0, r * up, -r * dn).sum())
+            r = v[..., q] - v[..., p] - k
+            return np.where(r > 0, r * up, -r * dn).sum(axis=-1)
 
-        best = min(energy(np.array((0, *v))) for v in itertools.product(range(-6, 7), repeat=count - 1))
-        assert energy(x) == best == log[2]
+        assert int(energy(x)) == int(energy(every).min()) == log[2]
 
 
 def test_a_join_of_many_stays_and_a_join_of_one_moves():
@@ -88,6 +89,28 @@ def test_a_join_of_many_stays_and_a_join_of_one_moves():
     assert votes[strong] == 16 and votes.min() < 16
 
 
+def test_a_ray_s_own_skip_cost_decides_a_skip():
+    patch = np.arange(2, dtype=np.int32).repeat(100)
+    inner = np.zeros(200, dtype=np.int32)
+    theta = np.zeros(200, dtype=np.float32)
+    edges = np.zeros(1, dtype=EDGE)
+    edges["a"], edges["b"], edges["weight"], edges["step"] = 0, 100, 0.6, 2
+    rays = np.zeros(1, dtype=PAIR)
+    rays["a"], rays["b"] = 1, 101
+    ray_weight = np.ones(1, dtype=np.float32)
+    p, q, k, term = kb.level_terms(patch, inner, 2, edges, rays, ray_weight, theta, 1)
+
+    def gap(ray_up):
+        up, dn = kb.term_weights(len(p), term, edges, ray_weight, 0.5, 64, ray_up)
+        x, _ = kb.minimize(2, p, q, k, up, dn, np.zeros(2, dtype=np.int32))
+        votes = kb.votes(2, p, q, k, term, edges, ray_weight, 0.5, x, 4, 1, 64, 1, False, 0, ray_up)
+        assert votes.max() == 4
+        return int(x[1] - x[0])
+
+    assert gap(None) == 2
+    assert gap(np.ones(1, dtype=np.float32)) == 1
+
+
 def test_level_pieces_stay_on_their_sheet(crushed):
     folder, record = crushed
     field_record = record_of(folder / "nodes")
@@ -105,6 +128,98 @@ def test_level_pieces_stay_on_their_sheet(crushed):
         shares.append(np.unique(offset, return_counts=True)[1].max() / largest.sum())
     assert max(shares) > 0.95, shares
     assert field_record["level"] == 0
+
+
+def test_a_refused_piece_is_cut_at_its_doubled_cells_not_dropped(crushed, monkeypatch):
+    folder, record = crushed
+    nodes, theta, _, _, pairs, field, _ = level_pieces.prepare([folder / "nodes"])
+    real = level_pieces.refused_pieces
+    marked = {}
+
+    def largest_refused_with_a_doubled_band(nodes_, root, potential, attract, area_node, cells=False):
+        if marked:
+            return real(nodes_, root, potential, attract, area_node, cells)
+        largest = root == np.bincount(root).argmax()
+        band = largest & (nodes_["z"] >= nodes_["z"][largest].max() - 4)
+        marked.update(rest=largest & ~band, band=band)
+        return largest, band, []
+
+    monkeypatch.setattr(level_pieces, "refused_pieces", largest_refused_with_a_doubled_band)
+    monkeypatch.setattr(level_pieces, "GUARD_CUT", 1)
+    root, potential, *_ = level_pieces.grow_pieces(nodes, theta, pairs, field)
+    rest, band = marked["rest"], marked["band"]
+    kept_root = np.bincount(root[rest]).argmax()
+    assert band.any() and (root[rest] == kept_root).mean() > 0.95
+    assert (root[band] == kept_root).mean() < 0.05
+    k, f = true_turn(record, nodes["x"], nodes["y"])
+    piece = root == kept_root
+    shares = [
+        np.unique(np.rint((potential + theta / (2 * np.pi))[piece] * sense - (k + f)[piece]), return_counts=True)[
+            1
+        ].max()
+        / piece.sum()
+        for sense in (1, -1)
+    ]
+    assert max(shares) > 0.95, shares
+
+
+def test_a_doubled_cell_keeps_the_layer_its_neighbours_continue(monkeypatch):
+    from unwrapping.detection.kernel_bindings import CELL, NODE
+
+    side = 12
+    yy, xx = np.meshgrid(np.arange(side), np.arange(side), indexing="ij")
+    flat = np.zeros(side * side + 1, dtype=NODE)
+    flat["x"][:-1] = (xx.ravel() + 0.5) * CELL
+    flat["y"][:-1] = (yy.ravel() + 0.5) * CELL
+    flat["z"][:-1] = 40.0
+    flat["x"][-1], flat["y"][-1], flat["z"][-1] = (6.5 * CELL, 6.5 * CELL, 46.0)
+    flat["nz"] = 127
+    normal = np.tile([0.0, 0.0, 1.0], (len(flat), 1))
+    u, v = flat["x"].astype(np.float64), flat["y"].astype(np.float64)
+    grid, locked, _ = piece_flattening.rasterise(flat, normal, u, v)
+    assert not locked[6, 6] and locked.sum() == side * side - 1
+    monkeypatch.setattr(level_pieces, "GUARD_CUT", 1)
+    dropped_all = level_pieces.second_layer(flat, normal, u, v, grid, locked)
+    monkeypatch.setattr(level_pieces, "GUARD_CUT", 2)
+    dropped = level_pieces.second_layer(flat, normal, u, v, grid, locked)
+    on_sheet = side * 6 + 6
+    assert dropped_all[on_sheet] and dropped_all[-1]
+    assert not dropped[on_sheet] and dropped[-1] and dropped.sum() == 1
+
+
+def test_a_piece_is_turned_so_the_scroll_axis_runs_up_its_rows():
+    from unwrapping.detection.kernel_bindings import NODE
+
+    rng = np.random.default_rng(0)
+    across, up = rng.uniform(0, 100, 500), rng.uniform(0, 60, 500)
+    nodes = np.zeros(500, dtype=NODE)
+    nodes["x"], nodes["y"], nodes["z"] = 200 + across, 300.0, 50 + up
+    turn = np.radians(37)
+    u, v = across * np.cos(turn) - up * np.sin(turn), across * np.sin(turn) + up * np.cos(turn)
+    gu, gv = piece_flattening.upright(nodes, u, v, np.zeros(500), np.full(500, 100.0))
+    slope = np.linalg.lstsq(np.c_[gu, gv, np.ones(500)], nodes["z"].astype(np.float64), rcond=None)[0]
+    assert abs(slope[0]) < 1e-6 and abs(slope[1] - 1) < 1e-6
+
+
+def test_every_written_piece_stands_upright(crushed, tmp_path):
+    folder, _ = crushed
+    summary, _notes = extract([folder / "nodes"], tmp_path, "sample", "volume", VOXEL_UM, 0)
+    leaning = []
+    for piece in tmp_path.glob("piece-*"):
+        grid = np.stack([tifffile.imread(piece / f"{a}.tif") for a in "xyz"])
+        rows, cols = np.nonzero(np.all(grid > 0, axis=0))
+        slope = np.linalg.lstsq(np.c_[rows, cols, np.ones(len(rows))], grid[2][rows, cols], rcond=None)[0]
+        if np.degrees(np.arctan2(abs(slope[1]), abs(slope[0]))) > 10:
+            leaning.append(piece.name)
+    assert summary["pieces"] and not leaning, leaning
+
+
+def test_every_piece_is_written_however_small(crushed, tmp_path):
+    folder, _ = crushed
+    summary, _notes = extract([folder / "nodes"], tmp_path, "sample", "volume", VOXEL_UM, 0)
+    small = [p for p in summary["pieces"] if p["area_mm2"] < 25 and p["cells"] < MIN_PIECE_NODES]
+    assert small, [(p["area_mm2"], p["cells"]) for p in summary["pieces"]]
+    assert all(p["written"] and (tmp_path / piece_name(p["piece"]) / "x.tif").is_file() for p in summary["pieces"])
 
 
 def test_a_round_enough_scroll_keeps_its_axis(crushed):
@@ -130,7 +245,7 @@ def test_level_grid_keeps_lengths(crushed, tmp_path):
     summary, notes = extract([folder / "nodes"], tmp_path, "sample", "volume", VOXEL_UM, 0)
     assert summary["method"] == run_levels.METHOD and any(tmp_path.glob("piece-*"))
     assert notes["piece_terms"]["chirality"] == summary["chirality"]
-    assert summary["isometry"]["isometric_share"] >= piece_flattening.UNIT_ISOMETRIC_SHARE
+    assert summary["isometry"]["isometric_share"] >= 0.8
     top = max(summary["pieces"], key=lambda p: p["area_mm2"])
     surface = tmp_path / piece_name(top["piece"])
     grid = np.stack([tifffile.imread(surface / f"{a}.tif") for a in "xyz"])
@@ -161,18 +276,16 @@ def test_a_filled_cell_just_past_the_scan_is_left_out_and_a_grid_far_past_it_sto
         piece_flattening.write_piece(tmp_path / "far", far, known, locked, 2, meta)
 
 
-def test_a_unit_from_before_the_isometric_grids_is_out_of_date_whatever_digest_is_listed(tmp_path):
-    """A digest proven to give the same output can outlive a later change of output; the isometry record cannot."""
+def test_no_unit_from_before_the_isometric_grids_counts_as_current(tmp_path):
+    """Units made before the isometric grids have other pieces, so none of their digests is listed as the same output."""
     from runner import stage_queue
-    from unwrapping.level.piece_flattening import UNIT_NEEDS
 
     unit = tmp_path / "rows-0000-0012"
     unit.mkdir()
     (unit / stage_queue.RECORD).write_text(json.dumps({"method": "57e06326f8bd"}))
-    assert stage_queue.done(unit, "new", ("57e06326f8bd",))
-    assert not stage_queue.done(unit, "new", ("57e06326f8bd",), UNIT_NEEDS)
-    (unit / stage_queue.RECORD).write_text(json.dumps({"method": run_levels.METHOD, "isometry": {"all": {}}}))
-    assert stage_queue.done(unit, run_levels.METHOD, run_levels.SAME_OUTPUT, UNIT_NEEDS)
+    assert not stage_queue.done(unit, run_levels.METHOD, run_levels.SAME_OUTPUT)
+    (unit / stage_queue.RECORD).write_text(json.dumps({"method": run_levels.METHOD}))
+    assert stage_queue.done(unit, run_levels.METHOD, run_levels.SAME_OUTPUT)
     old = {
         "57e06326f8bd",
         "f36042e9f4d2",

@@ -1,6 +1,7 @@
 """Pieces flattened along the sheet, gridded, bridged and joined across a seam: on a crushed scroll of exactly known
 windings and on a tilted cylinder."""
 
+import shutil
 from unittest.mock import patch
 
 import numpy as np
@@ -8,11 +9,11 @@ import pytest
 
 from calibration.unwrap.synthetic_scroll import build, true_winding
 from runner.stage_queue import record_of
-from storage.node_store import read_nodes
+from storage.node_store import read_cells, read_nodes
 from unwrapping.detection.detect_nodes import detect_store
 from unwrapping.detection.kernel_bindings import CELL, NODE
 from unwrapping.level import level_pieces, piece_flattening
-from unwrapping.level.piece_flattening import NotIsometric, bridge_holes, rasterise, tears
+from unwrapping.level.piece_flattening import bridge_holes, rasterise, tears
 from unwrapping.level.piece_joiner import SEAM_PLANES, seam_field, seam_joins
 from unwrapping.level.run_levels import extract
 
@@ -99,15 +100,13 @@ def test_grids_of_cell_means_fail_the_guard():
     with (
         patch.object(piece_flattening, "centred", lambda xyz, u, v, shape, mean, take, source: mean),
         patch.object(piece_flattening, "relaxed", lambda grid, known, free, rounds=0: grid),
-        pytest.raises(NotIsometric),
     ):
-        piece_flattening.unit_isometry(rows())
+        assert piece_flattening.unit_isometry(rows())["isometric_share"] < 1.0
 
 
-def test_chunks_join_across_their_seam(crushed, tmp_path):
-    folder, record = crushed
-    lo, hi = record_of(folder / "nodes")["cell_planes"]
-    seam = (lo + hi) // 2
+def halves(store, seam, tmp_path):
+    """The pieces of each node in the shared planes of a store's two units, lower and upper, split at a seam."""
+    lo, hi = record_of(store)["cell_planes"]
     labels = []
     for name, planes, shared in (
         ("lower", (lo, seam), (seam - SEAM_PLANES, seam)),
@@ -115,10 +114,18 @@ def test_chunks_join_across_their_seam(crushed, tmp_path):
     ):
         out = tmp_path / name
         out.mkdir()
-        extract([folder / "nodes"], out, "synthetic", "0", VOXEL_UM, 0, planes=planes, shared=[shared])
+        extract([store], out, "synthetic", "0", VOXEL_UM, 0, planes=planes, shared=[shared])
         boundary = np.load(out / "boundary.npz")
         order = np.argsort(boundary["ids"])
         labels.append((boundary["ids"][order], boundary["piece"][order]))
+    return labels
+
+
+def test_chunks_join_across_their_seam(crushed, tmp_path):
+    folder, record = crushed
+    lo, hi = record_of(folder / "nodes")["cell_planes"]
+    seam = (lo + hi) // 2
+    labels = halves(folder / "nodes", seam, tmp_path)
     joins = seam_joins([folder / "nodes"], seam, labels)
     assert joins
     piece, side, edges, _, _, ids, _ = seam_field([folder / "nodes"], seam, labels)
@@ -129,6 +136,27 @@ def test_chunks_join_across_their_seam(crushed, tmp_path):
     for x, y, _ in joins:
         crossing = (side[a] != side[b]) & (piece[lower] == x) & (piece[upper] == y)
         assert np.median(np.abs(winding[lower[crossing]] - winding[upper[crossing]])) < 0.5, (x, y)
+
+
+def test_a_seam_whose_nodes_are_all_too_weak_joins_nothing(crushed, tmp_path):
+    folder, _ = crushed
+    record = record_of(folder / "nodes")
+    lo, hi = record["cell_planes"]
+    seam = (lo + hi) // 2
+    store = tmp_path / "nodes"
+    store.mkdir()
+    nodes, cells = read_nodes(folder / "nodes"), read_cells(folder / "nodes")
+    plane = lo + cells // (record["grid"][1] * record["grid"][2])
+    nodes["prominence"][(plane >= seam - SEAM_PLANES) & (plane < seam + SEAM_PLANES)] = 0
+    nodes.tofile(store / "nodes.bin")
+    cells.tofile(store / "cells.bin")
+    shutil.copy(folder / "nodes" / "record.json", store / "record.json")
+    labels = halves(store, seam, tmp_path)
+    assert seam_joins([store], seam, labels) == []
+    field = seam_field([store], seam, labels)
+    assert all(len(part) == 0 for part in field)
+    assert {"a", "b", "weight"} <= set(field[2].dtype.names)
+    assert {"a", "b"} <= set(field[3].dtype.names)
 
 
 def test_holes_are_bridged_but_rims_and_folds_are_not():

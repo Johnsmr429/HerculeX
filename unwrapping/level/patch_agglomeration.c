@@ -38,7 +38,9 @@ typedef struct {
     int64_t count, capacity;
 } Heap;
 
-static inline uint32_t slot_of(int32_t key, int32_t capacity) { return ((uint32_t)key * 2654435761u) & (uint32_t)(capacity - 1); }
+static inline uint32_t slot_of(int32_t key, int32_t capacity) {
+    return ((uint32_t)key * 2654435761u) & (uint32_t)(capacity - 1);
+}
 
 static void table_init(Table *t, int32_t capacity) {
     t->slots = malloc(sizeof(Entry) * (size_t)capacity);
@@ -79,7 +81,8 @@ static Entry *table_add(Table *t, int32_t key, float attract, float repel) {
         found->repel += repel;
         return found;
     }
-    if ((int64_t)(t->filled + 1) * 10 >= (int64_t)t->capacity * 7) table_grow(t, t->live * 4 >= t->capacity ? t->capacity * 2 : t->capacity);
+    if ((int64_t)(t->filled + 1) * 10 >= (int64_t)t->capacity * 7)
+        table_grow(t, t->live * 4 >= t->capacity ? t->capacity * 2 : t->capacity);
     uint32_t i = slot_of(key, t->capacity);
     while (t->slots[i].key >= 0) i = (i + 1) & (uint32_t)(t->capacity - 1);
     if (t->slots[i].key == EMPTY) t->filled++;
@@ -105,7 +108,9 @@ static inline int before(const Item *p, const Item *q) {
 static void heap_push(Heap *h, float score, int32_t a, int32_t b) {
     if (h->count == h->capacity) {
         h->capacity *= 2;
-        h->items = realloc(h->items, sizeof(Item) * (size_t)h->capacity);
+        Item *grown = realloc(h->items, sizeof(Item) * (size_t)h->capacity);
+        if (!grown) abort();
+        h->items = grown;
     }
     int64_t i = h->count++;
     Item item = {score, a < b ? a : b, a < b ? b : a};
@@ -134,8 +139,9 @@ static Item heap_pop(Heap *h) {
     return top;
 }
 
-void hx_agglomerate(int64_t patches, const int32_t *patch, int64_t nodes, const Pair *edges, const uint8_t *use, int64_t edge_count, const Pair *rays, int64_t ray_count,
-                    float repel_scale, float floor_score, float neck, float neck_cap, int32_t *label, int64_t *stats) {
+void hx_agglomerate(int64_t patches, const int32_t *patch, int64_t nodes, const Pair *edges, const uint8_t *use,
+                    int64_t edge_count, const Pair *rays, int64_t ray_count, float repel_scale, float floor_score,
+                    float neck, float neck_cap, int32_t *label, int64_t *stats) {
     Table *tables = malloc(sizeof(Table) * (size_t)patches);
     int32_t *parent = malloc(sizeof(int32_t) * (size_t)patches);
     float *mass = calloc((size_t)patches, sizeof(float));
@@ -167,7 +173,8 @@ void hx_agglomerate(int64_t patches, const int32_t *patch, int64_t nodes, const 
             if (a >= lo && a < hi) table_add(&tables[a], b, 0, rays[e].weight);
             if (b >= lo && b < hi) table_add(&tables[b], a, 0, rays[e].weight);
         }
-    } END_BLOCKS;
+    }
+    END_BLOCKS;
     int64_t pairs = 0;
     for (int64_t i = 0; i < patches; i++) pairs += tables[i].live;
     Heap heap = {malloc(sizeof(Item) * (size_t)(pairs / 2 + 16)), 0, pairs / 2 + 16};
@@ -223,9 +230,16 @@ void hx_agglomerate(int64_t patches, const int32_t *patch, int64_t nodes, const 
         int32_t r = (int32_t)i;
         while (parent[r] != r) r = parent[r];
         int32_t node = (int32_t)i;
-        while (parent[node] != r) { int32_t up = parent[node]; parent[node] = r; node = up; }
+        while (parent[node] != r) {
+            int32_t up = parent[node];
+            parent[node] = r;
+            node = up;
+        }
         label[i] = r;
         free(tables[i].slots);
     }
-    free(tables); free(parent); free(mass); free(heap.items);
+    free(tables);
+    free(parent);
+    free(mass);
+    free(heap.items);
 }

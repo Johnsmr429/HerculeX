@@ -41,14 +41,18 @@ static int by_capacity(const void *p, const void *q) {
 }
 
 static int32_t root_of(int32_t *up, int32_t v) {
-    while (up[v] != v) { up[v] = up[up[v]]; v = up[v]; }
+    while (up[v] != v) {
+        up[v] = up[up[v]];
+        v = up[v];
+    }
     return v;
 }
 
-// Start from a maximum-capacity spanning forest: flows are zero on any tree, and the strongest votes already fix most potentials.
-static void strong_tree(int32_t n, int64_t m, const int32_t *tail, const int32_t *head, const int64_t *cost, const int64_t *cap,
-                        int8_t *state, int64_t *pi, Tree *t, int32_t root) {
-    int32_t *order = malloc(sizeof(int32_t) * (m + 1)), *up = malloc(sizeof(int32_t) * n);
+// Start from a maximum-capacity spanning forest: flows are zero on any tree, and the strongest votes already fix most
+// potentials.
+static void strong_tree(int32_t n, int64_t m, const int32_t *tail, const int32_t *head, const int64_t *cost,
+                        const int64_t *cap, int8_t *state, int64_t *pi, Tree *t, int32_t root) {
+    int32_t *order = malloc(sizeof(int32_t) * (m + 1)), *up = malloc(sizeof(int32_t) * ((size_t)n + 1));
     int64_t *start = calloc((size_t)n + 2, sizeof(int64_t));
     for (int64_t e = 0; e < m; e++) order[e] = (int32_t)e;
     sort_key = cap;
@@ -62,7 +66,10 @@ static void strong_tree(int32_t n, int64_t m, const int32_t *tail, const int32_t
         up[a] = b;
         chosen[count++] = e;
     }
-    for (int32_t i = 0; i < count; i++) { start[tail[chosen[i]] + 1]++; start[head[chosen[i]] + 1]++; }
+    for (int32_t i = 0; i < count; i++) {
+        start[tail[chosen[i]] + 1]++;
+        start[head[chosen[i]] + 1]++;
+    }
     for (int32_t v = 0; v < n; v++) start[v + 1] += start[v];
     int64_t *cursor = malloc(sizeof(int64_t) * ((size_t)n + 1));
     memcpy(cursor, start, sizeof(int64_t) * ((size_t)n + 1));
@@ -96,17 +103,26 @@ static void strong_tree(int32_t n, int64_t m, const int32_t *tail, const int32_t
             }
         }
     }
-    free(order); free(up); free(start); free(chosen); free(cursor); free(list); free(queue); free(seen);
+    free(order);
+    free(up);
+    free(start);
+    free(chosen);
+    free(cursor);
+    free(list);
+    free(queue);
+    free(seen);
     (void)root;
 }
 
-// Arcs tail -> head with integer cost and capacity, all flows starting at zero. Writes potentials; returns pivots or -1.
+// Arcs tail -> head with integer cost and capacity, all flows starting at zero. Writes potentials; returns pivots or
+// -1.
 int64_t hx_network_simplex(int32_t n, int64_t m, const int32_t *tail_in, const int32_t *head_in, const int32_t *cost_in,
                            const int64_t *cap_in, int64_t *pi, int64_t pivot_limit) {
     int32_t root = n, nodes = n + 1;
     int64_t arcs = m + n;
     int32_t *tail = malloc(sizeof(int32_t) * arcs), *head = malloc(sizeof(int32_t) * arcs);
-    int64_t *cost = malloc(sizeof(int64_t) * arcs), *cap = malloc(sizeof(int64_t) * arcs), *flow = calloc(arcs, sizeof(int64_t));
+    int64_t *cost = malloc(sizeof(int64_t) * arcs), *cap = malloc(sizeof(int64_t) * arcs),
+            *flow = calloc(arcs, sizeof(int64_t));
     int8_t *state = malloc(arcs);
     Tree t;
     t.parent = malloc(sizeof(int32_t) * nodes);
@@ -165,7 +181,10 @@ int64_t hx_network_simplex(int32_t n, int64_t m, const int32_t *tail_in, const i
             int8_t s = state[e];
             if (s != TREE) {
                 int64_t c = s * (cost[e] + pi[tail[e]] - pi[head[e]]);
-                if (c < best) { best = c; entering = e; }
+                if (c < best) {
+                    best = c;
+                    entering = e;
+                }
             }
             if (in_block == block) {
                 if (entering >= 0) break;
@@ -173,7 +192,10 @@ int64_t hx_network_simplex(int32_t n, int64_t m, const int32_t *tail_in, const i
             }
         }
         if (entering < 0) break;
-        if (pivots++ >= pivot_limit) { pivots = -1; break; }
+        if (pivots++ >= pivot_limit) {
+            pivots = -1;
+            break;
+        }
 
         int32_t first = state[entering] == LOWER ? tail[entering] : head[entering];
         int32_t second = state[entering] == LOWER ? head[entering] : tail[entering];
@@ -188,12 +210,20 @@ int64_t hx_network_simplex(int32_t n, int64_t m, const int32_t *tail_in, const i
         for (u = first; u != join; u = t.parent[u]) {
             int64_t e = t.pred[u], d = flow[e];
             if (t.dir[u] == DOWN) d = cap[e] == UNBOUNDED ? UNBOUNDED : cap[e] - d;
-            if (d < delta) { delta = d; out_node = u; result = 1; }
+            if (d < delta) {
+                delta = d;
+                out_node = u;
+                result = 1;
+            }
         }
         for (u = second; u != join; u = t.parent[u]) {
             int64_t e = t.pred[u], d = flow[e];
             if (t.dir[u] == UP) d = cap[e] == UNBOUNDED ? UNBOUNDED : cap[e] - d;
-            if (d <= delta) { delta = d; out_node = u; result = 2; }
+            if (d <= delta) {
+                delta = d;
+                out_node = u;
+                result = 2;
+            }
         }
         if (delta > 0) {
             int64_t value = state[entering] * delta;
@@ -236,7 +266,19 @@ int64_t hx_network_simplex(int32_t n, int64_t m, const int32_t *tail_in, const i
             for (int32_t c = t.first[x]; c >= 0; c = t.next[c]) stack[top++] = c;
         }
     }
-    free(tail); free(head); free(cost); free(cap); free(flow); free(state); free(stack);
-    free(t.parent); free(t.pred); free(t.depth); free(t.first); free(t.next); free(t.prev); free(t.dir);
+    free(tail);
+    free(head);
+    free(cost);
+    free(cap);
+    free(flow);
+    free(state);
+    free(stack);
+    free(t.parent);
+    free(t.pred);
+    free(t.depth);
+    free(t.first);
+    free(t.next);
+    free(t.prev);
+    free(t.dir);
     return pivots;
 }

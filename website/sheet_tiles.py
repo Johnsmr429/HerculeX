@@ -7,14 +7,17 @@ import json
 import math
 import multiprocessing
 import os
+import shutil
+import tempfile
 import time
+from pathlib import Path
 
 import numpy as np
 from PIL import Image
 from scipy import ndimage as ni
 
 from sampling.sheet_images import MARGIN_CELLS, largest_mosaic, mosaics_of
-from storage.data_roots import BROWSER_ASSETS, FACES, PRODUCTION_FACES, ROUTE_OUTPUTS, SHEETS, stage_folder
+from storage.data_roots import BROWSER_ASSETS, FACES, PRODUCTION_FACES, ROUTE_OUTPUTS, SCRATCH, SHEETS, stage_folder
 from storage.tile_store import TileWriter
 
 TILE = 512
@@ -24,6 +27,7 @@ SAMPLE_PIECES = 64
 SHOWN_PERCENTILES = (1.0, 99.0)
 COARSE_QUALITY = 90
 PROCESSES = int(os.environ.get("HERCULEX_COMPOSE_PROCESSES", "4"))
+RUNS_PER_PROCESS = 3  # runs of consecutive strips a process takes in turn: fewer runs share more decoded pieces
 SCAN_UNDER_TAUGHT = "taught-scan"
 WEAKEST_INK, SCAN_UNDER_INK = 160, 0.3
 Image.MAX_IMAGE_PIXELS = None
@@ -64,14 +68,27 @@ def piece_png(folder, p, layer):
     return folder / p["unit"] / f"{name}.png"
 
 
-def piece_layer(folder, p, layer):
+def mask_png(folder, p, layer):
+    return piece_png(folder, p, "sheet") if layer in ("ink", "taught") else piece_png(folder, p, layer)
+
+
+def opened(png, images=None):
+    """A piece image as stored; with `images`, decoded once for every layer and strip that asks for it."""
+    if images is None:
+        return np.asarray(Image.open(png))
+    key = str(png)
+    if key not in images:
+        images[key] = np.asarray(Image.open(png))
+    return images[key]
+
+
+def piece_layer(folder, p, layer, images=None):
     """A piece's (image, seen, pixel in mm) for a layer, upright."""
-    png = piece_png(folder, p, layer)
-    mask = piece_png(folder, p, "sheet") if layer in ("ink", "taught") else png
+    png, mask = piece_png(folder, p, layer), mask_png(folder, p, layer)
     if not png.is_file() or (mask != png and not mask.is_file()):
         return None
-    pixels = np.asarray(Image.open(png))
-    seen = pixels if mask == png else np.asarray(Image.open(mask))
+    pixels = opened(png, images)
+    seen = pixels if mask == png else opened(mask, images)
     return upright(pixels, p), upright(seen > 0, p), p["um"]
 
 
@@ -119,7 +136,7 @@ def shown(pixels, layer):
     ).astype(np.uint8)
 
 
-def paint_strip(job):
+def paint_strip(job, images=None):
     """(column, row, tile) of every tile in tile columns c0 onwards, raw values, 0 where there is no scan."""
     c0, pieces, folder, layer, pixel_mm, rows, columns = job
     tile_mm = TILE * pixel_mm
@@ -129,7 +146,7 @@ def paint_strip(job):
     covered = np.zeros((H, W), dtype=bool)
     mosaics, held = {}, []
     for p in pieces:
-        found = piece_layer(folder, p, layer)
+        found = piece_layer(folder, p, layer, images)
         if found is None:
             continue
         image, seen, pixel = found
@@ -180,6 +197,35 @@ def paint_strip(job):
     return tiles
 
 
+def paint_run(task):
+    """Consecutive strips, every layer of each: a piece image is decoded once and kept while the next strip of the
+    run needs it. The tiles go to a scratch file and come back as (layer, column, row, offset, length), so a run
+    holds no more than one strip's images and no tiles in memory."""
+    strips, scratch = task
+    images, entries = {}, []
+    with open(scratch, "wb") as out:
+        for c0, layers in strips:
+            shared = set()
+            for _, members, folder, layer, pixel_mm, _, _ in layers:
+                right = (c0 + STRIP) * TILE * pixel_mm
+                shared |= {
+                    key for p in members if p["x_mm"] + p["width_mm"] > right for key in images_of(folder, p, layer)
+                }
+            for k, (path, members, folder, layer, pixel_mm, rows, columns) in enumerate(layers):
+                for c, r, blob in paint_strip((c0, members, folder, layer, pixel_mm, rows, columns), images):
+                    entries.append((path, c, r, out.tell(), len(blob)))
+                    out.write(blob)
+                later = {key for _, m, f, name, *_ in layers[k + 1 :] for p in m for key in images_of(f, p, name)}
+                for key in [key for key in images if key not in shared and key not in later]:
+                    del images[key]
+    return scratch, entries
+
+
+def images_of(folder, p, layer):
+    """The stored images a piece's layer is painted from: its own and its mask."""
+    return {str(piece_png(folder, p, layer)), str(mask_png(folder, p, layer))}
+
+
 def shrink_column(job):
     """(column, row, tile) of one column of a coarser level, from the tiles of the level below."""
     c, rows, level, pack, below = job
@@ -200,8 +246,8 @@ def shrink_column(job):
     return tiles
 
 
-def compose(pieces, folder, writer, path, layer, pixel_mm, pool):
-    """Every tile of one layer at every zoom, written under a path of a sheet's tile store."""
+def planned(pieces, folder, writer, path, layer, pixel_mm):
+    """A layer's grid declared in the store, and its level-0 strips as (c0, job) for paint_strip."""
     tile_mm = TILE * pixel_mm
     rows = int(math.ceil((max(p["y_mm"] + p["height_mm"] for p in pieces) + 2) / tile_mm))
     columns = int(math.ceil((max(p["x_mm"] + p["width_mm"] for p in pieces) + 2) / tile_mm))
@@ -213,19 +259,59 @@ def compose(pieces, folder, writer, path, layer, pixel_mm, pool):
     low, high = shown_range(pieces, folder, layer)
     grid, origin = [(c1 - c0, r1 - r0) for c0, r0, c1, r1 in spans], [span[:2] for span in spans]
     writer.layer(path, grid, origin=origin, raw=True, low=low, high=high)
-    jobs = []
+    strips = []
     order = sorted(pieces, key=lambda p: -p["area"])
     for c0 in range(0, columns, STRIP):
         x0, x1 = c0 * tile_mm, (c0 + STRIP) * tile_mm
         members = [p for p in order if p["x_mm"] < x1 and p["x_mm"] + p["width_mm"] > x0]
         if members:
-            jobs.append((c0, members, folder, layer, pixel_mm, rows, columns))
-    start = time.time()
-    for k, tiles in enumerate(pool.imap_unordered(paint_strip, jobs)):
-        for c, r, blob in tiles:
-            writer.add(path, 0, c, r, blob)
-        if k % 20 == 19:
-            print(path, k + 1, "of", len(jobs), "strips", round(time.time() - start), "s", flush=True)
+            strips.append((c0, (path, members, folder, layer, pixel_mm, rows, columns)))
+    record = {"path": path, "mm": pixel_mm, "levels": len(grid), "low": low, "high": high, "raw": True}
+    return {"record": record, "spans": spans, "grid": grid, "strips": strips}
+
+
+def runs_of(strips, count):
+    """Strips in `count` runs of consecutive columns, of about equal pieces' area."""
+    work = [sum(p["area"] for job in jobs for p in job[1]) for _, jobs in strips]
+    total, runs, current, done = sum(work), [], [], 0.0
+    for strip, weight in zip(strips, work):
+        current.append(strip)
+        done += weight
+        if done >= total * (len(runs) + 1) / count and len(runs) < count - 1:
+            runs.append(current)
+            current = []
+    return [run for run in [*runs, current] if run]
+
+
+def compose_layers(layers, folder, writer, pixel_mm, pool):
+    """Every tile of the layers, (path, pieces, layer) each, at every zoom: level 0 painted in runs of strips with
+    every layer of a strip at once, then each layer's coarser levels from the tiles below."""
+    plans = [planned(pieces, folder, writer, path, layer, pixel_mm) for path, pieces, layer in layers]
+    by_column = {}
+    for plan in plans:
+        for c0, job in plan["strips"]:
+            by_column.setdefault(c0, []).append(job)
+    strips = sorted(by_column.items())
+    SCRATCH.mkdir(parents=True, exist_ok=True)
+    start, scratch = time.time(), Path(tempfile.mkdtemp(prefix="sheet-runs-", dir=SCRATCH))
+    try:
+        runs = runs_of(strips, PROCESSES * RUNS_PER_PROCESS)
+        tasks = [(run, scratch / f"run-{k:04d}.bin") for k, run in enumerate(runs)]
+        for k, (part, entries) in enumerate(pool.imap_unordered(paint_run, tasks)):
+            with open(part, "rb") as source:
+                for path, c, r, offset, length in entries:
+                    source.seek(offset)
+                    writer.add(path, 0, c, r, source.read(length))
+            part.unlink()
+            print("level 0:", k + 1, "of", len(runs), "runs of strips", round(time.time() - start), "s", flush=True)
+    finally:
+        shutil.rmtree(scratch, ignore_errors=True)
+    return [pyramid(writer, plan, pool) for plan in plans]
+
+
+def pyramid(writer, plan, pool):
+    """A layer's coarser levels, each from the tiles of the level below."""
+    path, spans, grid, start = plan["record"]["path"], plan["spans"], plan["grid"], time.time()
     for level in range(1, len(grid)):
         writer.flush()
         c0, r0, c1, r1 = spans[level]
@@ -243,15 +329,16 @@ def compose(pieces, folder, writer, path, layer, pixel_mm, pool):
             for c, r, blob in tiles:
                 writer.add(path, level, c, r, blob)
     print(path, "tiles done", len(grid), "levels", round(time.time() - start), "s", flush=True)
-    return {
-        "path": path,
-        "mm": pixel_mm,
-        "levels": len(grid),
-        "low": low,
-        "high": high,
+    record = plan["record"]
+    return {key: record[key] for key in ("path", "mm", "levels", "low", "high")} | {
         "stamp": int(time.time()),
         "raw": True,
     }
+
+
+def compose(pieces, folder, writer, path, layer, pixel_mm, pool):
+    """Every tile of one layer at every zoom, written under a path of a sheet's tile store."""
+    return compose_layers([(path, pieces, layer)], folder, writer, pixel_mm, pool)[0]
 
 
 def layer_name(layer, pixel_mm):
@@ -323,11 +410,12 @@ def run(
     out = SHEETS / name
     out.mkdir(parents=True, exist_ok=True)
     with multiprocessing.get_context("spawn").Pool(PROCESSES) as pool, TileWriter(out) as writer:
+        composed = compose_layers([(layer, group, layer) for layer, group in available], folder, writer, pixel_mm, pool)
         done = [
-            compose(group, folder, writer, layer, layer, pixel_mm, pool)
+            record
             | {"name": ink_name if layer == "taught" and ink_name else layer_name(layer, pixel_mm)}
             | ({"model": model} if model and layer == "taught" else {})
-            for layer, group in available
+            for record, (layer, _) in zip(composed, available)
         ]
     kept = json.loads((out / "layers.json").read_text()) if (out / "layers.json").exists() else []
     written = {layer for layer, _ in available}

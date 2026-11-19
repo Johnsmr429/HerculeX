@@ -11,7 +11,7 @@ from argparse import Namespace
 
 import numpy as np
 
-from storage.data_roots import EXTERNAL_TOOLS, PRETRAINED_WEIGHTS
+from storage.data_roots import EXTERNAL_TOOLS, INK_WEIGHTS
 
 SOURCE = EXTERNAL_TOOLS / "villa"
 COMMIT = "960d76ac7f32557c2ecf323323288d8f23bb71f1"
@@ -62,7 +62,7 @@ def source():
 
 def checkpoint(name):
     """A published checkpoint, fetched once and checked against its digest."""
-    path = PRETRAINED_WEIGHTS / "ink_9um" / name
+    path = INK_WEIGHTS / "ink-9um" / name
     if not path.exists():
         path.parent.mkdir(parents=True, exist_ok=True)
         part = path.with_suffix(".part")

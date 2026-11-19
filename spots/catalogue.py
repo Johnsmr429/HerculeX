@@ -32,6 +32,10 @@ SAME_PLACE_MM = 0.3  # a node of one circle this close to a node of another coun
 SAME_PLACE_SHARE = 0.25
 
 
+class LayoutMismatch(ValueError):
+    """A saved layout no longer describes the surface stored at its piece path."""
+
+
 def outline_of(mark):
     """A circle's outline in sheet mm; a click becomes a square of CLICK_BOX_MM round it."""
     points = np.asarray(mark["points"], dtype=np.float64)
@@ -106,10 +110,12 @@ def located(sheet, mark, placed):
                 meta = json.loads((folder / "meta.json").read_text())
                 found[k] = (xyz, meta)
             xyz, meta = found[k]
+            if xyz.shape[1:] != tuple(p["shape"]):
+                raise LayoutMismatch(
+                    f"{folder}: stored grid {xyz.shape[1:]} differs from saved layout {tuple(p['shape'])}"
+                )
             x, y = node_places(p)
             wanted = (xyz[0] > 0) & (own_cells(p) if not margins else np.ones(x.shape, dtype=bool))
-            if xyz.shape[1:] != x.shape:
-                wanted &= False
             rows, columns = np.nonzero(wanted)
             if not len(rows):
                 continue
@@ -160,9 +166,19 @@ def cells_inside(outline, step):
 
 
 def row_of(sheet, mark):
-    placed = sheet.layout(mark["layout"])
-    voxel_um = round(placed[0]["um"] * 1000, 3)  # the scan's voxel, as its pieces were laid out
-    outline, clicked, pieces, points, expected, step = located(sheet, mark, placed)
+    """Locate a standing circle, retaining an explicit unavailable record for obsolete geometry."""
+    error = ""
+    try:
+        placed = sheet.layout(mark["layout"])
+        if not placed:
+            raise LayoutMismatch(f"empty saved layout {mark['layout']}")
+        voxel_um = round(placed[0]["um"] * 1000, 3)  # the scan's voxel, as its pieces were laid out
+        outline, clicked, pieces, points, expected, step = located(sheet, mark, placed)
+    except (FileNotFoundError, LayoutMismatch) as exc:
+        outline, clicked = outline_of(mark)
+        pieces, points, expected = [], np.empty((0, 3), dtype=np.float32), 0
+        step, voxel_um = np.nan, np.nan
+        error = str(exc)
     labeller = "target-day" if mark["time"][:10] >= TARGETS_SINCE else "earlier"
     centre = points.mean(axis=0) if len(points) else np.full(3, np.nan)
     low = points.min(axis=0) if len(points) else np.full(3, np.nan)
@@ -173,13 +189,14 @@ def row_of(sheet, mark):
         "spot_id": f"{mark['id'][:8]}",
         "mark_id": mark["id"],
         "sheet_key": sheet.key,
-        "part": sheet.part,
         "page": sheet.page,
         "scroll": sheet.scroll,
         "scan": sheet.scan,
         "route": sheet.route,
         "labeller": labeller,
-        "target": labeller == "target-day",
+        "target": labeller == "target-day" and not error,
+        "location_available": not error,
+        "location_error": error,
         "marked_at": mark["time"],
         "layer": mark.get("layer", ""),
         "layout": mark["layout"],
@@ -198,7 +215,7 @@ def row_of(sheet, mark):
         "main_piece": f"{pieces[0]['unit']}/piece-{pieces[0]['piece']:04d}" if pieces else "",
         "main_share": pieces[0]["share"] if pieces else 0.0,
         "windings": windings,
-        "layout_matches": all(p["matches_layout"] for p in pieces),
+        "layout_matches": not error and all(p["matches_layout"] for p in pieces),
         "centre_xyz": [round(float(v), 1) for v in centre],
         "box_low_xyz": [round(float(v), 1) for v in low],
         "box_high_xyz": [round(float(v), 1) for v in high],
@@ -261,7 +278,10 @@ def build():
             best = None
             for s in sheets:
                 row, pts = row_of(s, mark)
-                if best is None or row["cells_covered"] > best[0]["cells_covered"]:
+                if best is None or (row["location_available"], row["cells_covered"]) > (
+                    best[0]["location_available"],
+                    best[0]["cells_covered"],
+                ):
                     best = (row, pts)
             rows.append(best[0])
             points.append(best[1])
@@ -271,19 +291,23 @@ def build():
         r["status"] = previous.get(r["spot_id"], {}).get("status", "catalogued")
     database.write("spots", rows)
     gone = sorted(set(previous) - {r["spot_id"] for r in rows})
+    database.forget(gone)
     return rows, gone
 
 
 def report(rows, gone):
     targets = [r for r in rows if r["target"]]
     print(len(rows), "standing circles,", len(targets), "of them targets;", len(gone), "no longer standing:", gone)
+    for row in rows:
+        if not row["location_available"]:
+            print(row["spot_id"], "location unavailable:", row["location_error"])
     by_sheet = defaultdict(list)
     for r in targets:
-        by_sheet[(r["scroll"], r["page"], r["part"])].append(r)
-    for (scroll, page, part), rs in sorted(by_sheet.items()):
+        by_sheet[(r["scroll"], r["page"])].append(r)
+    for (scroll, page), rs in sorted(by_sheet.items()):
         places = len({r["place"] for r in rs})
         print(
-            f"  {scroll:11s} {page:42s} {part:5s} circles {len(rs):3d}  places {places:3d}  "
+            f"  {scroll:11s} {page:42s} circles {len(rs):3d}  places {places:3d}  "
             f"area {sum(r['area_cm2'] for r in rs):6.1f} cm²  covered {np.mean([r['covered_share'] for r in rs]):.2f}  "
             f"layout ok {sum(r['layout_matches'] for r in rs)}/{len(rs)}"
         )

@@ -26,11 +26,16 @@ STAGES = {
     "pieces": "unwrapping.level.run_levels",
     "sheet": "runner.sheet_stage",
 }
+FETCH = "ink.reading.unit_fetch"
 ROUTE = list(STAGES)
+UPSTREAM = {"pieces": "sheets", "sheet": "pieces", "fetch": "pieces"}
 IDLE_SECONDS = 15
 
 
-def run_stage(stage, samples, band=False, *, scan=None, require_ready=False):
+def run_stage(stage, samples, band=False, *, scan=None, require_ready=False, since=None):
+    if stage == "fetch":
+        importlib.import_module(FETCH).run(samples, band, volume=scan, since=since)
+        return
     if stage == "pieces" and require_ready:
         pattern = "band-*" if band else "*"
         detected = {
@@ -55,16 +60,17 @@ def finished_marker(stage):
 
 def follow(stage, samples, band=False):
     """Run a stage until a pass that began after the stage before it finished."""
-    before = ROUTE[ROUTE.index(stage) - 1] if stage in ROUTE[1:] else None
+    before = UPSTREAM.get(stage) if UPSTREAM.get(stage) in ROUTE else None
     upstream = finished_marker(before) if before else None
     marker = finished_marker(stage)
     marker.parent.mkdir(parents=True, exist_ok=True)
     marker.unlink(missing_ok=True)
     needs_all_nodes = stage == "pieces" and not band
+    began = time.time()
     while True:
         upstream_done = upstream is None or upstream.exists()
         if upstream_done or not needs_all_nodes:
-            run_stage(stage, samples, band)
+            run_stage(stage, samples, band, since=began)
         if upstream_done:
             break
         for _ in range(IDLE_SECONDS):
@@ -82,7 +88,7 @@ def run_all(samples, band=False):
         flag = ["--band"] if band else []
         workers = {}
         try:
-            for stage in ROUTE:
+            for stage in [*ROUTE, "fetch"]:
                 workers[stage] = subprocess.Popen(
                     [sys.executable, "-m", "runner.pipeline", "follow", stage, *samples, *flag], cwd=HERE
                 )
@@ -148,12 +154,12 @@ def main():
     commands.add_parser("status", help="list scan IDs and finished stages").add_argument("samples", nargs="*")
     commands.add_parser("index", help="rebuild the route index")
     run = commands.add_parser("run", help="run or resume a stage")
-    run.add_argument("stage", choices=("all", *STAGES, "layout", "ink"))
+    run.add_argument("stage", choices=("all", *STAGES, "fetch", "layout", "ink"))
     run.add_argument("samples", nargs="*", metavar="SCROLL")
     run.add_argument("--band", action="store_true", help="process a central band")
     run.add_argument("--scan", metavar="ID", help="choose one scan for this stage")
     follower = commands.add_parser("follow")
-    follower.add_argument("stage", choices=STAGES)
+    follower.add_argument("stage", choices=(*STAGES, "fetch"))
     follower.add_argument("samples", nargs="*")
     follower.add_argument("--band", action="store_true")
     arguments = sys.argv[1:]

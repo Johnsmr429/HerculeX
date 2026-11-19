@@ -6,8 +6,8 @@ outward, away from the scroll axis; a model is shown the window in that order ("
 ("inward", villa's "reverse", the reading side of the PHerc0343 meshes). Which side holds the writing is decided
 from the images, both kept.
 
-The models are stock Reader v3 ("reader-v3") and any other checkpoints of the same network listed in the library's
-weights/sweep-readers.json as {"name": "path under weights/"}; the original surface is read by stock Reader v3 alone.
+The models are every ink model of the library (ink.model.models): stock Reader v3 ("reader-v3") and the checkpoints of
+the same network listed in weights/ink/models.json; the original surface is read by stock Reader v3 alone.
 
 Maps are kept as float16 (side, depth, row, column) under spots/SPOT/reads/SURFACE/MODEL/PIECE.npy.
 """
@@ -17,25 +17,15 @@ import time
 
 import numpy as np
 
-from ink.model import machine_reader
-from ink.model.weights import STOCK_READER
+from ink.model import models
+from ink.model.reader import lane_reader
 from spots.surfaces import LAYERS, MIDDLE, work_of
-from storage.data_roots import MODEL_WEIGHTS
 
 DEPTHS = tuple(range(-15, 16))
 SIDES = ("inward", "outward")
 WINDOW = 17
 HALF = WINDOW // 2
-SWEEP_READERS = MODEL_WEIGHTS / "sweep-readers.json"
-
-
-def listed_readers():
-    """Stock Reader v3, then the checkpoints listed in weights/sweep-readers.json, by name."""
-    listed = json.loads(SWEEP_READERS.read_text()) if SWEEP_READERS.is_file() else {}
-    return {"reader-v3": STOCK_READER} | {name: MODEL_WEIGHTS / path for name, path in listed.items()}
-
-
-WEIGHTS = listed_readers()
+WEIGHTS = {name: model.weights for name, model in models.models().items()}
 MODELS = tuple(WEIGHTS)
 SURFACES = ("grown", "m7", "original")
 READ_BY = {
@@ -46,7 +36,7 @@ READ_BY = {
 
 
 def reader_of(name):
-    return machine_reader.reader(WEIGHTS[name])
+    return lane_reader(WEIGHTS[name])
 
 
 def window(stack, depth, side):

@@ -68,7 +68,7 @@ def test_chunks_tile_every_height_exactly():
 
 
 def test_detected_nodes_reach_the_level_route_on_a_new_scan(tmp_path, monkeypatch):
-    grown, level = tmp_path / "grown_route", tmp_path / "level_route"
+    grown, level = tmp_path / "nodes", tmp_path / "level"
     sample, volume = "PHerc0000", "1"
     scan = {"sample": sample, "volume": volume, "voxel_um": 9.362}
     monkeypatch.setattr(data_roots, "ROUTE_OUTPUTS", level)

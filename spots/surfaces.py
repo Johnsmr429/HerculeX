@@ -19,7 +19,6 @@ layers 33 + d - 8 .. 33 + d + 8, so d runs over -15..+15 with ten layers to spar
 """
 
 import json
-import shutil
 import urllib.request
 import warnings
 
@@ -418,9 +417,13 @@ def readable(surface, folder, axis):
 
 
 def ct_store(scroll, scan, spot_id, surfaces):
-    """The CT bricks the renders read, fetched into the spot's own store."""
+    """Fetch whole CT bricks, replacing legacy partial entries before another surface can reuse them."""
     folder = work_of(spot_id) / "ct"
     store, url = sampler.scan_store(scroll, scan, folder, 0)
+    complete_path = folder / "complete.npy"
+    complete = np.load(complete_path) if complete_path.exists() else np.zeros(store.grid, dtype=bool)
+    if complete.shape != store.grid:
+        raise ValueError(f"CT completeness table {complete.shape} differs from brick grid {store.grid}")
     ranges = np.empty((*store.grid, 2), dtype=np.int32)
     ranges[..., 0].fill(store.brick[0])
     ranges[..., 1].fill(-1)
@@ -431,26 +434,21 @@ def ct_store(scroll, scan, spot_id, surfaces):
             mark_ranges(ranges, store, margined, outward, meta["stride"])
     finally:
         sampler.LAYERS = keep
-    chosen = (ranges[..., 1] >= 0) & (store.offsets == UNKNOWN)
+    chosen = (ranges[..., 1] >= 0) & ((store.offsets == UNKNOWN) | ~complete)
     indices = np.argwhere(chosen)
-    first, last = ranges[..., 0][chosen], ranges[..., 1][chosen]
-    plane = store.brick[1] * store.brick[2]
-    begins = {tuple(i): int(f) * plane for i, f in zip(indices.tolist(), first)}
 
     def deliver(index, body):
-        if body is None or len(body) == store.size:
-            store.put(index, body)
-        else:
-            whole = bytearray(store.size)
-            whole[begins[index] : begins[index] + len(body)] = body
-            store.put(index, bytes(whole))
+        if body is not None and len(body) != store.size:
+            raise ValueError(f"incomplete CT brick {index}: {len(body)} of {store.size} bytes")
+        store.put(index, body)
+        complete[index] = True
 
-    items = [
-        (tuple(i), "/".join(map(str, i)), (int(f) * plane, (int(t) + 1) * plane - 1))
-        for i, f, t in zip(indices.tolist(), first, last)
-    ]
+    items = [(tuple(i), "/".join(map(str, i))) for i in indices.tolist()]
     failures = sampler.fetched_all(url, items, deliver)
     store.save()
+    part = complete_path.with_suffix(".part.npy")
+    np.save(part, complete)
+    part.replace(complete_path)
     if failures:
         raise SystemExit(f"{len(failures)} CT bricks failed")
     print(scroll, spot_id, "CT bricks fetched", len(items), flush=True)
@@ -481,7 +479,3 @@ def render_all(spot, sheet, records):
         np.save(part, stack)
         part.rename(out)
         print(spot["spot_id"], surface, name, "rendered", stack.shape, flush=True)
-
-
-def clear_ct(spot_id):
-    shutil.rmtree(work_of(spot_id) / "ct", ignore_errors=True)

@@ -7,7 +7,6 @@ import numpy as np
 from runner import stage_queue
 from storage.data_roots import stage_folder
 from unwrapping.level import kernel_bindings as kb
-from unwrapping.level.piece_flattening import UNIT_NEEDS
 from unwrapping.level.piece_joiner import seam_field
 
 UNITS = 64
@@ -147,7 +146,7 @@ def solve(scan, method, same_output=()):
     """A scan's frame, once all its units are done."""
     chunks = sorted(stage_folder(scan, "nodes").glob("rows-*"))
     units = [scan / "pieces" / c.name for c in chunks]
-    if len(units) < 2 or not all(stage_queue.done(u, method, same_output, UNIT_NEEDS) for u in units):
+    if len(units) < 2 or not all(stage_queue.done(u, method, same_output) for u in units):
         return None
     out = scan / "pieces" / "frame"
     digest = stage_queue.method_of(Path(__file__), *[u / stage_queue.RECORD for u in units])

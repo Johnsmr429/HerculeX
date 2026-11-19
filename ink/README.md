@@ -19,6 +19,6 @@ feeds a 2D residual U-Net. HerculeX doesn't include model weights. Fetch Reader 
 ./run.sh ink.model.weights status    # show where each checkpoint is and whether it's in place
 ```
 
-The checkpoint goes to the library's `weights/pretrained/reader_v3/`. HerculeX compiles the Neural Engine build on
-first use and keeps it in `weights/engine/`. To read with another checkpoint of the same network, set
-`HERCULEX_WEIGHTS` to its path.
+The checkpoint goes to the library's `weights/ink/reader-v3/`. On the apple lane, HerculeX compiles the Neural Engine
+build on first use and keeps it in `weights/engine/`. To read with another ink model, set `HERCULEX_INK_MODEL` to its
+name; `./run.sh ink.model.models` lists them.

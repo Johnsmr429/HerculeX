@@ -1,0 +1,20 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 120
+SortIncludes: Never
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true
+---
+Language: ObjC
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 120
+SortIncludes: Never
+AllowShortBlocksOnASingleLine: Always
+AllowShortCaseLabelsOnASingleLine: true
+AllowShortFunctionsOnASingleLine: All
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
+AllowShortLoopsOnASingleLine: true

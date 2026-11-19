@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from runner import job_board, stage_queue
+from runner.lane import CUDA
 
 HERE = Path(__file__).resolve().parent.parent
 
@@ -286,6 +287,25 @@ def test_swap_stops_the_lowest_priority_and_never_the_top_job(monkeypatch):
     assert stopped == []
 
 
+def test_swap_among_equal_priorities_stops_the_job_furthest_over_its_reservation(monkeypatch):
+    stopped = []
+    monkeypatch.setattr(job_board, "stop", lambda database, job, again, why: stopped.append((job["name"], why)))
+    seen = {"honest": 3.0, "greedy": 43.6, "fixed": 30.0, "slight": 6.5}
+    monkeypatch.setattr(job_board, "footprint_of", lambda job: seen[job["name"]])
+    jobs = [
+        waiting_job(name="honest", memory_gb=3.0, state="running", restartable=1, adopted=0, peak_gb=3.0),
+        waiting_job(name="greedy", memory_gb=6.0, state="running", restartable=1, adopted=0, peak_gb=43.6),
+        waiting_job(name="fixed", memory_gb=2.0, state="running", restartable=0, adopted=0, peak_gb=30.0),
+        waiting_job(name="slight", memory_gb=6.0, state="running", restartable=1, adopted=0, peak_gb=6.5),
+    ]
+    full = {"swap_gb": job_board.SWAP_STOP_GB + 1}
+    job_board.relieve(None, jobs, full)
+    assert [name for name, _ in stopped] == ["greedy"] and "43.6 GB over its 6 GB" in stopped[0][1]
+    stopped.clear()
+    job_board.relieve(None, [jobs[0], jobs[2], jobs[3]], full)
+    assert stopped == []
+
+
 def test_a_job_that_must_try_later_frees_its_slot_and_returns(board):
     marker = board / "tries"
     code = (
@@ -471,10 +491,56 @@ def clients_text(display, compute):
     )
 
 
+@pytest.mark.apple
 def test_the_screen_drawing_is_not_someone_elses_gpu_work(monkeypatch):
+    from runner.machine_apple import probes
+
     texts = iter([clients_text(0, 0), clients_text(4_000_000_000, 500_000_000)])
     clock = iter([100.0, 110.0])
-    monkeypatch.setattr(job_board, "text_of", lambda *command: next(texts))
-    monkeypatch.setattr(job_board, "_gpu_seen", {})
-    monkeypatch.setattr(job_board, "time", types.SimpleNamespace(time=lambda: next(clock), sleep=lambda seconds: None))
-    assert job_board.gpu_of_others(60) == 5
+    monkeypatch.setattr(probes, "text_of", lambda *command: next(texts))
+    monkeypatch.setattr(probes, "_gpu_seen", {})
+    monkeypatch.setattr(probes, "time", types.SimpleNamespace(time=lambda: next(clock), sleep=lambda seconds: None))
+    assert probes.gpu_of_others(60) == 5
+
+
+def test_the_sampler_measures_cpu_network_and_discs(monkeypatch):
+    monkeypatch.setattr(job_board, "_counted", {})
+    assert set(job_board.rates().values()) == {None}
+    time.sleep(0.2)
+    second = job_board.rates()
+    assert 0 <= second["cpu_pct"] <= 100 and second["net_mb_s"] >= 0
+    assert second["internal_mb_s"] is None if CUDA else second["internal_mb_s"] >= 0
+
+
+def test_cores_in_use_follow_the_processes_cpu_ticks(monkeypatch):
+    clock = iter([100.0, 102.0, 104.0, 106.0])
+    monkeypatch.setattr(job_board.time, "time", lambda: next(clock))
+    second = round(1e9 / job_board.TICK_NS)
+    ticks, usage = {}, lambda user, system: [0, 0, user, system]
+    cores, looked = job_board.cores_in_use({1: usage(0, 0)}, ticks, 0.0, 99.0)
+    assert cores == 0.0 and looked == 100.0
+    cores, looked = job_board.cores_in_use({1: usage(4 * second, 0), 2: usage(0, 2 * second)}, ticks, cores, looked)
+    assert cores == pytest.approx(job_board.CORES_SMOOTHING * 3.0)
+    cores, looked = job_board.cores_in_use({1: usage(4 * second, 0)}, ticks, cores, looked)
+    assert cores == pytest.approx((1 - job_board.CORES_SMOOTHING) * job_board.CORES_SMOOTHING * 3.0)
+    back, _ = job_board.cores_in_use({1: usage(4 * second, 0), 2: usage(2 * second, 0)}, ticks, cores, looked)
+    assert back == pytest.approx((1 - job_board.CORES_SMOOTHING) * cores)
+    monkeypatch.undo()
+    state = {"gpu": 0, "swap_gb": 1.0}
+    busy = waiting_job(name="busy", cores=0.5, cores_used=2.0, state="running")
+    assert "cores" in job_board.blocked(waiting_job(cores=8.5), [busy], state, 5.0)
+    assert job_board.blocked(waiting_job(cores=8.5), [busy | {"cores_used": 0.0}], state, 5.0) is None
+
+
+def test_a_busy_job_is_seen_using_cores(board):
+    spin = "import time\nend = time.time() + 10\nwhile time.time() < end: pass\n"
+    board_run(board, "add", "busy", "--memory", "0.1", "--cores", "0.1", "--", sys.executable, "-c", spin)
+    assert until(lambda: row(board, "busy")["cores_used"] > 0.2, 25)
+
+
+def test_usage_reports_hours_by_owner(board):
+    board_run(board, "add", "qol-sleep", "--owner", "qol", "--memory", "0.1", "--", "sleep", "0.3")
+    assert until(lambda: row(board, "qol-sleep")["state"] == "done")
+    board_run(board, "change", "qol-sleep", "--owner", "ml")
+    report = board_run(board, "usage").stdout
+    assert "ml" in report and "cores" in report and "share" not in report

@@ -1,6 +1,8 @@
 """What the level solve starts from: a field's sheet edges, normals turned to agree along them, and patches merged
 into quick pieces over the sheet graph."""
 
+import os
+
 import numpy as np
 
 from unwrapping.level.piece_kernel_bindings import library
@@ -58,6 +60,9 @@ def turn_to_sheets(nodes, loose):
 
 RAY_SURE = 0.75
 RAY_RIM = 0.45
+RAY_MODEL = 0
+RAY_MODEL_SCALE = 1.0
+RAY_MODEL_FILE = os.environ.get("HERCULEX_RAY_MODEL", "")
 
 
 def ray_weights(nodes, pairs, quality, rim=RAY_RIM):
@@ -66,6 +71,58 @@ def ray_weights(nodes, pairs, quality, rim=RAY_RIM):
     gap = float(np.median(length[length > 0.6 * np.median(length)]))
     sure = np.clip((length / gap - rim) / (RAY_SURE - rim), 0, 1)
     return (sure * np.minimum(quality[pairs["a"]], quality[pairs["b"]])).astype(np.float32)
+
+
+def ray_features(nodes, pairs, degree):
+    """Each ray's features for the ray model, from its two nodes and their sheet edges."""
+    a, b = pairs["a"], pairs["b"]
+    xyz = [nodes[c].astype(np.float64) for c in "xyz"]
+    d = np.stack([xyz[k][b] - xyz[k][a] for k in range(3)], axis=1)
+    n = np.stack([nodes[c].astype(np.float64) for c in ("nx", "ny", "nz")], axis=1)
+    n /= np.maximum(np.linalg.norm(n, axis=1, keepdims=True), 1e-9)
+    length = np.linalg.norm(d, axis=1)
+    gap = float(np.median(length[length > 0.6 * np.median(length)]))
+    along = (d * n[a]).sum(axis=1)
+    return {
+        "log_length_over_gap": np.log(np.maximum(length / gap, 1e-3)),
+        "degree_min": np.minimum(degree[a], degree[b]).astype(np.float64),
+        "normal_dot": np.abs((n[a] * n[b]).sum(axis=1)),
+        "coherence_min": np.minimum(nodes["coherence"][a], nodes["coherence"][b]) / 255.0,
+        "prominence_a": nodes["prominence"][a] / 2.0,
+        "prominence_b": nodes["prominence"][b] / 2.0,
+        "lateral": np.sqrt(np.maximum(length**2 - along**2, 0)),
+        "width_a": nodes["width"][a] / 4.0,
+        "width_b": nodes["width"][b] / 4.0,
+    }
+
+
+def logistic(features, model, prefix):
+    """A fitted logistic model's probability for every ray."""
+    names = [str(n) for n in model[f"{prefix}_names"]]
+    z = np.full(len(next(iter(features.values()))), float(model[f"{prefix}_intercept"]))
+    for name, mean, scale, weight in zip(
+        names, model[f"{prefix}_mean"], model[f"{prefix}_scale"], model[f"{prefix}_weights"], strict=True
+    ):
+        z += weight * (features[name] - mean) / scale
+    return 1.0 / (1.0 + np.exp(-z))
+
+
+def ray_costs(nodes, pairs, quality, edges):
+    """Each ray's cost of meeting its own sheet again (its weight) and of skipping sheets (its up cost): the ray model's
+    odds against each, times the ray's quality."""
+    model = np.load(RAY_MODEL_FILE)
+    degree = np.bincount(edges["a"], minlength=len(nodes)) + np.bincount(edges["b"], minlength=len(nodes))
+    features = ray_features(nodes, pairs, degree)
+    same, skip = logistic(features, model, "same"), logistic(features, model, "skip")
+    q = RAY_MODEL_SCALE * np.minimum(quality[pairs["a"]], quality[pairs["b"]])
+    return ((1 - same) * q).astype(np.float32), ((1 - skip) * q).astype(np.float32)
+
+
+def field_rays(nodes, pairs, quality, edges, rim):
+    """Rays' weights and skip costs (None: hidden times the weight) for a solve."""
+    if RAY_MODEL:
+        return ray_costs(nodes, pairs, quality, edges)
+    return ray_weights(nodes, pairs, quality, rim), None
 
 
 PATCH_VOXELS = 24

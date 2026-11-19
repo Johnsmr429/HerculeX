@@ -4,6 +4,7 @@ import json
 import os
 import shutil
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
 from http.client import HTTPException
@@ -12,20 +13,18 @@ from urllib.request import urlopen
 
 import numpy as np
 
-from runner import stage_queue
+from runner import events, stage_queue
 from scans.catalog.scan_catalog import load, survey_volumes
 from scans.catalog.scan_choice import chosen_scans, sheet_level
 from scans.transfer.fetch_volume import fetch_level
 from storage.brick_store import UNKNOWN, BrickStore
-from storage.data_roots import NODE_ROUTE, RAW_SCANS, UNWRAP_OUTPUTS, scan_folder, stage_folder
+from storage.data_roots import DETECTION_WORK, NODE_ROUTE, RAW_SCANS, scan_folder, stage_folder
 from storage.node_store import pack_chunk
 from unwrapping.detection import cpu_nodes, gpu_nodes
 from unwrapping.detection.kernel_bindings import CELL, GPU_SOURCES
 
 HERE = Path(__file__).parent
-METHOD = stage_queue.method_of(
-    *(HERE / source for source in GPU_SOURCES), HERE / "gpu_nodes.py", HERE / "kernel_bindings.py"
-)
+METHOD = stage_queue.method_of(*GPU_SOURCES, HERE / "gpu_nodes.py", HERE / "kernel_bindings.py")
 SAME_OUTPUT = (HERE / "same_output_methods.txt").read_text().split()
 # brick rows a unit solves in one piece; fewer need less memory, and a scan keeps the number its units were cut to
 CHUNK_ROWS = int(os.environ.get("HERCULEX_UNIT_ROWS", "12"))
@@ -141,21 +140,51 @@ def jobs(samples, band, volume=None):
 
 def work_folder(job):
     row, level, (first, last) = job["row"], job["level"], job["rows"]
-    return UNWRAP_OUTPUTS / "sheet_detector_work" / row["sample"] / row["volume"] / f"L{level}-{first:04d}-{last:04d}"
+    return DETECTION_WORK / row["sample"] / row["volume"] / f"L{level}-{first:04d}-{last:04d}"
 
 
-def fetch_chunk(job):
-    """A brick store resumes, so a restart keeps the bricks a killed run already fetched."""
-    row, (first, last) = job["row"], job["rows"]
-    store = fetch_level(
-        row["products"]["ome-zarr"],
+def carry_shared_row(job, previous):
+    """Copy into a chunk's store the brick row it shares with the chunk before it, whose store already holds it, so
+    the row is fetched once; returns the bricks carried."""
+    same_scan = previous and (previous["row"]["sample"], previous["row"]["volume"], previous["level"]) == (
+        job["row"]["sample"],
+        job["row"]["volume"],
         job["level"],
-        work_folder(job),
-        connections=CONNECTIONS,
-        root=row["roots"]["ome-zarr"],
-        z_bricks=(first, last),
-        list_bricks=os.environ.get("HERCULEX_LIST_CT_BRICKS") == "1",
     )
+    if not same_scan or previous["rows"][1] - 1 != job["rows"][0] or not (work_folder(previous) / "meta.json").exists():
+        return 0
+    source, z = BrickStore(work_folder(previous)), job["rows"][0]
+    if (source.offsets[z] == UNKNOWN).any():
+        return 0
+    target = BrickStore(work_folder(job), source.shape, source.brick, source=source.source)
+    carried = 0
+    for y, x in np.argwhere(target.offsets[z] == UNKNOWN):
+        brick = source.read_brick((z, y, x))
+        target.put((z, y, x), None if brick is None else brick.tobytes())
+        carried += brick is not None
+    target.save()
+    return carried
+
+
+def fetch_chunk(job, previous=None, carried=None):
+    """A brick store resumes, so a restart keeps the bricks a killed run already fetched. The row shared with the
+    chunk before is copied from its store first; `carried` is set once that store is no longer needed."""
+    row, (first, last) = job["row"], job["rows"]
+    try:
+        carry_shared_row(job, previous)
+    finally:
+        if carried is not None:
+            carried.set()
+    with events.span("fetch", rows=f"{first:04d}-{last:04d}"):
+        store = fetch_level(
+            row["products"]["ome-zarr"],
+            job["level"],
+            work_folder(job),
+            connections=CONNECTIONS,
+            root=row["roots"]["ome-zarr"],
+            z_bricks=(first, last),
+            list_bricks=os.environ.get("HERCULEX_LIST_CT_BRICKS") == "1",
+        )
     unknown = int((store.offsets[first:last] == UNKNOWN).sum())
     if unknown:
         raise OSError(f"{unknown} bricks still unknown")
@@ -212,9 +241,21 @@ def detect_chunk(job, fetched):
     except (OSError, ValueError, RuntimeError, HTTPException) as error:
         print("failed", row["sample"], job["rows"], str(error)[:160], flush=True)
         return 1
-    shutil.rmtree(work_folder(job), ignore_errors=True)
     print(row["sample"], job["out"].name, record["nodes"], "nodes", record["seconds"], "s", flush=True)
     return 0
+
+
+def detect_and_clear(job, fetched, carried=None):
+    """Detect a fetched chunk, then remove its store once the next chunk has taken the row they share."""
+    with events.span("wait-fetch", rows="{:04d}-{:04d}".format(*job["rows"])):
+        fetched.exception()
+    with events.span("detect", rows="{:04d}-{:04d}".format(*job["rows"])):
+        failed = detect_chunk(job, fetched)
+    if carried is not None:
+        carried.wait()
+    if not failed:
+        shutil.rmtree(work_folder(job), ignore_errors=True)
+    return failed
 
 
 def one_pass(samples, band, volume=None):
@@ -225,19 +266,20 @@ def one_pass(samples, band, volume=None):
             if shutil.disk_usage(NODE_ROUTE).free / 2**30 < FLOOR_GIB:
                 print("stopped: under", FLOOR_GIB, "GiB free on the data disc", flush=True)
                 if pending:
-                    detect_chunk(*pending)
+                    detect_and_clear(*pending)
                 sys.exit(NO_ROOM)
-            following = (job, fetcher.submit(fetch_chunk, job))
+            carried = threading.Event()
+            following = (job, fetcher.submit(fetch_chunk, job, pending[0] if pending else None, carried))
             if pending:
-                failed += detect_chunk(*pending)
+                failed += detect_and_clear(*pending, carried)
             pending = following
         if pending:
-            failed += detect_chunk(*pending)
+            failed += detect_and_clear(*pending)
     return failed
 
 
 def run(samples=(), band=False, *, volume=None):
-    gpu_nodes.gpu_library()  # Metal on a Mac, CUDA elsewhere: without it the stage stops before fetching any chunk
+    gpu_nodes.gpu_library()
     with stage_queue.stage_lock(NODE_ROUTE / "sheet-detector.lock"):
         for _ in range(PASSES):
             if not (failed := one_pass(set(samples), band, volume)):

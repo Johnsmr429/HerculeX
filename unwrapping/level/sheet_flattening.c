@@ -6,16 +6,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-typedef struct { float x, y, z; int8_t nx, ny, nz; uint8_t prominence, width, coherence; uint16_t pad; } SheetNode;
-typedef struct { double x, y, z; } V;
+typedef struct {
+    float x, y, z;
+    int8_t nx, ny, nz;
+    uint8_t prominence, width, coherence;
+    uint16_t pad;
+} SheetNode;
+typedef struct {
+    double x, y, z;
+} V;
 
-static inline V v_of(double x, double y, double z) { V v = {x, y, z}; return v; }
+static inline V v_of(double x, double y, double z) {
+    V v = {x, y, z};
+    return v;
+}
 static inline double dot(V a, V b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
 static inline V cross(V a, V b) { return v_of(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x); }
 static inline V plus(V a, V b, double k) { return v_of(a.x + k * b.x, a.y + k * b.y, a.z + k * b.z); }
-static inline V unit_of(V a) { double l = sqrt(dot(a, a)) + 1e-12; return v_of(a.x / l, a.y / l, a.z / l); }
+static inline V unit_of(V a) {
+    double l = sqrt(dot(a, a)) + 1e-12;
+    return v_of(a.x / l, a.y / l, a.z / l);
+}
 
-static inline V normal_of(const SheetNode *n, int s) { return unit_of(v_of((double)s * n->nx, (double)s * n->ny, (double)s * n->nz)); }
+static inline V normal_of(const SheetNode *n, int s) {
+    return unit_of(v_of((double)s * n->nx, (double)s * n->ny, (double)s * n->nz));
+}
 
 static inline V carried(V e, V a, V b) {
     double along = dot(b, e) / (1.0 + dot(a, b) + 1e-9);
@@ -33,7 +48,8 @@ typedef struct {
 
 static void solve(const Net *g, const double *diag, const double *b, double *x, int steps, double tolerance) {
     int64_t n = g->n;
-    double *r = malloc(sizeof(double) * (size_t)(n + 1)), *d = malloc(sizeof(double) * (size_t)(n + 1)), *q = malloc(sizeof(double) * (size_t)(n + 1)), *m = malloc(sizeof(double) * (size_t)(n + 1));
+    double *r = malloc(sizeof(double) * (size_t)(n + 1)), *d = malloc(sizeof(double) * (size_t)(n + 1)),
+           *q = malloc(sizeof(double) * (size_t)(n + 1)), *m = malloc(sizeof(double) * (size_t)(n + 1));
     double rz = 0, scale = 1e-12;
     for (int64_t i = 0; i < n; i++) {
         double degree = (double)(g->first[i + 1] - g->first[i]) + (diag ? diag[i] : 0.0);
@@ -65,15 +81,38 @@ static void solve(const Net *g, const double *diag, const double *b, double *x, 
         for (int64_t i = 0; i < n; i++) d[i] = m[i] * r[i] + beta * d[i];
         rz = fresh;
     }
-    free(r); free(d); free(q); free(m);
+    free(r);
+    free(d);
+    free(q);
+    free(m);
 }
 
-static void flatten_piece(const SheetNode *nodes, const int32_t *members, int64_t n, const int32_t *ea, const int32_t *eb, int64_t m, int32_t *local, int8_t *sign, float *out_u, float *out_v,
+typedef struct {
+    const Net *net;
+    const double *b;
+    double *x;
+    int steps;
+    double tolerance;
+} Solve;
+
+static void *solve_on(void *argument) {
+    Solve *s = argument;
+    solve(s->net, NULL, s->b, s->x, s->steps, s->tolerance);
+    return NULL;
+}
+
+enum { SPLIT_NODES = 20000 };
+
+static void flatten_piece(const SheetNode *nodes, const int32_t *members, int64_t n, const int32_t *ea,
+                          const int32_t *eb, int64_t m, int32_t *local, int8_t *sign, float *out_u, float *out_v,
                           int steps, double tolerance, double held) {
     for (int64_t i = 0; i < n; i++) local[members[i]] = (int32_t)i;
     int64_t *first = calloc((size_t)n + 2, sizeof(int64_t));
     int32_t *to = malloc(sizeof(int32_t) * (2 * (size_t)m + 1));
-    for (int64_t e = 0; e < m; e++) { first[local[ea[e]] + 1]++; first[local[eb[e]] + 1]++; }
+    for (int64_t e = 0; e < m; e++) {
+        first[local[ea[e]] + 1]++;
+        first[local[eb[e]] + 1]++;
+    }
     for (int64_t i = 0; i < n; i++) first[i + 1] += first[i];
     int64_t *cursor = malloc(sizeof(int64_t) * ((size_t)n + 1));
     memcpy(cursor, first, sizeof(int64_t) * ((size_t)n + 1));
@@ -110,7 +149,8 @@ static void flatten_piece(const SheetNode *nodes, const int32_t *members, int64_
             }
         }
     }
-    double *angle = calloc((size_t)n + 1, sizeof(double)), *b = calloc((size_t)n + 1, sizeof(double)), *weight = calloc((size_t)n + 1, sizeof(double));
+    double *angle = calloc((size_t)n + 1, sizeof(double)), *b = calloc((size_t)n + 1, sizeof(double)),
+           *weight = calloc((size_t)n + 1, sizeof(double));
     for (int round = 0; round < 2; round++) {
         memset(b, 0, sizeof(double) * (size_t)n);
         for (int64_t e = 0; e < m; e++) {
@@ -139,7 +179,8 @@ static void flatten_piece(const SheetNode *nodes, const int32_t *members, int64_
             frame[i] = unit_of(plus(f, normal[i], -dot(f, normal[i])));
         }
     }
-    double *u = calloc((size_t)n + 1, sizeof(double)), *v = calloc((size_t)n + 1, sizeof(double)), *bu = calloc((size_t)n + 1, sizeof(double)), *bv = calloc((size_t)n + 1, sizeof(double));
+    double *u = calloc((size_t)n + 1, sizeof(double)), *v = calloc((size_t)n + 1, sizeof(double)),
+           *bu = calloc((size_t)n + 1, sizeof(double)), *bv = calloc((size_t)n + 1, sizeof(double));
     uint8_t *seen = calloc((size_t)n + 1, 1);
     for (int64_t start = 0; start < n; start++) {
         if (seen[start]) continue;
@@ -154,7 +195,8 @@ static void flatten_piece(const SheetNode *nodes, const int32_t *members, int64_
                 int32_t j = to[e];
                 if (seen[j]) continue;
                 const SheetNode *q = &nodes[members[j]];
-                V d = v_of(q->x - p->x, q->y - p->y, q->z - p->z), a = unit_of(plus(frame[i], frame[j], 1.0)), c = unit_of(plus(cross(normal[i], frame[i]), cross(normal[j], frame[j]), 1.0));
+                V d = v_of(q->x - p->x, q->y - p->y, q->z - p->z), a = unit_of(plus(frame[i], frame[j], 1.0)),
+                  c = unit_of(plus(cross(normal[i], frame[i]), cross(normal[j], frame[j]), 1.0));
                 u[j] = u[i] + dot(d, a);
                 v[j] = v[i] + dot(d, c);
                 seen[j] = 1;
@@ -165,19 +207,39 @@ static void flatten_piece(const SheetNode *nodes, const int32_t *members, int64_
     for (int64_t e = 0; e < m; e++) {
         int32_t i = local[ea[e]], j = local[eb[e]];
         const SheetNode *p = &nodes[ea[e]], *q = &nodes[eb[e]];
-        V d = v_of(q->x - p->x, q->y - p->y, q->z - p->z), a = unit_of(plus(frame[i], frame[j], 1.0)), c = unit_of(plus(cross(normal[i], frame[i]), cross(normal[j], frame[j]), 1.0));
+        V d = v_of(q->x - p->x, q->y - p->y, q->z - p->z), a = unit_of(plus(frame[i], frame[j], 1.0)),
+          c = unit_of(plus(cross(normal[i], frame[i]), cross(normal[j], frame[j]), 1.0));
         double du = dot(d, a), dv = dot(d, c);
-        bu[j] += du; bu[i] -= du;
-        bv[j] += dv; bv[i] -= dv;
+        bu[j] += du;
+        bu[i] -= du;
+        bv[j] += dv;
+        bv[i] -= dv;
     }
+    Solve along_v = {&net, bv, v, steps, tolerance};
+    pthread_t second;
+    int split = n >= SPLIT_NODES && pthread_create(&second, NULL, solve_on, &along_v) == 0;
     solve(&net, NULL, bu, u, steps, tolerance);
-    solve(&net, NULL, bv, v, steps, tolerance);
+    if (split) pthread_join(second, NULL);
+    else solve(&net, NULL, bv, v, steps, tolerance);
     for (int64_t i = 0; i < n; i++) {
         sign[members[i]] = s[i];
         out_u[members[i]] = (float)u[i];
         out_v[members[i]] = (float)v[i];
     }
-    free(first); free(to); free(s); free(queue); free(normal); free(frame); free(angle); free(b); free(weight); free(u); free(v); free(bu); free(bv); free(seen);
+    free(first);
+    free(to);
+    free(s);
+    free(queue);
+    free(normal);
+    free(frame);
+    free(angle);
+    free(b);
+    free(weight);
+    free(u);
+    free(v);
+    free(bu);
+    free(bv);
+    free(seen);
 }
 
 typedef struct {
@@ -196,12 +258,14 @@ static void *worker(void *argument) {
     for (;;) {
         int32_t p = __atomic_fetch_add(&j->next, 1, __ATOMIC_RELAXED);
         if (p >= j->pieces) return NULL;
-        flatten_piece(j->nodes, j->order + j->piece_first[p], j->piece_first[p + 1] - j->piece_first[p], j->ea + j->edge_first[p], j->eb + j->edge_first[p], j->edge_first[p + 1] - j->edge_first[p],
+        flatten_piece(j->nodes, j->order + j->piece_first[p], j->piece_first[p + 1] - j->piece_first[p],
+                      j->ea + j->edge_first[p], j->eb + j->edge_first[p], j->edge_first[p + 1] - j->edge_first[p],
                       j->local, j->sign, j->u, j->v, j->steps, j->tolerance, j->held);
     }
 }
 
-void hx_level_flatten(const SheetNode *nodes, const int32_t *order, const int64_t *piece_first, int32_t pieces, const int32_t *ea, const int32_t *eb, const int64_t *edge_first, int32_t *local, int8_t *sign,
+void hx_level_flatten(const SheetNode *nodes, const int32_t *order, const int64_t *piece_first, int32_t pieces,
+                      const int32_t *ea, const int32_t *eb, const int64_t *edge_first, int32_t *local, int8_t *sign,
                       float *u, float *v, int32_t steps, double tolerance, double held, int32_t threads) {
     Job job = {nodes, order, ea, eb, piece_first, edge_first, local, sign, u, v, pieces, steps, 0, tolerance, held};
     pthread_t pool[64];

@@ -5,9 +5,11 @@ from pathlib import Path
 
 import numpy as np
 
-from runner.compiled_kernels import load
+from runner.compiled_kernels import C_FLAGS, load
+from runner.lane import LANE
 
 HERE = Path(__file__).parent
+THREADS = HERE / f"threads_{LANE}"
 EDGE = np.dtype([("a", "<i4"), ("b", "<i4"), ("weight", "<f4"), ("step", "<i4")])
 PAIR = np.dtype([("a", "<i4"), ("b", "<i4"), ("rank", "<i4")])
 _TYPES = {}
@@ -21,7 +23,8 @@ def library():
             HERE / "network_simplex.c",
             HERE / "patch_agglomeration.c",
         ],
-        headers=[HERE / "parallel_blocks.h"],
+        (*C_FLAGS, f"-I{THREADS}"),
+        headers=[THREADS / "parallel_blocks.h"],
     )
     if id(lib) in _TYPES:
         return lib

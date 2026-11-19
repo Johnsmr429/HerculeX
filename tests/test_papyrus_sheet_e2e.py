@@ -252,21 +252,21 @@ def test_full_pipeline_stops_the_other_stages_when_one_fails(tmp_path, monkeypat
     monkeypatch.setattr(pipeline, "ROUTE_OUTPUTS", tmp_path)
     monkeypatch.setattr(pipeline.subprocess, "Popen", start)
     assert pipeline.run_all(["PHerc0000"], band=True) == 7
-    assert children["sheets"].returncode < 0 and children["sheet"].returncode < 0
+    assert all(children[stage].returncode < 0 for stage in ("sheets", "sheet", "fetch"))
 
 
 def test_every_scan_is_laid_out_read_and_published_and_a_second_pass_only_republishes(tmp_path, monkeypatch):
     from runner import review_page
 
     base = tmp_path / "survey" / "PHerc0000" / "1"
-    faces = base / "papyrus-faces" / "level-0" / "rows-0"
+    faces = base / "faces" / "level-0" / "rows-0"
     for folder in (
         base / "pieces" / "rows-0",
         base / "pieces" / "rows-1",
         base / "pieces" / "joints",
         base / "pieces" / "frame",
-        base / "sheet-nodes" / "rows-0",
-        base / "sheet-nodes" / "rows-1",
+        base / "nodes" / "rows-0",
+        base / "nodes" / "rows-1",
         faces,
     ):
         folder.mkdir(parents=True)
@@ -280,8 +280,8 @@ def test_every_scan_is_laid_out_read_and_published_and_a_second_pass_only_republ
     def run_step(module, *arguments, **settings):
         calls.append(module.rsplit(".", 1)[1])
         if module.endswith("scroll_layout"):
-            (base / "papyrus-sheet").mkdir(exist_ok=True)
-            (base / "papyrus-sheet" / "layout.json").write_text(json.dumps({"pieces": pieces}))
+            (base / "sheet").mkdir(exist_ok=True)
+            (base / "sheet" / "layout.json").write_text(json.dumps({"pieces": pieces}))
         return Finished()
 
     monkeypatch.setattr(sheet_stage, "ROUTE_OUTPUTS", tmp_path / "survey")
@@ -304,7 +304,7 @@ def test_level_publication_waits_for_and_uses_the_exact_frame(tmp_path, monkeypa
     base = tmp_path / sample / volume
     monkeypatch.setattr(sheet_stage, "ROUTE_OUTPUTS", tmp_path)
     for name in ("rows-0", "rows-1"):
-        (base / "sheet-nodes" / name).mkdir(parents=True)
+        (base / "nodes" / name).mkdir(parents=True)
         unit = base / "pieces" / name
         unit.mkdir(parents=True)
         (unit / "record.json").write_text("{}")
@@ -320,7 +320,7 @@ def test_level_publication_waits_for_and_uses_the_exact_frame(tmp_path, monkeypa
     os.utime(frame / "record.json", (30, 30))
     assert list(sheet_stage.ready({sample})) == [(sample, volume)]
 
-    out = base / "papyrus-sheet"
+    out = base / "sheet"
     out.mkdir()
     (out / "layout.json").write_text('{"pieces": []}')
     os.utime(out / "layout.json", (20, 20))
@@ -344,10 +344,10 @@ def asked(port, path, body=None, kind="application/json"):
 
 
 def test_marks_are_kept_through_a_restart_and_only_marks_are_accepted(tmp_path, monkeypatch):
-    sheet = tmp_path / "PHerc0000" / "1" / "papyrus-sheet"
+    sheet = tmp_path / "PHerc0000" / "1" / "sheet"
     sheet.mkdir(parents=True)
     (sheet / "layout.json").write_text(json.dumps({"pieces": []}))
-    monkeypatch.setattr(site_server, "GROWN_ROUTE", tmp_path)
+    monkeypatch.setattr(site_server, "LEVEL_ROUTE", tmp_path)
     monkeypatch.setattr(site_server, "HAND_MARKS", tmp_path / "hand_marks")
 
     def running():
@@ -357,7 +357,7 @@ def test_marks_are_kept_through_a_restart_and_only_marks_are_accepted(tmp_path, 
 
     server, port = running()
     stroke = {
-        "scan": "PHerc0000/1",
+        "scan": "level/PHerc0000/1",
         "kind": "ink",
         "width_mm": 0.4,
         "layer": "ink",
@@ -365,17 +365,17 @@ def test_marks_are_kept_through_a_restart_and_only_marks_are_accepted(tmp_path, 
     }
     first = asked(port, "/marks", stroke)
     second = asked(port, "/marks", stroke | {"kind": "blank"})
-    asked(port, "/marks", {"scan": "PHerc0000/1", "remove": first["id"]})
+    asked(port, "/marks", {"scan": "level/PHerc0000/1", "remove": first["id"]})
     server.shutdown()
     server, port = running()
-    kept = asked(port, "/marks?scan=PHerc0000/1")
+    kept = asked(port, "/marks?scan=level/PHerc0000/1")
     assert (
         [k["id"] for k in kept] == [second["id"]]
         and kept[0]["points"] == stroke["points"]
         and kept[0]["kind"] == "blank"
     )
     assert (
-        tmp_path / "hand_marks" / "grown_route" / "PHerc0000" / "1" / "layouts" / f"{kept[0]['layout']}.json"
+        tmp_path / "hand_marks" / "level_route" / "PHerc0000" / "1" / "layouts" / f"{kept[0]['layout']}.json"
     ).exists()
     for body, kind in (
         (stroke, "text/plain"),

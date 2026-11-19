@@ -49,6 +49,8 @@ def seam_joints(units, k, pieces_of, chunks, blocks_of):
         chunks[k : k + 2], seam, [boundary_labels(units[k]), boundary_labels(units[k + 1])]
     )
     joins = joins_of(piece, side, edges, pairs, certainty)
+    if not joins:
+        return []
     a, b = edges["a"], edges["b"]
     across = (side[a] != side[b]) & (piece[a] >= 0) & (piece[b] >= 0)
     lower, upper = np.where(side[a] == 0, a, b)[across], np.where(side[a] == 0, b, a)[across]

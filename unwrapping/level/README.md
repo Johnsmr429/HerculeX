@@ -17,8 +17,8 @@ everything made after them, to `unwrapping/level/` in the outputs folder.
 | `scroll_frame.py` | Fits one frame for a whole scan. |
 | `scroll_layout.py` | Places every piece on one sheet by that frame. |
 | `kernel_bindings.py`, `piece_kernel_bindings.py`, `piece_kernels.c` | Declare the ctypes signatures of the C kernels, and provide the piece kernels. |
-| `parallel_blocks.h` | Gives the C kernels one loop whose rounds run at once: `dispatch_apply` on macOS, OpenMP elsewhere. |
-| `same_output_methods.txt` | Lists earlier code digests that are proven to give the same pieces. |
+| `threads_apple/parallel_blocks.h`, `threads_cuda/parallel_blocks.h` | Give the C kernels one loop whose rounds run at once: `dispatch_apply` on the apple lane, an OpenMP loop on the cuda lane. |
+| `same_output_methods.txt` | Lists earlier code digests that are proven to give the same pieces as today's code. Empty it when a change alters the pieces, or units made before the change count as done. |
 
 ## Commands
 
@@ -33,3 +33,26 @@ For a scan of several units, you can run `curl` first, then each unit as its own
 
 `HERCULEX_PIECE_SCRATCH` sets the folder for the sheet graph's temporary files (default
 `runtime/scratch/herculex-pieces`).
+
+## Ray costs
+
+A ray says that the sheet it meets lies one turn further out. By default its cost of a smaller step (it met its own
+sheet) is its weight, from its length against the median gap (`piece_growth.ray_weights`), and its cost of a larger
+step (it skipped sheets) is `HIDDEN` times that weight. With `piece_growth.RAY_MODEL = 1`, both costs come per ray from
+a fitted model of the odds that the ray met its own sheet and that it skipped one (`piece_growth.ray_costs`, read from
+the `.npz` file that `HERCULEX_RAY_MODEL` names). The exact solve and its reweighted draws take a per-ray skip cost
+(`kernel_bindings.term_weights` and `votes`, argument `ray_up`); without it they behave exactly as before.
+
+## Fold guard
+
+Before a piece is written, the guard lays it flat and counts the cells that hold two layers of the sheet. A piece
+with more than `SPREAD` (0.30) of its cells doubled has folded over itself. The guard doesn't refuse such a piece
+whole (`level_pieces.GUARD_CUT`, default 2). It drops from each doubled cell every node except the layer nearest the
+depth that the cell's single-layer neighbours give, the same rule writing applies to contact cells. The rest splits
+along the piece's own edges, and each part is checked again, up to `GUARD_ROUNDS` times. Only what still fails falls
+back to quick pieces. `GUARD_CUT = 1` drops whole doubled cells; `0` refuses the whole piece, as before.
+
+On PHerc1667 rows 8-20, the guard had refused 38% of the nodes, which then broke into hundreds of fragments.
+Cutting at the doubled cells lifts the area in pieces of 4 cm² from 147 to 199 cm². Written area stays the same
+(288 cm²), and rendered, the new pieces are single sheets up to 31 cm long with their fibres continuous. Scans whose
+pieces seldom fold, such as PHerc0139 (0.1% refused), are unchanged.

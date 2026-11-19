@@ -1,5 +1,7 @@
 function markWrites(scan, redraw) {
-  let queue = Promise.resolve(), pending = 0, failed = false;
+  let queue = Promise.resolve(),
+    pending = 0,
+    failed = false;
 
   function warn(event) {
     event.preventDefault();
@@ -7,16 +9,17 @@ function markWrites(scan, redraw) {
   }
 
   async function post(body) {
-    const reply = await fetch('/marks', {
-      method: 'POST', headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({scan, ...body}),
+    const reply = await fetch("/marks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ scan, ...body }),
     });
-    if (!reply.ok) throw new Error('Could not save label');
+    if (!reply.ok) throw new Error("Could not save label");
     return reply.json();
   }
 
   function enqueue(write) {
-    if (++pending === 1) addEventListener('beforeunload', warn);
+    if (++pending === 1) addEventListener("beforeunload", warn);
     redraw(true);
     queue = queue.then(async () => {
       try {
@@ -24,24 +27,26 @@ function markWrites(scan, redraw) {
       } catch (_) {
         failed = true;
       } finally {
-        if (--pending === 0) removeEventListener('beforeunload', warn);
+        if (--pending === 0) removeEventListener("beforeunload", warn);
         redraw(true);
       }
     });
   }
 
   return {
-    status: () => (pending ? ' · saving' : '') + (failed ? ' · label change not saved' : ''),
+    status: () => (pending ? " · saving" : "") + (failed ? " · label change not saved" : ""),
     add(mark, layer) {
-      const {kind, width_mm, points} = mark;
-      enqueue(async () => { mark.id = (await post({kind, width_mm, points, layer})).id; });
+      const { kind, width_mm, points } = mark;
+      enqueue(async () => {
+        mark.id = (await post({ kind, width_mm, points, layer })).id;
+      });
     },
     remove(mark, discard) {
       mark.removing = true;
       enqueue(async () => {
         try {
           // The stroke may still be waiting for its ID when Undo is pressed.
-          if (mark.id) await post({remove: mark.id});
+          if (mark.id) await post({ remove: mark.id });
           discard(mark);
         } finally {
           mark.removing = false;

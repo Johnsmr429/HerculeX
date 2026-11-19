@@ -19,15 +19,14 @@ def method_of(*sources):
     return digest.hexdigest()[:12]
 
 
-def done(folder, method=None, same_output=(), needs=()):
-    """A unit is done when its record, written last, exists and names this method, or one proven to make the same output,
-    and holds every field in `needs` (what today's method writes and an older one did not)."""
+def done(folder, method=None, same_output=()):
+    """A unit is done when its record, written last, exists and names this method, or one proven to make the same output."""
     folder = Path(folder)
     path = folder / RECORD
     if folder.name.endswith(".building") or not path.exists():
         return False
     record = json.loads(path.read_text())
-    return (method is None or record.get("method") in (method, *same_output)) and all(k in record for k in needs)
+    return method is None or record.get("method") in (method, *same_output)
 
 
 def record_of(folder):

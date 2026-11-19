@@ -1,5 +1,7 @@
 """Every piece at the scan's own voxels, one unit at a time: layer stack and scan images."""
 
+import fcntl
+import hashlib
 import json
 import multiprocessing
 import os
@@ -8,6 +10,7 @@ import sys
 import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import contextmanager
 from pathlib import Path
 
 import numpy as np
@@ -171,16 +174,48 @@ def ranges_of(store, jobs):
     return np.argwhere(chosen), first[chosen].astype(np.intp), last[chosen].astype(np.intp)
 
 
-def fetch_bricks(sample, volume, jobs, store_folder, report=sampler.keep_room):
-    """The z-planes these pieces read, each in its brick's place."""
+def unit_stamp(jobs, volume=None):
+    """Digest of what a store's planes depend on: the scan, the stack's depth, and the records of the units its pieces
+    come from. A store made for another scan, depth or build of the unit is fetched again."""
+    digest = hashlib.sha256(json.dumps([volume, sampler.LAYERS]).encode())
+    for record in sorted({Path(job[0]).parent / "record.json" for job in jobs}):
+        if record.is_file():
+            digest.update(record.read_bytes())
+    return digest.hexdigest()[:16]
+
+
+@contextmanager
+def store_lock(folder):
+    """One process fetches into a store at a time; the next waits, then finds what it needs there."""
+    path = folder.with_name(f".{folder.name}.fetching")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with open(path, "a") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        yield
+
+
+def fetch_bricks(sample, volume, jobs, store_folder, report=sampler.keep_room, still=None):
+    """The z-planes these pieces read, each in its brick's place; with `still`, only if it holds once the store is
+    this process's (False is returned then)."""
+    folder = Path(store_folder)
+    with store_lock(folder):
+        if still is not None and not still():
+            return False
+        fetch_bricks_locked(sample, volume, jobs, folder, report)
+    return True
+
+
+def fetch_bricks_locked(sample, volume, jobs, folder, report):
     start = time.time()
-    folder, wanted = Path(store_folder), {str(job[0]) for job in jobs}
-    planned = folder / "planned.json"
-    if planned.exists() and not wanted <= set(json.loads(planned.read_text())):
+    wanted, stamp = {str(job[0]) for job in jobs}, unit_stamp(jobs, volume)
+    planned, stamped = folder / "planned.json", folder / "unit.json"
+    stale = planned.exists() and not wanted <= set(json.loads(planned.read_text()))
+    if stale or (stamped.exists() and json.loads(stamped.read_text()) != stamp):
         shutil.rmtree(folder)
     store, url = sampler.scan_store(sample, volume, folder, 0)
     if not planned.exists():
         planned.write_text(json.dumps(sorted(wanted)))
+        stamped.write_text(json.dumps(stamp))
     if not (store.offsets == UNKNOWN).any():
         print(sample, folder.name, "pieces", len(jobs), "fetched 0", flush=True)
         return
@@ -204,6 +239,8 @@ def fetch_bricks(sample, volume, jobs, store_folder, report=sampler.keep_room):
     store.save()
     if failures:
         raise OSError(f"{len(failures)} bricks failed, first {failures[0]}")
+    if wanted < set(json.loads(planned.read_text())):
+        planned.write_text(json.dumps(sorted(wanted)))  # the rest of the plan's planes were never fetched
     store.offsets[store.offsets == UNKNOWN] = ABSENT
     store.save()
     moved = int((last - first + 1).sum()) * plane

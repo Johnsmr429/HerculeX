@@ -2,7 +2,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// The numeric core of the fibre test in the order scipy and numpy compute it, so every value comes out the same to the bit.
+// The numeric core of the fibre test in the order scipy and numpy compute it, so every value comes out the same to the
+// bit.
 
 #define CHUNK 1024
 
@@ -12,8 +13,10 @@ static long reflected(long i, long n) {
     return m < n ? m : 2 * n - 1 - m;
 }
 
-// scipy's correlate1d, symmetric kernel, reflected edges: the centre, then the pairs of taps from the outermost in, in double.
-static void across_rows(const float *in, float *out, long outer, long length, long inner, const double *weights, int radius, int plain) {
+// scipy's correlate1d, symmetric kernel, reflected edges: the centre, then the pairs of taps from the outermost in, in
+// double.
+static void across_rows(const float *in, float *out, long outer, long length, long inner, const double *weights,
+                        int radius, int plain) {
     double sum[CHUNK];
     for (long o = 0; o < outer; o++) {
         const float *plane = in + o * length * inner;
@@ -24,10 +27,13 @@ static void across_rows(const float *in, float *out, long outer, long length, lo
                 const float *centre = plane + l * inner + start;
                 for (long i = 0; i < n; i++) sum[i] = (double)centre[i] * weights[radius];
                 for (int j = radius, tap = 0; j > 0; j--, tap++) {
-                    const float *a = plane + reflected(l - j, length) * inner + start, *b = plane + reflected(l + j, length) * inner + start;
+                    const float *a = plane + reflected(l - j, length) * inner + start,
+                                *b = plane + reflected(l + j, length) * inner + start;
                     double w = weights[tap];
-                    if (tap < plain) for (long i = 0; i < n; i++) sum[i] = sum[i] + ((double)a[i] + (double)b[i]) * w;
-                    else for (long i = 0; i < n; i++) sum[i] = __builtin_fma((double)a[i] + (double)b[i], w, sum[i]);
+                    if (tap < plain)
+                        for (long i = 0; i < n; i++) sum[i] = sum[i] + ((double)a[i] + (double)b[i]) * w;
+                    else
+                        for (long i = 0; i < n; i++) sum[i] = __builtin_fma((double)a[i] + (double)b[i], w, sum[i]);
                 }
                 float *row = result + l * inner + start;
                 for (long i = 0; i < n; i++) row[i] = (float)sum[i];
@@ -36,8 +42,10 @@ static void across_rows(const float *in, float *out, long outer, long length, lo
     }
 }
 
-static void along_lines(const float *in, float *out, long lines, long length, const double *weights, int radius, int plain) {
-    double *line = malloc((size_t)(length + 2 * radius) * sizeof(double)), *sum = malloc((size_t)length * sizeof(double));
+static void along_lines(const float *in, float *out, long lines, long length, const double *weights, int radius,
+                        int plain) {
+    double *line = malloc((size_t)(length + 2 * radius) * sizeof(double)),
+           *sum = malloc((size_t)length * sizeof(double));
     for (long n = 0; n < lines; n++) {
         const float *source = in + n * length;
         for (long i = 0; i < radius; i++) line[i] = source[reflected(i - radius, length)];
@@ -47,8 +55,10 @@ static void along_lines(const float *in, float *out, long lines, long length, co
         for (long i = 0; i < length; i++) sum[i] = centre[i] * weights[radius];
         for (int j = radius, tap = 0; j > 0; j--, tap++) {
             double w = weights[tap];
-            if (tap < plain) for (long i = 0; i < length; i++) sum[i] = sum[i] + (centre[i - j] + centre[i + j]) * w;
-            else for (long i = 0; i < length; i++) sum[i] = __builtin_fma(centre[i - j] + centre[i + j], w, sum[i]);
+            if (tap < plain)
+                for (long i = 0; i < length; i++) sum[i] = sum[i] + (centre[i - j] + centre[i + j]) * w;
+            else
+                for (long i = 0; i < length; i++) sum[i] = __builtin_fma(centre[i - j] + centre[i + j], w, sum[i]);
         }
         float *result = out + n * length;
         for (long i = 0; i < length; i++) result[i] = (float)sum[i];
@@ -58,7 +68,8 @@ static void along_lines(const float *in, float *out, long lines, long length, co
 }
 
 // One axis of a C-ordered array; out may not be in.
-void hx_gaussian_axis(const float *in, float *out, const long *dims, int rank, int axis, const double *weights, int radius, int plain) {
+void hx_gaussian_axis(const float *in, float *out, const long *dims, int rank, int axis, const double *weights,
+                      int radius, int plain) {
     long outer = 1, inner = 1;
     for (int k = 0; k < axis; k++) outer *= dims[k];
     for (int k = axis + 1; k < rank; k++) inner *= dims[k];
@@ -76,14 +87,18 @@ void hx_face_depth(const float *smoothed, long layer_stride, long layers, long p
         const float *a = smoothed + z * layer_stride, *b = a + layer_stride;
         for (long i = 0; i < pixels; i++) {
             float fall = b[i] - a[i];
-            if (fall < least[i]) { least[i] = fall; steepest[i] = (int32_t)z; }
+            if (fall < least[i]) {
+                least[i] = fall;
+                steepest[i] = (int32_t)z;
+            }
         }
     }
     for (long i = 0; i < pixels; i++) {
         long s = steepest[i];
         s = s < 1 ? 1 : s > falls - 2 ? falls - 2 : s;
         const float *at_layer = smoothed + s * layer_stride + i;
-        float before = at_layer[0] - at_layer[-layer_stride], at = at_layer[layer_stride] - at_layer[0], after = at_layer[2 * layer_stride] - at_layer[layer_stride];
+        float before = at_layer[0] - at_layer[-layer_stride], at = at_layer[layer_stride] - at_layer[0],
+              after = at_layer[2 * layer_stride] - at_layer[layer_stride];
         float curve = (before - 2 * at) + after;
         float offset = fabsf(curve) > 1e-3f ? (0.5f * (before - after)) / curve : 0.0f;
         offset = offset < -1 ? -1 : offset > 1 ? 1 : offset;
@@ -94,15 +109,23 @@ void hx_face_depth(const float *smoothed, long layer_stride, long layers, long p
 }
 
 // A layer at a depth per column, linear between layers, of a block with any strides in bytes.
-void hx_layer_at(const uint8_t *block, long layer_stride, long row_stride, long column_stride, long layers, long height, long width, const double *depth, double offset, float *out) {
+void hx_layer_at(const uint8_t *block, long layer_stride, long row_stride, long column_stride, long layers, long height,
+                 long width, const double *depth, double offset, float *out) {
     long last = layers - 1;
     for (long y = 0; y < height; y++) {
         const uint8_t *row = block + y * row_stride;
         for (long x = 0; x < width; x++) {
             double d = depth[y * width + x] + offset, floored = floor(d);
-            long whole = (long)floored, low = whole < 0 ? 0 : whole > last ? last : whole, high = whole + 1 < 0 ? 0 : whole + 1 > last ? last : whole + 1;
+            long whole = (long)floored,
+                 low = whole < 0      ? 0
+                       : whole > last ? last
+                                      : whole,
+                 high = whole + 1 < 0      ? 0
+                        : whole + 1 > last ? last
+                                           : whole + 1;
             float part = (float)(d - floored);
-            float lower = row[low * layer_stride + x * column_stride], upper = row[high * layer_stride + x * column_stride];
+            float lower = row[low * layer_stride + x * column_stride],
+                  upper = row[high * layer_stride + x * column_stride];
             float a = lower * (1.0f - part), b = upper * part;
             out[y * width + x] = a + b;
         }

@@ -6,6 +6,7 @@ from scipy.sparse import csgraph
 
 from unwrapping.level import scroll_axis
 from unwrapping.level.piece_growth import PIECE_DEPTH, node_quality, ray_weights
+from unwrapping.level.piece_kernel_bindings import EDGE, PAIR
 from unwrapping.level.sheet_graph import (
     build_edges,
     filtered,
@@ -30,6 +31,9 @@ def seam_field(chunks, seam, labels):
     """The nodes within SEAM_PLANES of a seam."""
     nodes, cells, _record, grid, ids = load_field(chunks, (seam - SEAM_PLANES, seam + SEAM_PLANES))
     nodes, first, cell_of, ids = filtered(nodes, cells, grid, ids)
+    if not len(nodes):
+        none = np.zeros(0, dtype=np.int64)
+        return none, none, np.zeros(0, dtype=EDGE), np.zeros(0, dtype=PAIR), np.zeros(0), ids, nodes
     knots = scroll_axis.axis(nodes, float(nodes["z"].min()), float(nodes["z"].max()) + 1)
     centre = scroll_axis.centre_at(knots, nodes["z"])
     theta = np.arctan2(nodes["y"] - centre[1], nodes["x"] - centre[0]).astype(np.float32)

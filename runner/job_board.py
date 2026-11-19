@@ -1,9 +1,8 @@
-"""One queue for every long job on this machine."""
+"""One queue for every long job on this Mac."""
 
 import argparse
 import collections
 import contextlib
-import ctypes
 import fcntl
 import glob
 import json
@@ -19,18 +18,26 @@ import time
 import traceback
 from pathlib import Path
 
+from runner.lane import APPLE
 from storage.data_roots import HERE, LIBRARY, OUTPUTS, SCRATCH
+
+if APPLE:
+    from runner.machine_apple import probes
+else:
+    from runner.machine_cuda import probes
+USER, SYSTEM, READ, WRITTEN = probes.USER, probes.SYSTEM, probes.READ, probes.WRITTEN
+START, FOOTPRINT, LIFETIME_PEAK, TICK_NS = probes.START, probes.FOOTPRINT, probes.LIFETIME_PEAK, probes.TICK_NS
+usage_of, group_of = probes.usage_of, probes.group_of
 
 BOARD = Path(os.environ.get("HERCULEX_BOARD", HERE / "runtime" / "board"))
 MARGIN_GB = float(os.environ.get("HERCULEX_BOARD_MARGIN_GB", "1.0"))
-CORES = int(os.environ.get("HERCULEX_BOARD_CORES", "10"))
+CORES = int(os.environ.get("HERCULEX_BOARD_CORES", os.cpu_count()))
 DEFAULT_GB = 2.0
 SMALL_GB = 1.0
 NEGLIGIBLE_GB = 0.2
 SWAP_START_GB, SWAP_STOP_GB = 4.2, 4.9
 ALONE_BESIDE_GB = 0.5
 GPU_BUSY = 50
-DISPLAY = "WindowServer"
 TICK_SECONDS = float(os.environ.get("HERCULEX_BOARD_TICK", "10"))
 SAMPLE_SECONDS = 60
 GRACE_SECONDS = 30
@@ -47,6 +54,7 @@ SLOTS = ("gpu", "engine", "link")
 SHARED_SLOTS = {"gpu": 1, "link": 2}  # sharing jobs a slot takes beside the one job holding it whole
 MAKE_WAY = 2
 MAKE_WAY_SECONDS = 60
+OWNER_HOURS = 24
 ACTIVE = ("starting", "running", "stopping")
 FINISHED = ("done", "failed", "stopped", "lost", "cancelled")
 SCHEMA = """
@@ -57,9 +65,20 @@ CREATE TABLE IF NOT EXISTS jobs(name TEXT PRIMARY KEY, kind TEXT, command TEXT, 
     written_gb REAL DEFAULT 0, why TEXT);
 CREATE TABLE IF NOT EXISTS samples(time REAL PRIMARY KEY, gpu REAL, room_gb REAL, swap_gb REAL, swapped_out_gb REAL, load REAL, running INTEGER, waiting INTEGER, gpu_waiting INTEGER);
 """
-APPLE = sys.platform == "darwin"  # elsewhere (Linux) the board reads /proc and nvidia-smi
-LIBPROC = ctypes.CDLL("/usr/lib/libproc.dylib") if APPLE else None
-RUSAGE_V4, READ, WRITTEN, START, FOOTPRINT, LIFETIME_PEAK = 4, 18, 19, 10, 9, 30
+SAMPLE_COLUMNS = (
+    ("cpu_pct", "REAL"),
+    ("net_mb_s", "REAL"),
+    ("internal_mb_s", "REAL"),
+    ("library_mb_s", "REAL"),
+    ("outputs_mb_s", "REAL"),
+    ("engine_waiting", "INTEGER"),
+    ("link_waiting", "INTEGER"),
+)
+CORES_SMOOTHING = 0.3  # weight of the latest look in the cores a running job is seen to use
+OVER_CORES = 0.5  # cores in use above the declared that status points out
+OVERRAN = 1.25  # a peak this many times the reservation is reported by usage
+UNDERUSED_GB = 2.0  # a reservation this far above the peak, and twice it, is reported by usage
+OVERRUN_GB = 1.0  # under swap, a restartable job this far over its reservation is the one stopped among equals
 
 
 def connect():
@@ -75,9 +94,14 @@ def connect():
         ("free_gib", "REAL DEFAULT 0"),
         ("at_most", "TEXT"),
         ("share", "INTEGER DEFAULT 0"),
+        ("cores_used", "REAL DEFAULT 0"),
     ):
         if name not in columns:
             database.execute(f"ALTER TABLE jobs ADD COLUMN {name} {kind}")
+    sampled = [row[1] for row in database.execute("PRAGMA table_info(samples)")]
+    for name, kind in SAMPLE_COLUMNS:
+        if name not in sampled:
+            database.execute(f"ALTER TABLE samples ADD COLUMN {name} {kind}")
     return database
 
 
@@ -92,6 +116,10 @@ def job_named(database, name):
     return dict(row)
 
 
+def events_of(name):
+    return BOARD / "events" / f"{name.replace('/', '-')}.jsonl"
+
+
 def log_of(name):
     return BOARD / "logs" / f"{name.replace('/', '-')}.log"
 
@@ -100,108 +128,40 @@ def text_of(*command):
     return subprocess.run(command, capture_output=True, text=True, check=False).stdout
 
 
-_gpu_seen = {}
-
-
-def gpu_clients():
-    """GPU time used so far by each process, in ns."""
-    used = collections.defaultdict(int)
-    for node in text_of("ioreg", "-r", "-c", "AGXDeviceUserClient", "-l", "-w0").split("+-o ")[1:]:
-        creator = re.search(r'"IOUserClientCreator" = "pid (\d+), ([^"]*)"', node)
-        if creator:
-            used[(int(creator.group(1)), creator.group(2))] += sum(
-                int(n) for n in re.findall(r'"accumulatedGPUTime"=(\d+)', node)
-            )
-    return used
-
-
-def gpu_of_others(device):
-    """Percent of the GPU used since the last look by every process but the display."""
-    if not _gpu_seen:
-        _gpu_seen.update(at=time.time(), clients=gpu_clients())
-        time.sleep(0.5)
-    now, clients = time.time(), gpu_clients()
-    span, before = now - _gpu_seen["at"], _gpu_seen["clients"]
-    _gpu_seen.update(at=now, clients=clients)
-    used = sum(n - before[key] for key, n in clients.items() if key in before and key[1] != DISPLAY)
-    return min(device, max(0, round(used / max(span, 1e-3) / 1e7)))
-
-
 def machine():
-    """What the board goes by, in GB: memory no process holds, swap, swap written so far."""
-    if not APPLE:
-        memory = {
-            key: int(value.split()[0]) * 1024
-            for key, value in (line.split(":") for line in Path("/proc/meminfo").read_text().splitlines())
-        }
-        swapped = int(re.search(r"^pswpout (\d+)", Path("/proc/vmstat").read_text(), re.MULTILINE).group(1))
-        query = ("nvidia-smi", "--query-gpu=utilization.gpu", "--format=csv,noheader,nounits")
-        found = re.search(r"\d+", text_of(*query) if shutil.which(query[0]) else "")
-        device = int(found.group()) if found else 0
-        return {
-            "room_gb": memory["MemAvailable"] / 1e9 - MARGIN_GB,
-            "swap_gb": (memory["SwapTotal"] - memory["SwapFree"]) / 1e9,
-            "swapped_out_gb": swapped * os.sysconf("SC_PAGE_SIZE") / 1e9,
-            "gpu": device,  # the display's share is not known here, so none is taken off
-            "gpu_device": device,
-            "load": os.getloadavg()[0],
-        }
-    stats = text_of("vm_stat")
-    page = int(re.search(r"page size of (\d+)", stats).group(1))
-    pages = {name: int(value) for name, value in re.findall(r'^"?(.+?)"?:\s+(\d+)\.$', stats, re.MULTILINE)}
-    held = pages["Pages wired down"] + pages["Anonymous pages"] + pages["Pages occupied by compressor"]
-    total = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE")
-    swap = float(re.search(r"used = ([0-9.]+)M", text_of("sysctl", "-n", "vm.swapusage")).group(1)) * 2**20 / 1e9
-    found = re.search(r'"Device Utilization %"=(\d+)', text_of("ioreg", "-r", "-c", "IOAccelerator", "-d", "1"))
-    device = int(found.group(1)) if found else 0
-    return {
-        "room_gb": (total - held * page) / 1e9 - MARGIN_GB,
-        "swap_gb": swap,
-        "swapped_out_gb": pages["Swapouts"] * page / 1e9,
-        "gpu": gpu_of_others(device),
-        "gpu_device": device,
-        "load": os.getloadavg()[0],
+    """What the board goes by, in GB: memory no process holds less the margin, swap, swap written so far."""
+    seen = probes.machine()
+    return seen | {"room_gb": seen["room_gb"] - MARGIN_GB}
+
+
+_counted = {}
+
+
+def rates():
+    """CPU busy percent, network MB/s received and disc MB/s since the last call; None on the first."""
+    now, (busy, idle), received, discs = (
+        time.time(),
+        probes.cpu_ticks(),
+        probes.received_bytes(),
+        probes.disc_megabytes(),
+    )
+    before, span = _counted.copy(), now - _counted.get("at", now)
+    _counted.update(at=now, busy=busy, idle=idle, received=received, discs=discs)
+    if not before or span <= 0:
+        return dict.fromkeys(("cpu_pct", "net_mb_s", "internal_mb_s", "library_mb_s", "outputs_mb_s"))
+    ticks = (busy - before["busy"]) + (idle - before["idle"])
+    moved = {
+        f"{role}_mb_s": (mb - before["discs"][role]) / span
+        if mb is not None and before["discs"].get(role) is not None
+        else None
+        for role, mb in discs.items()
     }
-
-
-def usage_of(pid):
-    """A process's kernel counters, read without touching it."""
-    if APPLE:
-        words = (ctypes.c_uint64 * 42)()
-        return list(words) if LIBPROC.proc_pid_rusage(pid, RUSAGE_V4, ctypes.byref(words)) == 0 else None
-    try:
-        stat = stat_of(pid)
-        status = Path(f"/proc/{pid}/status").read_text()
-    except OSError:
-        return None
-    if stat[0] == "Z":  # ended and not yet collected by its parent
-        return None
-    words = [0] * 42
-    words[START] = int(stat[19])
-    for index, key in ((FOOTPRINT, "VmRSS"), (LIFETIME_PEAK, "VmHWM")):
-        found = re.search(rf"^{key}:\s+(\d+) kB", status, re.MULTILINE)
-        words[index] = int(found.group(1)) * 1024 if found else 0
-    with contextlib.suppress(OSError):  # another user's process keeps its I/O counters to itself
-        counters = dict(line.split(": ") for line in Path(f"/proc/{pid}/io").read_text().splitlines())
-        words[READ], words[WRITTEN] = int(counters["read_bytes"]), int(counters["write_bytes"])
-    return words
-
-
-def stat_of(pid):
-    """Linux: the fields of /proc/PID/stat that follow the command name (state, parent, group, ...)."""
-    return Path(f"/proc/{pid}/stat").read_text().rpartition(")")[2].split()
-
-
-def group_of(pid):
-    if APPLE:
-        pids = (ctypes.c_int * 1024)()
-        return list(pids[: max(LIBPROC.proc_listpgrppids(pid, pids, ctypes.sizeof(pids)), 0)])
-    found = []
-    for entry in os.listdir("/proc"):
-        with contextlib.suppress(OSError):
-            if entry.isdecimal() and int(stat_of(entry)[2]) == pid:
-                found.append(int(entry))
-    return found
+    return {
+        "cpu_pct": 100 * (busy - before["busy"]) / ticks if ticks else None,
+        "net_mb_s": (received - before["received"]) / span / 1e6,
+        **{f"{role}_mb_s": None for role in ("internal", "library", "outputs")},
+        **moved,
+    }
 
 
 def alive(job):
@@ -249,6 +209,11 @@ def beside(job, holders, slot):
     return whole == 0 and sharers <= SHARED_SLOTS[slot]
 
 
+def cores_of(job):
+    """The cores a job holds: what it declared, or what it is seen to use when that is more."""
+    return max(job["cores"], job.get("cores_used") or 0.0)
+
+
 def blocked(job, jobs, state, room):
     """Why a waiting job cannot start now, or None."""
     if job["held"]:
@@ -292,14 +257,27 @@ def blocked(job, jobs, state, room):
             return f"{slot} is with {holders[0]['name']}"
     if job["gpu"] and state["gpu"] >= GPU_BUSY and not any(other["gpu"] for other in active):
         return f"GPU {state['gpu']}% busy off the board"
-    used = sum(other["cores"] for other in active)
+    used = sum(cores_of(other) for other in active)
     if used + job["cores"] > CORES:
-        return f"needs {job['cores']:g} cores, {used:g} of {CORES} taken"
+        return f"needs {job['cores']:g} cores, {used:.1f} of {CORES} taken"
     if job["memory_gb"] > room and any(other["memory_gb"] > NEGLIGIBLE_GB for other in active):
         return f"needs {job['memory_gb']:.1f} GB, room {room:.1f}"
     if job["memory_gb"] > SMALL_GB and state["swap_gb"] > SWAP_START_GB:
         return f"swap {state['swap_gb']:.1f} GB, over {SWAP_START_GB}"
     return None
+
+
+def owner_hours(jobs, now, hours=OWNER_HOURS):
+    """GPU hours and core hours that each owner's jobs held over the last `hours`, running or ended."""
+    since, used = now - hours * 3600, collections.defaultdict(lambda: [0.0, 0.0])
+    for job in jobs:
+        end = now if job["state"] in ACTIVE else job.get("ended")
+        if not job.get("owner") or not job.get("started") or not end:
+            continue
+        span = max(end - max(job["started"], since), 0.0) / 3600
+        used[job["owner"]][0] += span * bool(job["gpu"])
+        used[job["owner"]][1] += span * cores_of(job)
+    return used
 
 
 def decisions(jobs, state, room):
@@ -324,8 +302,22 @@ def decisions(jobs, state, room):
 def wrapped(job):
     command = json.loads(job["command"])
     if job["background"]:
-        command = ["taskpolicy", "-b", *command] if APPLE else ["nice", "-n", "19", *command]
+        command = probes.background(command)
     return ["nice", "-n", str(job["nice"]), *command] if job["nice"] else command
+
+
+def cores_in_use(usages, ticks, cores, looked):
+    """Cores the job's processes used since the last look, smoothed, and the time of this look; `ticks` keeps each
+    process's CPU ticks so far between looks."""
+    now = time.time()
+    fresh = {pid: u[USER] + u[SYSTEM] for pid, u in usages.items() if u}
+    spent = sum(max(total - ticks.get(pid, total if not ticks else 0), 0) for pid, total in fresh.items())
+    first = not ticks
+    ticks.update(fresh)  # a process missed in one look keeps its count, so it is not counted whole when seen again
+    if first or now <= looked:
+        return cores, now
+    seen = min(spent * TICK_NS / 1e9 / (now - looked), CORES)
+    return (1 - CORES_SMOOTHING) * cores + CORES_SMOOTHING * seen, now
 
 
 def wrap(name):
@@ -333,9 +325,11 @@ def wrap(name):
     database = connect()
     job = job_named(database, name)
     SCRATCH.mkdir(parents=True, exist_ok=True)
+    events_of(name).parent.mkdir(parents=True, exist_ok=True)
     environment = (
         os.environ
         | {"PYTHONPATH": str(HERE), "PYTHONDONTWRITEBYTECODE": "1", "MallocLargeCache": "0", "TMPDIR": str(SCRATCH)}
+        | {"HERCULEX_EVENTS": str(events_of(name))}
         | json.loads(job["settings"])
     )
     with open(log_of(name), "ab", buffering=0) as log:
@@ -356,7 +350,8 @@ def wrap(name):
         "UPDATE jobs SET state='running', pid=?, born=?, wrapper=?, started=?, tries=tries+1, why=NULL WHERE name=?",
         (process.pid, first[START] if first else 0, os.getpid(), time.time(), name),
     )
-    peak, seen = job["peak_gb"], {}
+    peak, seen, ticks, cores = job["peak_gb"], {}, {}, 0.0
+    looked = time.time()
     while True:
         finished, status, spent = os.wait4(process.pid, os.WNOHANG)
         if finished:
@@ -365,7 +360,8 @@ def wrap(name):
         seen |= {pid: (u[READ], u[WRITTEN]) for pid, u in usages.items() if u}
         now = sum(u[FOOTPRINT] for u in usages.values() if u) / 1e9
         peak = max(peak, now, *[u[LIFETIME_PEAK] / 1e9 for u in usages.values() if u], 0.0)
-        database.execute("UPDATE jobs SET peak_gb=? WHERE name=?", (peak, name))
+        cores, looked = cores_in_use(usages, ticks, cores, looked)
+        database.execute("UPDATE jobs SET peak_gb=?, cores_used=? WHERE name=?", (peak, cores, name))
         time.sleep(min(TICK_SECONDS, 2))
     with contextlib.suppress(ProcessLookupError, PermissionError):
         os.killpg(process.pid, signal.SIGTERM)
@@ -453,8 +449,15 @@ def follow(database, job):
         job["state"] = "lost"
 
 
+def overrun_of(job):
+    """GB a running job's footprint stands above its reservation."""
+    return footprint_of(job) - job["memory_gb"]
+
+
 def relieve(database, jobs, state):
-    """Past the swap limit the largest restartable job of the lowest priority stops and comes back later, never the job the machine is there for."""
+    """Past the swap limit the largest restartable job of the lowest priority stops and comes back later, never the
+    job the machine is there for. When no job is of lower priority, the restartable job furthest over its reservation
+    stops instead, and its reservation is raised to its peak, so it starts again only where that fits."""
     if state["swap_gb"] < SWAP_STOP_GB or any(job["state"] == "stopping" for job in jobs):
         return
     running = [job for job in jobs if job["state"] == "running" and not job["adopted"]]
@@ -467,6 +470,20 @@ def relieve(database, jobs, state):
             max((job for job in candidates if job["priority"] == lowest), key=footprint_of),
             True,
             f"swap {state['swap_gb']:.1f} GB",
+        )
+        return
+    over = [job for job in running if job["restartable"] and overrun_of(job) > max(OVERRUN_GB, job["memory_gb"] / 4)]
+    if over:
+        job = max(over, key=overrun_of)
+        peak = max(job["peak_gb"], footprint_of(job))
+        if database is not None:
+            database.execute("UPDATE jobs SET memory_gb=? WHERE name=?", (round(peak, 1), job["name"]))
+        stop(
+            database,
+            job,
+            True,
+            f"swap {state['swap_gb']:.1f} GB with its footprint {peak:.1f} GB over its {job['memory_gb']:g} GB; "
+            "reservation raised to its peak",
         )
 
 
@@ -504,7 +521,7 @@ def make_way(database, jobs, told, room):
     if first is None:
         return None
     active = [job for job in jobs if job["state"] in ACTIVE]
-    short_cores = sum(job["cores"] for job in active) + first["cores"] - CORES
+    short_cores = sum(cores_of(job) for job in active) + first["cores"] - CORES
     short_gb = first["memory_gb"] - room
     candidates = sorted(
         (
@@ -519,10 +536,10 @@ def make_way(database, jobs, told, room):
         key=lambda job: (job["priority"], -(job["started"] or 0)),
     )
     held = {job["name"]: max(job["memory_gb"], footprint_of(job)) for job in candidates}
-    if not candidates or sum(job["cores"] for job in candidates) < short_cores or sum(held.values()) < short_gb:
+    if not candidates or sum(cores_of(job) for job in candidates) < short_cores or sum(held.values()) < short_gb:
         return None
     victim = next(
-        (job for job in candidates if job["cores"] >= short_cores and held[job["name"]] >= short_gb), candidates[0]
+        (job for job in candidates if cores_of(job) >= short_cores and held[job["name"]] >= short_gb), candidates[0]
     )
     _made_way["at"] = time.time()
     stop(database, victim, MAKE_WAY, f"made way for {first['name']}")
@@ -572,19 +589,22 @@ def serve():
             if time.time() - sampled >= SAMPLE_SECONDS:
                 sampled = time.time()
                 waiting = [job for job in jobs if job["state"] == "waiting"]
+                row = {
+                    "time": sampled,
+                    "gpu": state["gpu"],
+                    "room_gb": room,
+                    "swap_gb": state["swap_gb"],
+                    "swapped_out_gb": state["swapped_out_gb"],
+                    "load": state["load"],
+                    "running": sum(job["state"] in ACTIVE for job in jobs),
+                    "waiting": len(waiting),
+                    "gpu_waiting": sum(job["gpu"] for job in waiting),
+                    "engine_waiting": sum(job["engine"] for job in waiting),
+                    "link_waiting": sum(job["link"] for job in waiting),
+                } | rates()
                 database.execute(
-                    "INSERT OR REPLACE INTO samples VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    (
-                        sampled,
-                        state["gpu"],
-                        room,
-                        state["swap_gb"],
-                        state["swapped_out_gb"],
-                        state["load"],
-                        sum(job["state"] in ACTIVE for job in jobs),
-                        len(waiting),
-                        sum(job["gpu"] for job in waiting),
-                    ),
+                    f"INSERT OR REPLACE INTO samples({', '.join(row)}) VALUES ({', '.join('?' * len(row))})",
+                    tuple(row.values()),
                 )
         except Exception:
             print(time.strftime("%H:%M:%S"), traceback.format_exc(), flush=True)
@@ -754,6 +774,11 @@ def status(database, everything=False):
         if job["state"] in ACTIVE:
             print(
                 f"  {job['state']:10s}{job['name']:34s}{slots_of(job):12s}{footprint_of(job):5.1f} GB, peak {job['peak_gb']:.1f}  {clock(now - job['started'])}{'  adopted' if job['adopted'] else ''}"
+                + (
+                    f"  using {job['cores_used']:.1f} cores, declared {job['cores']:g}"
+                    if (job.get("cores_used") or 0) > job["cores"] + OVER_CORES
+                    else ""
+                )
             )
     waiting = list(decisions(jobs, state, room))
     for job, reason in waiting if everything else waiting[:SHOWN_WAITING]:
@@ -794,6 +819,7 @@ def usage_report(database, hours):
     rows = database.execute("SELECT * FROM samples WHERE time>=? ORDER BY time", (since,)).fetchall()
     if not rows:
         print("no samples yet")
+        owners_report(all_jobs(database), now, hours)
         return
     busy = sum(r["gpu"] >= GPU_BUSY for r in rows)
     idle_waiting = sum(r["gpu"] < GPU_BUSY and r["gpu_waiting"] > 0 for r in rows)
@@ -805,6 +831,54 @@ def usage_report(database, hours):
         f"swapped out {rows[-1]['swapped_out_gb'] - rows[0]['swapped_out_gb']:.1f} GB, least room {min(r['room_gb'] for r in rows):.1f} GB, {ended[0]} jobs done, {ended[1] or 0:.1f} CPU-hours"
     )
     print(", ".join(f"{slot} held {100 * share_held(database, slot, since, now):.0f}%" for slot in SLOTS))
+    owners_report(all_jobs(database), now, hours)
+    overran_report(all_jobs(database), since)
+
+
+def overran_report(jobs, since):
+    """Jobs of the period whose peak passed their memory reservation by more than a quarter: the board planned
+    others beside them on room they then took."""
+    over = sorted(
+        (
+            job
+            for job in jobs
+            if (job["started"] or 0) >= since and job["peak_gb"] > OVERRAN * max(job["memory_gb"], 0.1)
+        ),
+        key=lambda job: job["memory_gb"] - job["peak_gb"],
+    )
+    if over:
+        print("peaked over their reservation:")
+    for job in over[:SHOWN_WAITING]:
+        print(f"  {job['name']:34s}reserved {job['memory_gb']:5.1f} GB, peaked {job['peak_gb']:5.1f} GB")
+    idle = sorted(
+        (
+            job
+            for job in jobs
+            if (job["started"] or 0) >= since
+            and job["state"] in FINISHED
+            and job["peak_gb"] > 0
+            and job["memory_gb"] > max(2 * job["peak_gb"], job["peak_gb"] + UNDERUSED_GB)
+        ),
+        key=lambda job: job["peak_gb"] - job["memory_gb"],
+    )
+    if idle:
+        print("reserved far more than they used (room others waited for):")
+    for job in idle[:SHOWN_WAITING]:
+        print(f"  {job['name']:34s}reserved {job['memory_gb']:5.1f} GB, peaked {job['peak_gb']:5.1f} GB")
+
+
+def owners_report(jobs, now, hours):
+    """Each owner's GPU and core hours over the period."""
+    used = owner_hours(jobs, now, hours)
+    totals = [sum(hours_of[kind] for hours_of in used.values()) for kind in (0, 1)]
+    owners = sorted(owner for owner, (gpu, cores) in used.items() if gpu or cores)
+    width = max(map(len, owners), default=0) + 2
+    for owner in owners:
+        gpu, cores = used[owner]
+        print(
+            f"  {owner:{width}s}GPU {gpu:6.2f} h ({100 * gpu / max(totals[0], 1e-9):3.0f}%)  cores {cores:7.2f} h "
+            f"({100 * cores / max(totals[1], 1e-9):3.0f}%)"
+        )
 
 
 def typical_runs(database):
@@ -962,12 +1036,15 @@ def main():
     )
     action.add_argument("name")
     action.add_argument("gb", type=float)
-    action = actions.add_parser("change", help="a job's priority, cores, sharing or restarting, as the queue changes")
+    action = actions.add_parser(
+        "change", help="a job's priority, cores, sharing, restarting or owner, as the queue changes"
+    )
     action.add_argument("name")
     action.add_argument("--priority", type=int)
     action.add_argument("--cores", type=float)
     action.add_argument("--share", type=int, choices=(0, 1))
     action.add_argument("--restartable", type=int, choices=(0, 1))
+    action.add_argument("--owner")
     action = actions.add_parser("forecast", help="when the queue, or one job, should end")
     action.add_argument("name", nargs="?")
     action = actions.add_parser("log")
@@ -1014,10 +1091,10 @@ def main():
         if arguments.action == "hold":
             database.execute("UPDATE jobs SET held=1 WHERE name=?", (arguments.name,))
         elif arguments.action == "change":
-            fields = ("priority", "cores", "share", "restartable")
+            fields = ("priority", "cores", "share", "restartable", "owner")
             changed = {field: getattr(arguments, field) for field in fields if getattr(arguments, field) is not None}
             if not changed:
-                sys.exit("change needs --priority, --cores, --share or --restartable")
+                sys.exit("change needs --priority, --cores, --share, --restartable or --owner")
             database.execute(
                 f"UPDATE jobs SET {', '.join(f'{field}=?' for field in changed)} WHERE name=?",
                 (*changed.values(), arguments.name),

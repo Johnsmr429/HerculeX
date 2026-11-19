@@ -13,7 +13,7 @@ from website import site_server
 
 @pytest.fixture
 def request_site(tmp_path, monkeypatch):
-    for name in ("SHEETS", "GROWN_ROUTE", "LEVEL_ROUTE", "HAND_MARKS", "CIRCLE_REVIEW"):
+    for name in ("SHEETS", "LEVEL_ROUTE", "HAND_MARKS", "CIRCLE_REVIEW"):
         monkeypatch.setattr(site_server, name, tmp_path / name.lower())
     monkeypatch.setitem(site_server.MOUNTS, "/sheets/", site_server.SHEETS)
     handler = functools.partial(site_server.Site, directory=site_server.HERE)
@@ -53,9 +53,7 @@ def test_archived_circle_links_open_the_depth_images(request_site):
 
 def test_labels_keep_their_layout_and_stay_in_their_own_route(request_site):
     scans = {
-        "scroll/volume": site_server.GROWN_ROUTE / "scroll/volume/papyrus-sheet/layout.json",
-        "level/scroll/volume": site_server.LEVEL_ROUTE / "scroll/volume/papyrus-sheet/layout.json",
-        "two-unwraps/scroll": site_server.SHEETS / "two-unwraps-scroll/placed.json",
+        "level/scroll/volume": site_server.LEVEL_ROUTE / "scroll/volume/sheet/layout.json",
         "part/scroll-rows-student": site_server.SHEETS / "scroll-rows-student/placed.json",
     }
     for layout in scans.values():
@@ -77,8 +75,26 @@ def test_labels_keep_their_layout_and_stay_in_their_own_route(request_site):
         assert json.loads(request_site("GET", "/marks?scan=" + scan)[1]) == [saved]
         assert post({"scan": scan, "remove": saved["id"]})[0] == 200
         assert request_site("GET", "/marks?scan=" + scan) == (200, b"[]")
-    taught = site_server.LEVEL_ROUTE / "scroll/volume/papyrus-sheet/placed-taught.json"
+    taught = site_server.LEVEL_ROUTE / "scroll/volume/sheet/placed-taught.json"
     taught.write_text('{"pieces": [{"flip_cols": true}]}')
     saved = json.loads(post({**stroke, "kind": "ink", "layer": "taught ink", "scan": "level/scroll/volume"})[1])
     kept = site_server.folders_of("level/scroll/volume")[0] / "layouts" / f"{saved['layout']}.json"
     assert kept.read_bytes() == taught.read_bytes()
+
+
+def test_the_start_line_is_counted_when_asked(request_site, monkeypatch):
+    counts = iter(
+        [
+            {"scrolls": 2, "read_scrolls": 1, "laid_cm2": 9.0, "ink_cm2": 4.0},
+            {"scrolls": 2, "read_scrolls": 2, "laid_cm2": 9.0, "ink_cm2": 9.0},
+        ]
+    )
+    monkeypatch.setattr(site_server, "start_status", lambda: next(counts))
+    assert json.loads(request_site("GET", "/status")[1])["ink_cm2"] == 4.0
+    assert json.loads(request_site("GET", "/status")[1])["read_scrolls"] == 2
+
+    def unmounted():
+        raise OSError("HerculeX data folder is unavailable")
+
+    monkeypatch.setattr(site_server, "start_status", unmounted)
+    assert request_site("GET", "/status")[0] == 503

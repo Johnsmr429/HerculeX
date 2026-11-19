@@ -12,19 +12,22 @@ static inline float voxel_at(const uint8_t *data, const int64_t *offsets, const 
     return data[o + ((int64_t)(z % g[3]) * g[4] + y % g[4]) * g[5] + x % g[5]];
 }
 
-static inline float trilinear_slow(const uint8_t *data, const int64_t *offsets, const int32_t *g, int iz, int iy, int ix, float fz, float fy, float fx) {
+static inline float trilinear_slow(const uint8_t *data, const int64_t *offsets, const int32_t *g, int iz, int iy,
+                                   int ix, float fz, float fy, float fx) {
     float v = 0;
-    for (int a = 0; a < 2; a++) for (int b = 0; b < 2; b++) for (int e = 0; e < 2; e++) {
-        float w = (a ? fz : 1 - fz) * (b ? fy : 1 - fy) * (e ? fx : 1 - fx);
-        v += w * voxel_at(data, offsets, g, iz + a, iy + b, ix + e);
-    }
+    for (int a = 0; a < 2; a++)
+        for (int b = 0; b < 2; b++)
+            for (int e = 0; e < 2; e++) {
+                float w = (a ? fz : 1 - fz) * (b ? fy : 1 - fy) * (e ? fx : 1 - fx);
+                v += w * voxel_at(data, offsets, g, iz + a, iy + b, ix + e);
+            }
     return v;
 }
 
-void hx_sample_columns(const uint8_t *data, const int64_t *offsets, const int32_t *geometry,
-                       const float *position, const float *normal, int64_t columns, int layers,
-                       float first, uint8_t *out) {
-    const int g0 = geometry[0], g1 = geometry[1], g2 = geometry[2], bz = geometry[3], by = geometry[4], bx = geometry[5];
+void hx_sample_columns(const uint8_t *data, const int64_t *offsets, const int32_t *geometry, const float *position,
+                       const float *normal, int64_t columns, int layers, float first, uint8_t *out) {
+    const int g0 = geometry[0], g1 = geometry[1], g2 = geometry[2], bz = geometry[3], by = geometry[4],
+              bx = geometry[5];
     const int64_t row = bx, plane = (int64_t)by * bx;
     for (int64_t c = 0; c < columns; c++) {
         float px = position[c], py = position[columns + c], pz = position[2 * columns + c];
@@ -85,7 +88,8 @@ static inline float grid_value(const float *plane, int64_t w, int a, int b, floa
     return upper * ay + lower * fy;
 }
 
-static inline void column_at(const float *grid, int64_t h, int64_t w, int a, int b, float fy, float fx, float *position, float *normal) {
+static inline void column_at(const float *grid, int64_t h, int64_t w, int a, int b, float fy, float fx, float *position,
+                             float *normal) {
 #pragma clang fp contract(off)
     int64_t plane = h * w;
     if (!(grid_value(grid, w, a, b, fy, fx) > 0.999f)) {
@@ -100,20 +104,22 @@ static inline void column_at(const float *grid, int64_t h, int64_t w, int a, int
     for (int i = 0; i < 3; i++) normal[i] = n[i] / length;
 }
 
-int64_t hx_sample_grid(const uint8_t *data, const int64_t *offsets, const int32_t *geometry, const float *grid, int64_t h, int64_t w,
-                       const int32_t *cell_y, const int32_t *cell_x, const float *frac_y, const float *frac_x, int64_t height, int64_t width,
-                       int64_t y0, int64_t x0, int tile, int layers, float first, float *position, float *normal, uint8_t *out) {
+int64_t hx_sample_grid(const uint8_t *data, const int64_t *offsets, const int32_t *geometry, const float *grid,
+                       int64_t h, int64_t w, const int32_t *cell_y, const int32_t *cell_x, const float *frac_y,
+                       const float *frac_x, int64_t height, int64_t width, int64_t y0, int64_t x0, int tile, int layers,
+                       float first, float *position, float *normal, uint8_t *out) {
     int64_t kept = 0, columns = (int64_t)tile * tile;
-    for (int ty = 0; ty < tile; ty++) for (int tx = 0; tx < tile; tx++) {
-        int64_t c = (int64_t)ty * tile + tx, y = y0 + ty, x = x0 + tx;
-        float p[3] = {-1, -1, -1}, n[3] = {0, 0, 0};
-        if (y < height && x < width) column_at(grid, h, w, cell_y[y], cell_x[x], frac_y[y], frac_x[x], p, n);
-        kept += p[0] >= 0;
-        for (int i = 0; i < 3; i++) {
-            position[i * columns + c] = p[i];
-            normal[i * columns + c] = n[i];
+    for (int ty = 0; ty < tile; ty++)
+        for (int tx = 0; tx < tile; tx++) {
+            int64_t c = (int64_t)ty * tile + tx, y = y0 + ty, x = x0 + tx;
+            float p[3] = {-1, -1, -1}, n[3] = {0, 0, 0};
+            if (y < height && x < width) column_at(grid, h, w, cell_y[y], cell_x[x], frac_y[y], frac_x[x], p, n);
+            kept += p[0] >= 0;
+            for (int i = 0; i < 3; i++) {
+                position[i * columns + c] = p[i];
+                normal[i * columns + c] = n[i];
+            }
         }
-    }
     if (kept) hx_sample_columns(data, offsets, geometry, position, normal, columns, layers, first, out);
     return kept;
 }
