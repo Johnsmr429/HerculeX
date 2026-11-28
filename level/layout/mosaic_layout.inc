@@ -1,6 +1,6 @@
 #include "packing.h"
 
-enum { LAYOUT_MARGIN = 2, BLOCK_EDGES = 1000000 };
+enum { BLOCK_EDGES = 1000000 };
 
 typedef struct {
     size_t unit, source_slot;
@@ -9,7 +9,6 @@ typedef struct {
     int block[2], overlap[4];
     const char *folder;
     double um, side, zlo, zhi, radius, area, span;
-    float *normals;
     uint8_t *mask;
 } PlacedPiece;
 
@@ -222,110 +221,12 @@ static size_t layout_piece_at(const PlacedPiece *pieces, size_t count, int unit,
     return SIZE_MAX;
 }
 
-static int joint_normal(PlacedPiece *p, const Field *axis, double r, double c, float n[3]) {
-    int rows = p->height + 4, cols = p->width + 4;
-    size_t cells = (size_t)p->height * p->width, expanded = (size_t)rows * cols;
-    if (!p->normals) {
-        uint32_t w, h;
-        int dtype;
-        double *mesh = read_raw_mesh(p->folder, &w, &h, &dtype);
-        if (!mesh || w != (uint32_t)p->width || h != (uint32_t)p->height) {
-            free(mesh);
-            return 0;
-        }
-        double *z = layout_array(cells, sizeof(*z));
-        float *xyz = layout_array(3 * cells, sizeof(*xyz));
-        size_t known = 0;
-        for (size_t i = 0; i < cells; i++) {
-            if (mesh[i] > 0) {
-                z[known++] = mesh[2 * cells + i];
-            }
-        }
-        for (size_t i = 0; i < cells * 3; i++) {
-            xyz[i] = (float)mesh[i];
-        }
-        double middle = layout_median(z, known);
-        if (dtype == 32) {
-            middle = (float)middle;
-        }
-        free(mesh);
-        free(z);
-        double cx = layout_axis_at(axis->axis, axis->axis_count, middle, 0);
-        double cy = layout_axis_at(axis->axis, axis->axis_count, middle, 1);
-        p->normals = layout_array(3 * expanded, sizeof(*p->normals));
-        json_object *meta = read_record(p->folder, "meta.json");
-        double voxel = json_object_get_double(json_object_object_get(meta, "voxel_um"));
-        json_object_put(meta);
-        int ok =
-            layout_normals_raw(xyz, p->height, p->width, cx, cy, p->stride * voxel, p->normals);
-        free(xyz);
-        if (!ok) {
-            return 0;
-        }
-    }
-    int row = fmin((int)r + LAYOUT_MARGIN, rows - 1);
-    int col = fmin((int)c + LAYOUT_MARGIN, cols - 1);
-    if (row < 0 || col < 0) {
-        return 0;
-    }
-    size_t at = (size_t)row * cols + col;
-    for (int a = 0; a < 3; a++) {
-        n[a] = p->normals[a * expanded + at];
-    }
-    return 1;
-}
-
 static double joint_x(const PlacedPiece *p, double column) {
     return (p->flip_cols ? p->width - 1 - column : column) * p->side;
 }
 
 static double joint_y(const PlacedPiece *p, double row) {
     return (p->flip_rows ? p->height - 1 - row : row) * p->side;
-}
-
-static int layout_turns(PlacedPiece *pieces, size_t count, const size_t *ranks,
-    const LayoutJoint *joints, size_t seams, size_t blocks, HxLayoutJoin *edges) {
-    LayoutValue *sorted = layout_array(seams, sizeof(*sorted));
-    for (size_t i = 0; i < seams; i++) {
-        const HxLayoutJoin *j = &joints[blocks + i].join;
-        sorted[i] = (LayoutValue){.rank = ranks[j->a], .index = i, .value = ranks[j->b]};
-    }
-    qsort(sorted, seams, sizeof(*sorted), layout_value_order);
-    size_t *slots = layout_array(count * 2, sizeof(*slots)), *index = slots + count;
-    int *turns = layout_array(count, sizeof(*turns));
-    double *areas = layout_array(count, sizeof(*areas));
-    for (size_t i = 0; i < count; i++) {
-        index[i] = SIZE_MAX;
-        pieces[i].turn = 1;
-    }
-    size_t used = 0;
-    for (size_t i = 0; i < seams + blocks; i++) {
-        HxLayoutJoin edge =
-            i < seams ? joints[blocks + sorted[i].index].join : joints[i - seams].join;
-        size_t ends[] = {edge.a, edge.b};
-        for (int d = 0; d < 2; d++) {
-            if (index[ends[d]] == SIZE_MAX) {
-                index[ends[d]] = used;
-                slots[used] = ranks[ends[d]];
-                areas[used++] = pieces[ends[d]].area;
-            }
-        }
-        edge.a = index[ends[0]];
-        edge.b = index[ends[1]];
-        edges[i] = edge;
-    }
-    int ok = hx_layout_turns(areas, used, slots, edges, seams + blocks, turns);
-    for (size_t i = 0; ok && i < count; i++) {
-        if (index[i] != SIZE_MAX) {
-            pieces[i].turn = turns[index[i]];
-            pieces[i].outward ^= pieces[i].turn < 0;
-        }
-    }
-    free(areas);
-    free(turns);
-    free(slots);
-    free(sorted);
-    return ok;
 }
 
 static double interpolate_layout(const double *x, const double *y, size_t length, double value) {
@@ -604,11 +505,9 @@ done:
 }
 
 static int layout_joints(LayoutJoint *joints, size_t offset, PlacedPiece *pieces, size_t count,
-    const Field *axis, json_object *seams, int *refused, const int64_t *first,
-    const int64_t *held_p, const int64_t *held_q, int64_t held) {
+    json_object *seams, int *refused, const int64_t *first, const int64_t *held_p,
+    const int64_t *held_q, int64_t held) {
     size_t length = json_object_array_length(seams);
-    LayoutValue *lookup = layout_array(2 * length, sizeof(*lookup));
-    float (*normal)[3] = layout_array(2 * length, sizeof(*normal));
     int ok = 1;
     for (size_t i = 0; ok && i < length; i++) {
         json_object *row = json_object_array_get_idx(seams, i);
@@ -623,7 +522,6 @@ static int layout_joints(LayoutJoint *joints, size_t offset, PlacedPiece *pieces
                 ok = 0;
                 break;
             }
-            lookup[2 * i + d] = (LayoutValue){.rank = ends[d], .index = 2 * i + d};
             joint->row[d] = json_object_get_double(
                 json_object_array_get_idx(json_object_object_get(row, "rows"), d));
             joint->column[d] = json_object_get_double(
@@ -634,7 +532,8 @@ static int layout_joints(LayoutJoint *joints, size_t offset, PlacedPiece *pieces
         }
         joint->join = (HxLayoutJoin){.a = ends[0],
             .b = ends[1],
-            .weight = json_object_get_int(json_object_object_get(row, "edges"))};
+            .weight = json_object_get_int(json_object_object_get(row, "edges")),
+            .sign = 1};
         if (first) {
             int64_t a = first[pieces[ends[0]].unit] + pieces[ends[0]].source;
             int64_t b = first[pieces[ends[1]].unit] + pieces[ends[1]].source;
@@ -645,28 +544,6 @@ static int layout_joints(LayoutJoint *joints, size_t offset, PlacedPiece *pieces
             *refused += !found;
         }
     }
-    if (ok) {
-        qsort(lookup, 2 * length, sizeof(*lookup), layout_value_order);
-    }
-    for (size_t i = 0; ok && i < 2 * length;) {
-        size_t piece = lookup[i].rank;
-        do {
-            size_t at = lookup[i++].index;
-            LayoutJoint *j = joints + offset + at / 2;
-            ok = joint_normal(pieces + piece, axis, j->row[at % 2], j->column[at % 2], normal[at]);
-        } while (ok && i < 2 * length && lookup[i].rank == piece);
-        free(pieces[piece].normals);
-        pieces[piece].normals = NULL;
-    }
-    for (size_t i = 0; ok && i < length; i++) {
-        float dot = 0;
-        for (int a = 0; a < 3; a++) {
-            dot += normal[2 * i][a] * normal[2 * i + 1][a];
-        }
-        joints[offset + i].join.sign = dot > 0 ? 1 : -1;
-    }
-    free(normal);
-    free(lookup);
     return ok;
 }
 
@@ -889,11 +766,11 @@ static int write_layout(const char *sample, const char *scan, int mode) {
         }
     }
     if (!layout_joints(
-            joints, blocks, pieces, count, &axis, seams, &refused, first, held_p, held_q, held) ||
-        !layout_turns(pieces, count, ranks, joints, seam_count, blocks, edges)) {
+            joints, blocks, pieces, count, seams, &refused, first, held_p, held_q, held)) {
         goto done;
     }
     for (size_t i = 0; i < count; i++) {
+        pieces[i].turn = 1;
         piece_flips(pieces + i, curl);
     }
     for (size_t i = 0; i < count; i++) {
@@ -1043,7 +920,6 @@ done:
     }
     for (size_t i = 0; pieces && i < count; i++) {
         free((char *)pieces[i].folder);
-        free(pieces[i].normals);
         free(pieces[i].mask);
     }
     for (size_t u = 0; records && u < units.gl_pathc; u++) {
