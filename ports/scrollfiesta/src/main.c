@@ -1,0 +1,337 @@
+#include "common/ves_platform.h"
+
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "common/arena.h"
+#include "common/except.h"
+#include "common/dump_obj.h"
+#include "common/mls_project.h"
+#include "pipeline/pipeline_cube.h"
+#include "remesh/ball_pivot.h"
+#include "whole/axis_warp.h"
+
+#ifdef _OPENMP
+#include "common/ves_omp.h"
+#endif
+
+#define HARD_TIMEOUT_SEC   1e9
+
+static volatile sig_atomic_t g_timeout_flag = 0;
+
+static int get_thread_count(void)
+{
+    const char *env = getenv("VESUVIUS_THREADS");
+    if (env) {
+        int n = atoi(env);
+        if (n > 0) return n;
+    }
+    int n = ves_cpu_count();
+    return (n > 0) ? n : 2;
+}
+
+static void set_env_double(const char *name, double value)
+{
+    char text[64];
+    snprintf(text, sizeof(text), "%.12g", value);
+#ifdef _WIN32
+    _putenv_s(name, text);
+#else
+    setenv(name, text, 1);
+#endif
+}
+
+static void usage(const char *argv0)
+{
+    fprintf(stderr,
+        "Usage: %s input.tif output.tif [--dump-obj dir] [--full-dumps] "
+        "[--no-simplify] [--cvt-ratio F] [--cull-oracle-tangles] [--no-timeout] [--halo N] [--trim-inset F] "
+        "[--grow-umb-y F --grow-umb-x F] [--grow-axis-table FILE] [--surface midpoint|f0-inner]\n"
+        "   or: %s --stdin-raw <p_size> <oz> <oy> <ox> --dump-obj dir "
+        "[--full-dumps] [--halo N] [--trim-inset F] [--no-simplify] "
+        "[--cvt-ratio F] [--no-timeout]\n"
+        "   or: %s --selftest\n"
+        "Final meshes only by default; --full-dumps enables intermediate exports.\n"
+        "With --halo N > 0 the final mesh is cut at the exact cube box (TRIM_CLIP_AT_BOX); --trim-inset then only\n"
+        "deepens the step-0 cloud's reach into the halo (at least TRIM_CLIP_CLOUD_REACH_VOX).\n"
+        "--dump-final-only remains accepted for existing callers.\n",
+        argv0, argv0, argv0);
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc >= 2 && strcmp(argv[1], "--selftest") == 0) return pipeline_selftest();
+    ves_prof_start_from_env();
+
+    int stdin_raw = (argc >= 2 && strcmp(argv[1], "--stdin-raw") == 0);
+
+    const char *input_path  = NULL;
+    const char *output_path = NULL;
+    const char *dump_dir    = NULL;
+    int skip_simplify = 0;
+    int surface_f0_inner = 0;
+    int full_dumps = 0;
+    int cull_oracle_tangles = 0;
+    int no_timeout  = 0;
+    int halo_voxels = 0;
+    float cvt_target_ratio = 0.0f;
+    float trim_inset = -1000.0f;
+    double grow_umb_y = 0.0, grow_umb_x = 0.0;
+    int have_grow_umb_y = 0, have_grow_umb_x = 0;
+    const char *grow_axis_table_path = NULL;
+    AxisWarp grow_axis;
+    int p_size = 0, oz = 0, oy = 0, ox = 0;
+    int opt_start = 0;
+
+    AxisWarp_init(&grow_axis);
+
+    if (stdin_raw) {
+        if (argc < 6) { usage(argv[0]); return 1; }
+        p_size = atoi(argv[2]);
+        oz = atoi(argv[3]); oy = atoi(argv[4]); ox = atoi(argv[5]);
+        opt_start = 6;
+    } else {
+        if (argc < 3) { usage(argv[0]); return 1; }
+        input_path  = argv[1];
+        output_path = argv[2];
+        opt_start = 3;
+    }
+
+    for (int i = opt_start; i < argc; i++) {
+        if (strcmp(argv[i], "--dump-obj") == 0 && i + 1 < argc) {
+            dump_dir = argv[++i];
+        } else if (strcmp(argv[i], "--surface") == 0 && i + 1 < argc) {
+            const char *surface = argv[++i];
+            if (strcmp(surface, "f0-inner") == 0) surface_f0_inner = 1;
+            else if (strcmp(surface, "midpoint") == 0) surface_f0_inner = 0;
+            else { fprintf(stderr, "ERROR: --surface must be midpoint or f0-inner\n"); return 1; }
+        } else if (strcmp(argv[i], "--no-simplify") == 0) {
+            skip_simplify = 1;
+        } else if (strcmp(argv[i], "--cvt-ratio") == 0 && i + 1 < argc) {
+            cvt_target_ratio = (float)atof(argv[++i]);
+            if (!(cvt_target_ratio > 0.0f && cvt_target_ratio <= 1.0f)) {
+                fprintf(stderr, "ERROR: --cvt-ratio must be in (0, 1]\n");
+                return 1;
+            }
+        } else if (strcmp(argv[i], "--full-dumps") == 0) {
+            full_dumps = 1;
+        } else if (strcmp(argv[i], "--dump-final-only") == 0) {
+            full_dumps = 0;
+        } else if (strcmp(argv[i], "--cull-oracle-tangles") == 0) {
+            cull_oracle_tangles = 1;
+        } else if (strcmp(argv[i], "--no-timeout") == 0) {
+            no_timeout = 1;
+        } else if (strcmp(argv[i], "--halo") == 0 && i + 1 < argc) {
+            halo_voxels = atoi(argv[++i]);
+            if (halo_voxels < 0) {
+                fprintf(stderr, "ERROR: --halo must be >= 0\n");
+                return 1;
+            }
+        } else if (strcmp(argv[i], "--trim-inset") == 0 && i + 1 < argc) {
+            trim_inset = (float)atof(argv[++i]);
+            if (trim_inset < -12.0f || trim_inset > 8.0f) {
+                fprintf(stderr, "ERROR: --trim-inset must be in [-12, 8] "
+                                "(negative = overlap ring)\n");
+                return 1;
+            }
+        } else if (strcmp(argv[i], "--grow-umb-y") == 0 && i + 1 < argc) {
+            grow_umb_y = atof(argv[++i]);
+            have_grow_umb_y = 1;
+        } else if (strcmp(argv[i], "--grow-umb-x") == 0 && i + 1 < argc) {
+            grow_umb_x = atof(argv[++i]);
+            have_grow_umb_x = 1;
+        } else if (strcmp(argv[i], "--grow-axis-table") == 0 && i + 1 < argc) {
+            grow_axis_table_path = argv[++i];
+        } else {
+            fprintf(stderr, "Unknown option: %s\n", argv[i]);
+            return 1;
+        }
+    }
+
+    if (!full_dumps) {
+        const char *debug_env[] = { "EXTRACT_DIAG", "VES_OVERLAP_DEBUG_DIR",
+                                   "SEAM_HOLE_DUMP_DIR" };
+        for (size_t i = 0; i < sizeof(debug_env) / sizeof(debug_env[0]); ++i) {
+#ifdef _WIN32
+            _putenv_s(debug_env[i], "");
+#else
+            unsetenv(debug_env[i]);
+#endif
+        }
+    }
+
+    if (have_grow_umb_y != have_grow_umb_x) {
+        fprintf(stderr,
+                "ERROR: --grow-umb-y and --grow-umb-x must be supplied together\n");
+        return 1;
+    }
+    if (have_grow_umb_y) {
+        set_env_double("BPA_GROW_UMBILICUS_Y", grow_umb_y);
+        set_env_double("BPA_GROW_UMBILICUS_X", grow_umb_x);
+        fprintf(stderr, "  per-cube growth umbilicus: (y%.3f,x%.3f)\n",
+                grow_umb_y, grow_umb_x);
+    }
+    if (grow_axis_table_path) {
+        if (AxisWarp_load_csv(&grow_axis, grow_axis_table_path) != 0) {
+            fprintf(stderr, "ERROR: cannot load --grow-axis-table %s\n",
+                    grow_axis_table_path);
+            return 1;
+        }
+        BpaReconGate_set_axis_samples(grow_axis.z, grow_axis.y,
+                                      grow_axis.x, grow_axis.n);
+        fprintf(stderr,
+                "  curved growth umbilicus: %s (%zu samples, z %.1f..%.1f)\n",
+                grow_axis_table_path, grow_axis.n, grow_axis.z[0],
+                grow_axis.z[grow_axis.n - 1]);
+    }
+
+    if (stdin_raw) {
+        if (p_size <= 0 || oz < 0 || oy < 0 || ox < 0) {
+            fprintf(stderr, "ERROR: bad --stdin-raw args\n");
+            return 1;
+        }
+        if (p_size != 128 + 2 * halo_voxels) {
+            fprintf(stderr, "ERROR: p_size (%d) must equal 128 + 2*halo (%d)\n",
+                    p_size, 128 + 2 * halo_voxels);
+            return 1;
+        }
+        if (!dump_dir) {
+            fprintf(stderr, "ERROR: --stdin-raw requires --dump-obj\n");
+            return 1;
+        }
+        if (ves_stdin_set_binary() != 0) {
+            fprintf(stderr, "ERROR: cannot set stdin to binary mode\n");
+            return 1;
+        }
+    } else {
+        if (ves_ensure_parent_dir(output_path) != 0) {
+            fprintf(stderr, "ERROR: cannot create output directory for %s\n",
+                    output_path);
+            return 1;
+        }
+    }
+
+    char default_dump[1024] = {0};
+    if (!dump_dir) {
+        strncpy(default_dump, output_path, sizeof(default_dump) - 1);
+        char *ls = NULL;
+        for (char *p = default_dump; *p; p++)
+            if (*p == '/' || *p == '\\') ls = p;
+        if (ls) *ls = '\0';
+        else strcpy(default_dump, ".");
+        dump_dir = default_dump;
+        fprintf(stderr,
+            "  note: no --dump-obj given; defaulting mesh output to %s\n",
+            dump_dir);
+    }
+
+    int n_threads = get_thread_count();
+#ifdef _OPENMP
+    omp_set_num_threads(n_threads);
+#endif
+
+    char cube_id[128] = {0};
+    if (stdin_raw) {
+        snprintf(cube_id, sizeof(cube_id), "z%05d_y%05d_x%05d", oz, oy, ox);
+    } else {
+        DumpObj_extract_cube_id(input_path, cube_id, sizeof(cube_id));
+    }
+
+    char pred_dir_buf[1024] = {0};
+    const char *pred_dir = NULL;
+    if (!stdin_raw && halo_voxels > 0) {
+        strncpy(pred_dir_buf, input_path, sizeof(pred_dir_buf) - 1);
+        char *last_slash = NULL;
+        for (char *p = pred_dir_buf; *p; p++) {
+            if (*p == '/' || *p == '\\') last_slash = p;
+        }
+        if (last_slash) {
+            *last_slash = '\0';
+            pred_dir = pred_dir_buf;
+        } else {
+            pred_dir = ".";
+        }
+    }
+
+    fprintf(stderr, "cube_mesh: %s (threads=%d, halo=%d)\n",
+            stdin_raw ? cube_id : input_path, n_threads, halo_voxels);
+
+    if (!MLS_cubecl_preflight()) {
+        fprintf(stderr, "cube_mesh: CubeCL MLS preflight failed: %s\n",
+                MLS_cubecl_last_error());
+        return 5;
+    }
+
+    double t_total = ves_clock_sec();
+    double hard_timeout = no_timeout ? 1e9 : HARD_TIMEOUT_SEC;
+    ves_hard_timeout_start(hard_timeout + 1.0, &g_timeout_flag);
+
+    Arena_T arena = Arena_new();
+    int pipeline_ok = 0;
+    PipelineOutput out = {0};
+
+    TRY
+        uint8_t *raw_buf = NULL;
+        int input_ok = 1;
+        if (stdin_raw) {
+            size_t n = (size_t)p_size * (size_t)p_size * (size_t)p_size;
+            raw_buf = (uint8_t *)ARENA_CALLOC(arena, (size_t)n, 1L);
+            size_t got = 0, r = 0;
+            while (got < n && (r = fread(raw_buf + got, 1, n - got, stdin)) > 0)
+                got += r;
+            if (got != n) {
+                fprintf(stderr, "stdin-raw: expected %zu bytes, got %zu\n", n, got);
+                input_ok = 0;
+            }
+        }
+
+        if (input_ok) {
+            PipelineInput in = {
+                .tiff_path        = input_path,
+                .pred_dir         = pred_dir,
+                .cube_id          = cube_id,
+                .halo_voxels      = halo_voxels,
+                .cube_D           = 128,
+                .cube_H           = 128,
+                .cube_W           = 128,
+                .n_threads        = n_threads,
+                .cvt_target_ratio = cvt_target_ratio,
+                .trim_inset       = trim_inset,
+                .dump_dir         = dump_dir,
+                .skip_simplify    = skip_simplify,
+                .surface_f0_inner = surface_f0_inner,
+                .full_dumps       = full_dumps,
+                .cull_oracle_tangles = cull_oracle_tangles,
+                .vol_in           = raw_buf,
+                .p_size_in        = stdin_raw ? p_size : 0,
+                .cube_origin_zyx  = { oz, oy, ox },
+            };
+            int rc = pipeline_process_cube(arena, &in, &out);
+            if (rc == 0) pipeline_ok = 1;
+        }
+
+    EXCEPT(Timeout)
+        fprintf(stderr, "TIMEOUT after %.1fs\n",
+                ves_clock_sec() - t_total);
+    EXCEPT(Arena_Failed)
+        fprintf(stderr, "ARENA OOM\n");
+    EXCEPT(IO_Failed)
+        fprintf(stderr, "I/O FAILURE\n");
+    END_TRY;
+
+    ves_hard_timeout_cancel();
+
+    double total_time = ves_clock_sec() - t_total;
+    fprintf(stderr,
+        "  Timings: extract=%.3f cvt=%.3f trim=%.3f dump=%.3f total=%.3fs"
+        "  Status: %s\n",
+        out.t_extract, out.t_cvt, out.t_trim, out.t_dump, total_time,
+        pipeline_ok ? "OK" : "FAILED");
+
+    Arena_dispose(&arena);
+    BpaReconGate_clear_axis_samples();
+    AxisWarp_dispose(&grow_axis);
+    ves_fast_exit(pipeline_ok ? 0 : 1);
+}

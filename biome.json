@@ -7,7 +7,16 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.css", "**/*.html", "biome.json", "!ports/scrollfiesta"]
+    "includes": [
+      "**/*.js",
+      "**/*.mjs",
+      "**/*.cjs",
+      "**/*.css",
+      "**/*.html",
+      "biome.json",
+      "!ports/scrollfiesta",
+      "!ideas/*/results"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -36,5 +45,36 @@
         "noAssignInExpressions": "off"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": [
+        "viewer/assets/sheet_viewer.html",
+        "viewer/assets/mark_writes.js",
+        "viewer/assets/spot_coordinates.js",
+        "viewer/assets/atlas.js"
+      ],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "noUnusedVariables": "off"
+          }
+        }
+      }
+    },
+    {
+      "includes": ["viewer/**", "synthetic/**"],
+      "formatter": {
+        "indentWidth": 4,
+        "lineWidth": 100
+      },
+      "linter": {
+        "rules": {
+          "style": {
+            "useBlockStatements": "error"
+          }
+        }
+      }
+    }
+  ]
 }

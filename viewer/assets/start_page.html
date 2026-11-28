@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>HerculeX</title>
+        <style>
+        * {
+            box-sizing: border-box;
+        }
+        html,
+        body {
+            margin: 0;
+            background: #000;
+            color: #8a8a8a;
+            font:
+                10pt Calibri,
+                Carlito,
+                sans-serif;
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        button {
+            background: none;
+            color: inherit;
+            border: 0;
+            padding: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            display: flex;
+            gap: 20px;
+            padding: 8px 14px;
+            background: #000;
+        }
+        nav a:hover,
+        nav a.here {
+            color: #fff;
+        }
+        nav span {
+            margin-left: auto;
+            font-variant-numeric: tabular-nums;
+        }
+        main {
+            padding: 0 0 20vh;
+            text-align: center;
+            line-height: 1.75;
+        }
+        main > img {
+            display: block;
+            width: 100%;
+            height: auto;
+            max-height: 34vh;
+            object-fit: cover;
+            object-position: center;
+            margin: 0 0 2.5vh;
+        }
+        #sizes,
+        #scrolls {
+            padding: 0 16px;
+        }
+        #sizes {
+            margin: 0 0 1.5em;
+        }
+        #sizes button {
+            margin: 0 0.8em;
+        }
+        #sizes button:hover,
+        #sizes button.here {
+            color: #fff;
+        }
+        ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+        #scrolls > li > button {
+            color: #fff;
+        }
+        #scrolls > li > button span {
+            margin-left: 1.2em;
+        }
+        #scrolls > li > button:disabled {
+            color: #8a8a8a;
+            cursor: default;
+        }
+        .builds {
+            margin: 0.2em 0 1em;
+        }
+        .builds a:hover {
+            color: #fff;
+        }
+        #contributors {
+            margin: 2.5em auto 0;
+            padding: 1.4em 16px 0;
+            max-width: 560px;
+            border-top: 1px solid #1e1e1e;
+        }
+        #contributors p {
+            margin: 0;
+        }
+        #contributors p:first-child {
+            color: #fff;
+        }
+        #contributors a:hover {
+            color: #fff;
+        }
+        </style>
+    </head>
+    <body>
+        <nav><a class="here" href="index.html">HerculeX</a>__ATLAS__<span id="status"></span></nav>
+        <main>
+            <img src="../website/herculex-banner.jpg" width="3200" height="620" alt="HerculeX">
+            <p id="sizes"></p>
+            <ul id="scrolls"></ul>
+            <footer id="contributors">
+                <p>Contributors</p>
+                <p>
+                    <a href="https://github.com/adambetka2">adambetka2</a>
+                    ·
+                    <a href="https://github.com/l1t-w1n">l1t-w1n</a>
+                    ·
+                    <a href="https://github.com/jeff-j-chen">jeff-j-chen</a>
+                    ·
+                    <a href="https://github.com/Johnsmr429">Johnsmr429</a>
+                    ·
+                    <a href="https://github.com/comoke">comoke</a>
+                    ·
+                    <a href="https://github.com/phippsrtyler">phippsrtyler</a>
+                </p>
+            </footer>
+        </main>
+        <script>
+        const S = __STATUS__,
+            scrolls = __SCROLLS__,
+            n = new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 });
+        const line = document.getElementById("status");
+        const show = (s) => {
+            const on = s.read_scrolls ?? s.scrolls;
+            line.textContent =
+                n.format(s.ink_cm2) +
+                " of " +
+                n.format(s.laid_cm2) +
+                " cm² read" +
+                (s.scrolls ? ` on ${on === s.scrolls ? "" : `${on} of `}${s.scrolls} scrolls` : "");
+        };
+        const live = async () => {
+            if (document.hidden) {
+                return;
+            }
+            try {
+                const r = await fetch("/status", { cache: "no-store" });
+                if (r.ok) {
+                    show(await r.json());
+                }
+            } catch (_) {}
+        };
+        show(S);
+        live();
+        setInterval(live, 30000);
+        document.addEventListener("visibilitychange", live);
+
+        const saved = {
+            get: (key) => {
+                try {
+                    return localStorage.getItem(key);
+                } catch (_) {
+                    return null;
+                }
+            },
+            set: (key, value) => {
+                try {
+                    localStorage.setItem(key, value);
+                } catch (_) {}
+            },
+        };
+        const micron = (um) => (um == null ? "" : `${Number(um.toFixed(3))} µm`);
+        const sizes = [...new Set(scrolls.map((s) => s.um).filter((um) => um != null))].sort(
+            (a, b) => b - a,
+        );
+        const choices = [
+            ["all", "all", scrolls.length],
+            ...sizes.map((um) => [
+                String(um),
+                micron(um),
+                scrolls.filter((s) => s.um === um).length,
+            ]),
+            ["fpl", "FPL", scrolls.filter((s) => s.fpl).length],
+            ["gp", "GP", scrolls.filter((s) => s.gp).length],
+        ];
+        let size = saved.get("herculex.size");
+        let open = saved.get("herculex.open");
+        if (!choices.some(([key]) => key === size)) {
+            size = "all";
+        }
+
+        const bar = document.getElementById("sizes");
+        const list = document.getElementById("scrolls");
+        const draw = () => {
+            for (const button of bar.children) {
+                button.classList.toggle("here", button.dataset.size === size);
+            }
+            for (const row of rows) {
+                const on = row.scroll.tag === open;
+                row.item.hidden =
+                    size === "fpl"
+                        ? !row.scroll.fpl
+                        : size === "gp"
+                          ? !row.scroll.gp
+                          : size !== "all" && row.scroll.um !== Number(size);
+                row.builds.hidden = !on;
+                row.button.setAttribute("aria-expanded", on);
+            }
+        };
+        const choose = ([key, name, count]) => {
+            const button = document.createElement("button");
+            button.type = "button";
+            button.dataset.size = key;
+            button.textContent = `${name} (${count})`;
+            button.onclick = () => {
+                size = key;
+                saved.set("herculex.size", size);
+                draw();
+            };
+            bar.append(button);
+        };
+        choices.forEach(choose);
+        bar.hidden = choices.length < 2;
+        const rows = scrolls.map((scroll) => {
+            const item = document.createElement("li");
+            const button = document.createElement("button");
+            button.type = "button";
+            button.disabled = !scroll.builds.length;
+            const um = document.createElement("span");
+            um.textContent = micron(scroll.um);
+            button.append(scroll.scroll, um);
+            const builds = document.createElement("ul");
+            builds.className = "builds";
+            const texts = scroll.builds.map((build) =>
+                [build.model, build.fit, build.date].filter(Boolean).join(" · "),
+            );
+            for (const [k, build] of scroll.builds.entries()) {
+                const entry = document.createElement("li");
+                const link = document.createElement("a");
+                link.href = build.href;
+                const twin = build.stamp && texts.filter((text) => text === texts[k]).length > 1;
+                const time = twin
+                    ? `, ${new Date(build.stamp * 1000).toISOString().slice(11, 16)} UTC`
+                    : "";
+                link.textContent = texts[k] + time;
+                entry.append(link);
+                builds.append(entry);
+            }
+            button.onclick = () => {
+                open = open === scroll.tag ? "" : scroll.tag;
+                saved.set("herculex.open", open);
+                draw();
+            };
+            item.append(button, builds);
+            list.append(item);
+            return { scroll, item, button, builds };
+        });
+        draw();
+        </script>
+    </body>
+</html>

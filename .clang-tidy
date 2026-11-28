@@ -18,3 +18,5 @@ Checks: >-
   clang-analyzer-unix.MallocSizeof,
   clang-analyzer-unix.MismatchedDeallocator
 WarningsAsErrors: "*"
+CheckOptions:
+  bugprone-signed-char-misuse.CharTypedefsToIgnore: "i8;int8_t"

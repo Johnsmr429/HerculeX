@@ -1,0 +1,8 @@
+#ifndef TAUCS_CONFIG_BUILD_H
+#define TAUCS_CONFIG_BUILD_H
+
+#define TAUCS_CONFIG_DREAL
+
+#define TAUCS_CONFIG_GENMMD
+
+#endif

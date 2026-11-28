@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HerculeX figures</title>
+    <style>
+    @font-face {
+      font-family: "KitMono";
+      src: local("SF Mono"), local("SFMono-Regular"), url("file:///System/Library/Fonts/SFNSMono.ttf");
+    }
+    html,
+    body {
+      margin: 0;
+      background: transparent;
+    }
+    body {
+      padding-top: 200px;
+    }
+    svg {
+      display: block;
+    }
+    </style>
+  </head>
+  <body>
+    <script src="tiles/tiles.js"></script>
+    <script src="kit.js"></script>
+    <script src="figures.js"></script>
+    <script>
+    document.fonts.ready.then(() => window.FIGS[location.hash.slice(1)]());
+    </script>
+  </body>
+</html>

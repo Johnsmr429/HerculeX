@@ -1,0 +1,342 @@
+#include "normal_orient.h"
+
+#include "../common/kdtree.h"
+#include "../common/union_find.h"
+
+#include <math.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct { int32_t a, b; float w; } Edge;
+
+static int edge_cmp(const void *pa, const void *pb)
+{
+    const Edge *ea = (const Edge *)pa, *eb = (const Edge *)pb;
+    if (ea->w < eb->w) return -1;
+    if (ea->w > eb->w) return 1;
+    if (ea->a != eb->a) return (ea->a < eb->a) ? -1 : 1;
+    if (ea->b != eb->b) return (ea->b < eb->b) ? -1 : 1;
+    return 0;
+}
+
+static inline uint32_t edge_wkey(float w)
+{
+    uint32_t u = 0;
+    memcpy(&u, &w, sizeof(u));
+    if (u == 0x80000000u) u = 0;
+    return (u & 0x80000000u) ? ~u : (u | 0x80000000u);
+}
+
+static void edges_sort(Edge *edges, size_t ne)
+{
+    if (ne < 256) { qsort(edges, ne, sizeof(Edge), edge_cmp); return; }
+    for (size_t e = 0; e < ne; e++)
+        if (edges[e].w != edges[e].w) { qsort(edges, ne, sizeof(Edge), edge_cmp); return; }
+    Edge *tmp = (Edge *)malloc(ne * sizeof(Edge));
+    if (!tmp) { qsort(edges, ne, sizeof(Edge), edge_cmp); return; }
+    size_t cnt[256];
+    Edge *src = edges, *dst = tmp;
+    for (int field = 0; field < 3; field++) {
+        for (int shift = 0; shift < 32; shift += 8) {
+            memset(cnt, 0, sizeof(cnt));
+            for (size_t e = 0; e < ne; e++) {
+                uint32_t k = field == 0 ? (uint32_t)src[e].b : field == 1 ? (uint32_t)src[e].a
+                                                                          : edge_wkey(src[e].w);
+                cnt[(k >> shift) & 0xFF]++;
+            }
+            {
+                uint32_t k0 = field == 0 ? (uint32_t)src[0].b : field == 1 ? (uint32_t)src[0].a
+                                                                           : edge_wkey(src[0].w);
+                if (cnt[(k0 >> shift) & 0xFF] == ne) continue;
+            }
+            size_t run = 0;
+            for (int b = 0; b < 256; b++) { size_t c = cnt[b]; cnt[b] = run; run += c; }
+            for (size_t e = 0; e < ne; e++) {
+                uint32_t k = field == 0 ? (uint32_t)src[e].b : field == 1 ? (uint32_t)src[e].a
+                                                                          : edge_wkey(src[e].w);
+                dst[cnt[(k >> shift) & 0xFF]++] = src[e];
+            }
+            Edge *t = src; src = dst; dst = t;
+        }
+    }
+    if (src != edges) memcpy(edges, src, ne * sizeof(Edge));
+    free(tmp);
+}
+
+static double agree_frac_edges(const Edge *edges, size_t ne, const float *normals)
+{
+    if (ne == 0) return 1.0;
+    size_t pos = 0;
+    for (size_t e = 0; e < ne; e++) {
+        const float *na = &normals[(size_t)edges[e].a * 3];
+        const float *nb = &normals[(size_t)edges[e].b * 3];
+        float d = na[0]*nb[0] + na[1]*nb[1] + na[2]*nb[2];
+        if (d > 0.0f) pos++;
+    }
+    return (double)pos / (double)ne;
+}
+
+static double agree_frac_csr(const int32_t *off, const int32_t *adj, int n,
+                             const float *normals)
+{
+    size_t pos = 0, tot = 0;
+    for (int p = 0; p < n; p++) {
+        const float *np = &normals[(size_t)p * 3];
+        for (int32_t e = off[p]; e < off[p+1]; e++) {
+            int32_t ch = adj[e];
+            if (ch <= p) continue;
+            const float *nc = &normals[(size_t)ch * 3];
+            float d = np[0]*nc[0] + np[1]*nc[1] + np[2]*nc[2];
+            tot++;
+            if (d > 0.0f) pos++;
+        }
+    }
+    return tot ? (double)pos / (double)tot : 1.0;
+}
+
+int NormalOrient_consistent(Arena_T arena,
+                            const float *verts,
+                            float *normals,
+                            size_t nv,
+                            float radius,
+                            size_t *out_flips)
+{
+    if (out_flips) *out_flips = 0;
+    if (nv < 2) return 0;
+    int n = (int)nv;
+    int dbg = getenv("NORMAL_ORIENT_DEBUG") != NULL;
+
+    Arena_Mark mark = Arena_save(arena);
+    KDTree_T tree = KDTree_new(arena, verts, nv);
+
+    float r2 = radius * radius;
+    enum { MAXNBR = 512 };
+    int32_t *nbr = (int32_t *)malloc(MAXNBR * sizeof(int32_t));
+
+    size_t ecap = (size_t)n * 16 + 16, ne = 0;
+    Edge *edges = (Edge *)malloc(ecap * sizeof(Edge));
+    size_t dbg_clamp = 0, dbg_iso = 0, dbg_degsum = 0;
+    size_t dbg_degmin = (size_t)-1, dbg_degmax = 0;
+    for (int i = 0; i < n; i++) {
+        float c[3] = { verts[i*3+0], verts[i*3+1], verts[i*3+2] };
+        size_t m = KDTree_ball_query(tree, c, r2, nbr, MAXNBR);
+        if (dbg) {
+            size_t raw = m;
+            if (raw > MAXNBR) dbg_clamp++;
+            if (raw <= 1) dbg_iso++;
+            dbg_degsum += raw;
+            if (raw < dbg_degmin) dbg_degmin = raw;
+            if (raw > dbg_degmax) dbg_degmax = raw;
+        }
+        if (m > MAXNBR) m = MAXNBR;
+        const float *ni = &normals[i*3];
+        for (size_t t = 0; t < m; t++) {
+            int32_t j = nbr[t];
+            if (j == i) continue;
+            int32_t lo = (j < i) ? j : i, hi = (j < i) ? i : j;
+            const float *nj = &normals[j*3];
+            float d = ni[0]*nj[0] + ni[1]*nj[1] + ni[2]*nj[2];
+            float ad = (d < 0.0f) ? -d : d;
+            if (ne >= ecap) { ecap *= 2; edges = (Edge *)realloc(edges, ecap * sizeof(Edge)); }
+            edges[ne].a = lo; edges[ne].b = hi; edges[ne].w = 1.0f - ad; ne++;
+        }
+    }
+    free(nbr);
+
+    double dbg_agree_before = 0.0;
+    if (dbg) {
+        dbg_agree_before = agree_frac_edges(edges, ne, normals);
+        fprintf(stderr,
+            "[norient nv=%d r=%.3f] graph: edges=%zu  degree(incl.self) min=%zu max=%zu mean=%.1f"
+            "  isolated=%zu  clamp(>%d)=%zu  AGREE_BEFORE=%.4f\n",
+            n, (double)radius, ne,
+            (dbg_degmin == (size_t)-1 ? 0 : dbg_degmin), dbg_degmax,
+            n ? (double)dbg_degsum / (double)n : 0.0,
+            dbg_iso, (int)MAXNBR, dbg_clamp, dbg_agree_before);
+    }
+
+    edges_sort(edges, ne);
+
+    UnionFind uf = UF_new(arena, n);
+    size_t mcap = (size_t)(n > 1 ? n - 1 : 1);
+    int32_t *ma = (int32_t *)malloc(mcap * sizeof(int32_t));
+    int32_t *mb = (int32_t *)malloc(mcap * sizeof(int32_t));
+    size_t nm = 0;
+    double dbg_mst_wsum = 0.0; float dbg_mst_wmax = 0.0f;
+    for (size_t e = 0; e < ne && (int)nm < n - 1; e++) {
+        int32_t a = edges[e].a, b = edges[e].b;
+        if (uf_find(&uf, a) != uf_find(&uf, b)) {
+            uf_union(&uf, a, b);
+            ma[nm] = a; mb[nm] = b; nm++;
+            if (dbg) { dbg_mst_wsum += (double)edges[e].w;
+                       if (edges[e].w > dbg_mst_wmax) dbg_mst_wmax = edges[e].w; }
+        }
+    }
+
+    if (dbg) {
+        int comps = n - (int)nm;
+        fprintf(stderr,
+            "[norient nv=%d] MST: edges=%zu  components=%d  mst_w mean=%.4f max=%.4f"
+            "  (graph_w min=%.4f med=%.4f max=%.4f)\n",
+            n, nm, comps,
+            nm ? dbg_mst_wsum / (double)nm : 0.0, (double)dbg_mst_wmax,
+            ne ? (double)edges[0].w : 0.0,
+            ne ? (double)edges[ne/2].w : 0.0,
+            ne ? (double)edges[ne-1].w : 0.0);
+        int32_t *csz = (int32_t *)calloc((size_t)n, sizeof(int32_t));
+        for (int i = 0; i < n; i++) csz[uf_find(&uf, i)]++;
+        size_t h1=0,h2=0,h3=0,h4=0,h5=0; int cmax=0;
+        for (int i = 0; i < n; i++) {
+            int s = csz[i];
+            if (s == 0) continue;
+            if (s > cmax) cmax = s;
+            if (s == 1) h1++; else if (s <= 10) h2++; else if (s <= 100) h3++;
+            else if (s <= 1000) h4++; else h5++;
+        }
+        fprintf(stderr,
+            "[norient nv=%d] comp sizes: max=%d  buckets [1]=%zu [2-10]=%zu"
+            " [11-100]=%zu [101-1000]=%zu [1000+]=%zu\n",
+            n, cmax, h1, h2, h3, h4, h5);
+        free(csz);
+    }
+
+    int32_t *deg = (int32_t *)calloc((size_t)n, sizeof(int32_t));
+    for (size_t e = 0; e < nm; e++) { deg[ma[e]]++; deg[mb[e]]++; }
+    int32_t *off = (int32_t *)malloc((size_t)(n + 1) * sizeof(int32_t));
+    off[0] = 0;
+    for (int i = 0; i < n; i++) off[i+1] = off[i] + deg[i];
+    int32_t *adj = (int32_t *)malloc((size_t)off[n] * sizeof(int32_t));
+    int32_t *cur = (int32_t *)malloc((size_t)n * sizeof(int32_t));
+    memcpy(cur, off, (size_t)n * sizeof(int32_t));
+    for (size_t e = 0; e < nm; e++) {
+        int32_t a = ma[e], b = mb[e];
+        adj[cur[a]++] = b; adj[cur[b]++] = a;
+    }
+    free(cur); free(ma); free(mb); free(deg);
+
+    int32_t *seed_of_root = (int32_t *)malloc((size_t)n * sizeof(int32_t));
+    for (int i = 0; i < n; i++) seed_of_root[i] = -1;
+    for (int i = 0; i < n; i++) {
+        int32_t r = uf_find(&uf, i);
+        int32_t s = seed_of_root[r];
+        if (s < 0 || verts[i*3+0] > verts[s*3+0]) seed_of_root[r] = i;
+    }
+
+    float *orig = (float *)malloc((size_t)n * 3 * sizeof(float));
+    memcpy(orig, normals, (size_t)n * 3 * sizeof(float));
+
+    uint8_t *vis = (uint8_t *)calloc((size_t)n, 1);
+    int32_t *queue = (int32_t *)malloc((size_t)n * sizeof(int32_t));
+    size_t seeds_total = 0, reanchored = 0;
+    for (int i = 0; i < n; i++) {
+        if (uf_find(&uf, i) != i) continue;
+        int32_t seed = seed_of_root[i];
+        if (seed < 0 || vis[seed]) continue;
+        seeds_total++;
+        size_t qh = 0, qt = 0;
+        queue[qt++] = seed; vis[seed] = 1;
+        while (qh < qt) {
+            int32_t p = queue[qh++];
+            float np0 = normals[p*3+0], np1 = normals[p*3+1], np2 = normals[p*3+2];
+            for (int32_t e = off[p]; e < off[p+1]; e++) {
+                int32_t ch = adj[e];
+                if (vis[ch]) continue;
+                vis[ch] = 1;
+                float *nc = &normals[ch*3];
+                float d = np0*nc[0] + np1*nc[1] + np2*nc[2];
+                if (d < 0.0f) { nc[0] = -nc[0]; nc[1] = -nc[1]; nc[2] = -nc[2]; }
+                queue[qt++] = ch;
+            }
+        }
+        size_t agree = 0;
+        for (size_t q = 0; q < qt; q++) {
+            int32_t v = queue[q];
+            float dd = normals[v*3+0]*orig[v*3+0] + normals[v*3+1]*orig[v*3+1]
+                     + normals[v*3+2]*orig[v*3+2];
+            if (dd > 0.0f) agree++;
+        }
+        if (agree * 2 < qt) {
+            for (size_t q = 0; q < qt; q++) {
+                int32_t v = queue[q];
+                normals[v*3+0] = -normals[v*3+0];
+                normals[v*3+1] = -normals[v*3+1];
+                normals[v*3+2] = -normals[v*3+2];
+            }
+            reanchored++;
+        }
+    }
+    size_t flips = 0;
+    for (int i = 0; i < n; i++) {
+        float dd = normals[i*3+0]*orig[i*3+0] + normals[i*3+1]*orig[i*3+1]
+                 + normals[i*3+2]*orig[i*3+2];
+        if (dd < 0.0f) flips++;
+    }
+    free(orig);
+    if (dbg) {
+        double aft_all = agree_frac_edges(edges, ne, normals);
+        double aft_mst = agree_frac_csr(off, adj, n, normals);
+        const char *bug = (aft_mst < 0.999)
+            ? " <<< MST NOT CONSISTENT -- BFS PROPAGATION BUG" : "";
+        const char *verdict;
+        if (aft_mst < 0.999)
+            verdict = "BUG: BFS failed to make the tree consistent";
+        else if (dbg_agree_before >= 0.999 && aft_all >= 0.999)
+            verdict = "field was ALREADY consistent; Hoppe left it unchanged (majority re-anchor)";
+        else if (aft_all > dbg_agree_before + 0.001)
+            verdict = "Hoppe IMPROVED graph consistency";
+        else if (aft_all < dbg_agree_before - 0.001)
+            verdict = "Hoppe REDUCED graph consistency (fragmentation: independently-seeded components disagree)";
+        else
+            verdict = "no net change in graph consistency";
+        fprintf(stderr,
+            "[norient nv=%d] BFS: seeds=%zu reanchored=%zu total_flips=%zu (%.1f%%)"
+            "  AGREE_AFTER all=%.4f MST=%.4f%s\n",
+            n, seeds_total, reanchored, flips,
+            n ? 100.0 * (double)flips / (double)n : 0.0,
+            aft_all, aft_mst, bug);
+        fprintf(stderr, "[norient nv=%d] VERDICT: %s\n", n, verdict);
+    }
+    free(edges);
+    free(queue); free(vis); free(adj); free(off); free(seed_of_root);
+
+    Arena_restore(arena, mark);
+    if (out_flips) *out_flips = flips;
+    return 0;
+}
+
+int NormalOrient_selftest(void)
+{
+    uint32_t s = 0x1234567u;
+    int fails = 0;
+    size_t checks = 0;
+    for (int trial = 0; trial < 30 && !fails; trial++) {
+        size_t ne = (size_t)(1 + trial * trial * 113);
+        Edge *a = (Edge *)malloc((ne ? ne : 1) * sizeof(Edge));
+        Edge *b = (Edge *)malloc((ne ? ne : 1) * sizeof(Edge));
+        if (!a || !b) { free(a); free(b); return -1; }
+        for (size_t e = 0; e < ne; e++) {
+            s ^= s << 13; s ^= s >> 17; s ^= s << 5;
+            int32_t x = (int32_t)(s % 5000u), y = (int32_t)((s >> 12) % 5000u);
+            a[e].a = x < y ? x : y;
+            a[e].b = x < y ? y : x;
+            switch ((s >> 24) & 3) {
+            case 0: a[e].w = (float)((s >> 3) % 7u) * 0.125f; break;
+            case 1: a[e].w = 1.0f - (float)(s % 100000u) * 1e-5f; break;
+            case 2: a[e].w = -(float)(s % 1000u) * 1e-7f; break;
+            default: a[e].w = 0.0f; break;
+            }
+            if (e > 0 && (s & 15u) == 0) a[e] = a[e - 1];
+            b[e] = a[e];
+        }
+        edges_sort(a, ne);
+        qsort(b, ne, sizeof(Edge), edge_cmp);
+        checks++;
+        if (memcmp(a, b, ne * sizeof(Edge)) != 0) fails++;
+        free(a); free(b);
+    }
+    fprintf(stderr, "NormalOrient_selftest: %s (%zu radix edge sorts == qsort)\n",
+            fails ? "FAIL" : "OK", checks);
+    return fails ? -1 : 0;
+}

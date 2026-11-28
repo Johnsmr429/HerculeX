@@ -4,26 +4,24 @@ These modules download data over HTTP into brick stores and mirrors.
 
 | File | Description |
 | --- | --- |
-| `parallel_fetch.py` | Runs many HTTP GET requests over kept-alive connections, with byte ranges and retries. |
-| `fetch_volume.py` | Streams one OME-Zarr level of a scan into a brick store. |
-| `fetch_atlas.py` | Fetches every scroll at about 75 µm per voxel, into one folder per scroll under `OUT`. |
-| `fetch_fragment.py` | Fetches a fragment's surface volume and its infrared truth images. |
-| `fetch_products.py` | Mirrors the published meshes and maps into the library's `published/open_data/`, packed losslessly. |
-| `fetch_server.py` | Mirrors the products that only dl.ash2txt.org holds into the library's `published/dl_ash2txt/`. |
-| `sharded_labels.py` | Reads a 2D zarr v3 mask stored in blosc-compressed shards. |
+| `fetch_volume.c` | Streams one OME-Zarr level of a scan into a brick store. |
+| `fetch_atlas.c` | Fetches every scroll at about 75 µm per voxel, into one folder per scroll under `OUT`. |
+| `fetch_fragment.c` | Fetches a fragment's surface volume and its infrared truth images. |
+| `mirror.c` | Mirrors published products into `published/open_data/` and `published/dl_ash2txt/`, packed losslessly. |
 
 ## Commands
 
 ```sh
+./run.sh scans.transfer.fetch_volume PATH LEVEL OUT [--root URL] [--rows FIRST LAST] [--connections N] [--list]
 ./run.sh scans.transfer.fetch_atlas OUT [VOXEL_UM]
-./run.sh scans.transfer.fetch_products walk|fetch|verify
-./run.sh scans.transfer.fetch_server plan|fetch|verify
+./run.sh scans.transfer.fetch_fragment FRAGMENT PACKAGE WORKING OUT
+./run.sh scans.transfer.fetch_products walk|fetch|status|verify [--root URL]
+./run.sh scans.transfer.fetch_server plan|fetch|status|verify [--root URL]
 ```
 
 Each mirror runs in three steps. `walk` or `plan` lists what to fetch, `fetch` downloads it and resumes where it
 stopped, and `verify` accounts for every planned file and compares a random sample with the source. Build the
-inventories in [`scans/catalog`](../catalog/README.md) first.
+inventories in [`scans/catalog`](../catalog/README.md) first. `status` reads the stored plan and receipts without contacting the source.
 
-`HERCULEX_FETCH_CONNECTIONS` sets the default number of connections that `parallel_fetch` opens (default `32`). Sheet
-detection reads the same variable with a default of `16`. `HERCULEX_FETCHER` picks the client for brick lists: `curl`
-(the default, the libcurl client in `scans/chunks/fetch_urls.c`) or `python` (threads).
+Native volume fetches use libcurl. Use `--connections N` to change the default of `32`. Sheet detection uses
+`HERCULEX_FETCH_CONNECTIONS` and defaults to `16`.

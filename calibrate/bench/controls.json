@@ -1,0 +1,469 @@
+{
+ "version": 2,
+ "frozen": "2026-11-15",
+ "rules": [
+  "7-9 um scans only (7.91-9.366 um), never the 2.4 um fine scans; the method reads CT only, and published meshes are used only as truth and training labels.",
+  "Split by scroll, about 90% of the truth area to train and 10% to holdouts (approved 16 Nov). Train: PHerc0139 (9.362 um), PHerc0172, PHerc1667 and PHercParis4 (7.91 um). Holdout-A: PHerc0814, 0500P2, 0841, 0009B, 1447, 0343P, 0800 (not counted).",
+  "Zone 'train': training labels only, never scored as a result. Zone 'val': PHerc0139 z 5500-5650 and PHercParis4 z 7680-7936, model selection only, never trained on.",
+  "Holdout zones are scored only with calibrate.bench.score --holdout from a clean commit; every such run is appended to bench/holdout-log.jsonl in the outputs folder. Holdout packages are frozen and never rebuilt; their truth is used for scoring only.",
+  "A zone runs from z0 (inclusive) to z1 (exclusive), in level-0 voxels of its scan. Boxes are full cross-sections.",
+  "Version 1 (15 Nov): PHerc0139 z 5500-7000 dev with 500-slice buffers and the rest holdout-B. The packages PHerc0139-dev and PHerc0139-B keep their version-1 zone codes and are kept for scoring; under version 2 all of PHerc0139 except val is training data, so their scores are in-sample. PHerc0172-train (z 3072-3712, package version 1) is kept on disc."
+ ],
+ "scans": {
+  "PHerc0139-20250728140407": {
+   "sample": "PHerc0139",
+   "scan": "20250728140407",
+   "voxel_um": 9.362,
+   "zones": [
+    [
+     0,
+     5500,
+     "train"
+    ],
+    [
+     5500,
+     5650,
+     "val"
+    ],
+    [
+     5650,
+     100000,
+     "train"
+    ]
+   ]
+  },
+  "PHerc0814-20250804134230": {
+   "sample": "PHerc0814",
+   "scan": "20250804134230",
+   "voxel_um": 9.362,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc0500P2-20250820143440": {
+   "sample": "PHerc0500P2",
+   "scan": "20250820143440",
+   "voxel_um": 9.362,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc0841-20250821151531": {
+   "sample": "PHerc0841",
+   "scan": "20250821151531",
+   "voxel_um": 9.366,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc0009B-20250521125136": {
+   "sample": "PHerc0009B",
+   "scan": "20250521125136",
+   "voxel_um": 8.64,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc1447-20250521151220": {
+   "sample": "PHerc1447",
+   "scan": "20250521151220",
+   "voxel_um": 8.64,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc0343P-20250521134555": {
+   "sample": "PHerc0343P",
+   "scan": "20250521134555",
+   "voxel_um": 8.64,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc0800-20250521135224": {
+   "sample": "PHerc0800",
+   "scan": "20250521135224",
+   "voxel_um": 8.64,
+   "zones": [
+    [
+     0,
+     100000,
+     "holdout-A"
+    ]
+   ]
+  },
+  "PHerc0172-20241024131839": {
+   "sample": "PHerc0172",
+   "scan": "20241024131839",
+   "voxel_um": 7.91,
+   "zones": [
+    [
+     0,
+     100000,
+     "train"
+    ]
+   ]
+  },
+  "PHerc1667-20231117161658": {
+   "sample": "PHerc1667",
+   "scan": "20231117161658",
+   "voxel_um": 7.91,
+   "zones": [
+    [
+     0,
+     100000,
+     "train"
+    ]
+   ]
+  },
+  "PHercParis4-20230205180739": {
+   "sample": "PHercParis4",
+   "scan": "20230205180739",
+   "voxel_um": 7.91,
+   "zones": [
+    [
+     0,
+     7680,
+     "train"
+    ],
+    [
+     7680,
+     7936,
+     "val"
+    ],
+    [
+     7936,
+     100000,
+     "train"
+    ]
+   ]
+  }
+ },
+ "controls": {
+  "PHerc0139-dev": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    4992,
+    7552
+   ],
+   "crossing_step": 4,
+   "role": "Development band: z 5500-7000 dev, 500-slice buffers each side. 37 consecutive named windings w023-w059."
+  },
+  "PHerc0139-B": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    1408,
+    8576
+   ],
+   "crossing_step": 8,
+   "role": "Same-scroll holdout: the whole 9.362 um truth; only its holdout-B zones (z < 5000 and z >= 7500) are scored as holdout."
+  },
+  "PHerc0814-A": {
+   "scan": "PHerc0814-20250804134230",
+   "z": [
+    2304,
+    3712
+   ],
+   "crossing_step": 8,
+   "role": "Crushed scroll; v1 wrong-wrap 13-17%. 19 meshes, no wrap names."
+  },
+  "PHerc0500P2-A": {
+   "scan": "PHerc0500P2-20250820143440",
+   "z": [
+    4352,
+    5760
+   ],
+   "crossing_step": 8,
+   "role": "Open stack without a roll axis; most pressed truth of all controls (33%). 46 meshes, no wrap names."
+  },
+  "PHerc0841-A": {
+   "scan": "PHerc0841-20250821151531",
+   "z": [
+    13440,
+    14848
+   ],
+   "crossing_step": 8,
+   "role": "The only scroll stock Reader v3 never saw; 3 meshes with community ink labels (ink holdout)."
+  },
+  "PHerc0009B-A": {
+   "scan": "PHerc0009B-20250521125136",
+   "z": [
+    4864,
+    6272
+   ],
+   "crossing_step": 8,
+   "role": "8.64 um beamline; 18 meshes, no wrap names; ink labels."
+  },
+  "PHerc1447-A": {
+   "scan": "PHerc1447-20250521151220",
+   "z": [
+    22656,
+    24064
+   ],
+   "crossing_step": 8,
+   "role": "8.64 um; 15 meshes, no wrap names; Reader v3 never saw it."
+  },
+  "PHerc0343P-A": {
+   "scan": "PHerc0343P-20250521134555",
+   "z": [
+    1664,
+    3072
+   ],
+   "crossing_step": 8,
+   "role": "8.64 um; 8 meshes, no wrap names; First Letters scroll."
+  },
+  "PHerc0800-A": {
+   "scan": "PHerc0800-20250521135224",
+   "z": [
+    11392,
+    12800
+   ],
+   "crossing_step": 8,
+   "role": "8.64 um; 6 small meshes (about 9 cm2); reported, not counted in the headline."
+  },
+  "PHerc0172-train": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    3072,
+    3712
+   ],
+   "crossing_step": 8,
+   "role": "Training only (7.91 um): the densest 640 slices of 53 meshes, 44 wrap-named."
+  },
+  "PHerc0139-train": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    3200,
+    7808
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2): the 37 wrap-named meshes w023-w059 where all of them are present (under 0.5% of windings missing inside the traced annulus); z 5500-5650 inside it is zone val, never trained on (labels from PHerc0139-val)."
+  },
+  "PHerc0139-train-low": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    1408,
+    3200
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), partial annulus: below z 3200 w035-w050 have not started, so 30-67% of the windings inside the traced annulus are untraced; the network sampler would teach those sheets as air."
+  },
+  "PHerc0139-train-high": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    7808,
+    8576
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), partial annulus: above z 7808 the meshes end at different heights, 15-70% of the windings inside the traced annulus are untraced."
+  },
+  "PHerc0139-val": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    5500,
+    5650
+   ],
+   "crossing_step": 4,
+   "role": "Validation (version 2): model selection only, never trained on; the val zone of PHerc0139-train as its own package, so its labels file is separate."
+  },
+  "PHerc0139-title": {
+   "scan": "PHerc0139-20250728140407",
+   "z": [
+    9088,
+    10816
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2): the scan's only truth above z 8576, one unnamed title mesh (7 cm2) with no neighbour."
+  },
+  "PHerc0172-train-4608": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    4608,
+    5504
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), 7.91 um: 53 meshes (w052-w095 and 9 unnamed auto-grown meshes of the inner turns); the band with the fewest conflict and order flags."
+  },
+  "PHerc0172-train-5760": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    5760,
+    6656
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), 7.91 um: 53 meshes; the second cleanest band, 256 slices above PHerc0172-train-4608."
+  },
+  "PHerc0172-train-9728": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    9728,
+    10624
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), 7.91 um: 53 meshes; the cleanest band of the upper half of the scroll."
+  },
+  "PHerc0172-train-4488": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    4488,
+    4608
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 53 meshes; the 120 slices below PHerc0172-train-4608 inside the CT fetched for it (stored from z 4480)."
+  },
+  "PHerc0172-train-5504": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    5504,
+    5760
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 53 meshes; the 256 slices between PHerc0172-train-4608 and PHerc0172-train-5760, inside the CT fetched for them."
+  },
+  "PHerc0172-train-6656": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    6656,
+    6776
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 53 meshes; the 120 slices above PHerc0172-train-5760 inside the CT fetched for it (stored to z 6784)."
+  },
+  "PHerc0172-train-9608": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    9608,
+    9728
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 53 meshes; the 120 slices below PHerc0172-train-9728 inside the CT fetched for it (stored from z 9600)."
+  },
+  "PHerc0172-train-10624": {
+   "scan": "PHerc0172-20241024131839",
+   "z": [
+    10624,
+    10744
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 53 meshes; the 120 slices above PHerc0172-train-9728 inside the CT fetched for it (stored to z 10752)."
+  },
+  "PHerc1667-train-2560": {
+   "scan": "PHerc1667-20231117161658",
+   "z": [
+    2560,
+    3584
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), 7.91 um (data.aws.ash2txt.org): 20 meshes w011-w041, one merged mesh of 31 turns among them; the densest band, fewest conflicts."
+  },
+  "PHerc1667-train-7168": {
+   "scan": "PHerc1667-20231117161658",
+   "z": [
+    7168,
+    8192
+   ],
+   "crossing_step": 8,
+   "role": "Training (version 2), 7.91 um (data.aws.ash2txt.org): 20 meshes w011-w041; a band from the upper half of the scroll."
+  },
+  "PHerc1667-train-2440": {
+   "scan": "PHerc1667-20231117161658",
+   "z": [
+    2440,
+    2560
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 20 meshes w011-w041; the 120 slices below PHerc1667-train-2560 inside the CT fetched for it (stored from z 2432)."
+  },
+  "PHerc1667-train-3584": {
+   "scan": "PHerc1667-20231117161658",
+   "z": [
+    3584,
+    3704
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 20 meshes w011-w041; the 120 slices above PHerc1667-train-2560 inside the CT fetched for it (stored to z 3712)."
+  },
+  "PHerc1667-train-7048": {
+   "scan": "PHerc1667-20231117161658",
+   "z": [
+    7048,
+    7168
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 20 meshes w011-w041; the 120 slices below PHerc1667-train-7168 inside the CT fetched for it (stored from z 7040)."
+  },
+  "PHerc1667-train-8192": {
+   "scan": "PHerc1667-20231117161658",
+   "z": [
+    8192,
+    8312
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 20 meshes w011-w041; the 120 slices above PHerc1667-train-7168 inside the CT fetched for it (stored to z 8320)."
+  },
+  "PHercParis4-train-3072": {
+   "scan": "PHercParis4-20230205180739",
+   "z": [
+    3072,
+    4096
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: the densest 1024 slices of the 58 wrap-range meshes w010-w129 (two series, 20260623 and 20260701, and two _jordi variants), mirrored from the bucket into DATA/open_data.",
+   "winding": "names"
+  },
+  "PHercParis4-train-6144": {
+   "scan": "PHercParis4-20230205180739",
+   "z": [
+    6144,
+    7168
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 1024 slices of the 58 wrap-range meshes, 512 slices below the val band.",
+   "winding": "names"
+  },
+  "PHercParis4-train-9216": {
+   "scan": "PHercParis4-20230205180739",
+   "z": [
+    9216,
+    10240
+   ],
+   "crossing_step": 8,
+   "role": "Training (16 Nov), 7.91 um: 1024 slices of the 58 wrap-range meshes in the upper part of the scan.",
+   "winding": "names"
+  },
+  "PHercParis4-val": {
+   "scan": "PHercParis4-20230205180739",
+   "z": [
+    7680,
+    7936
+   ],
+   "crossing_step": 4,
+   "role": "Validation (16 Nov), 7.91 um: model selection only, never trained on; also the band to score the published spiral fit (20260926044226-spiral-output-generation-19) and the network fit on.",
+   "winding": "names"
+  }
+ }
+}

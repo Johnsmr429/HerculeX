@@ -6,7 +6,7 @@ The `scans` package lists the available scans and downloads them (stage 1).
 | --- | --- |
 | `catalog/` | Indexes the Vesuvius Challenge open-data bucket and dl.ash2txt.org, and chooses the scan to survey for each scroll. |
 | `transfer/` | Fetches OME-Zarr levels by byte range into brick stores, mirrors published products, and fetches fragments. |
-| `chunks/` | Reads OME-Zarr levels chunk by chunk through a local chunk store, for the ml module and the bench. |
+| `chunks/` | Reads and caches OME-Zarr chunks for CT box queries, synthetic realism, and slab sampling. |
 
 These tools write to the following folders in the library:
 

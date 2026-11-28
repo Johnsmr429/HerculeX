@@ -1,0 +1,553 @@
+#include "../common/ves_platform.h"
+
+#include <assert.h>
+#include <limits.h>
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "export_atlas.h"
+#include "tifxyz_export.h"
+#include "../whole/axis_warp.h"
+
+void AtlasOpts_default(AtlasOpts *o)
+{
+    assert(o);
+    memset(o, 0, sizeof(*o));
+    o->piece_wraps = 1;
+    o->slab_v = 4096.0;
+    o->du = 1.0;
+    o->dv = 1.0;
+    o->write_winding = 1;
+    o->max_edge3d = 0.0;
+    o->stretch_ratio = 4.0;
+    o->stretch_floor = 25.0;
+    o->conflict_dist = 2.0;
+    o->relax = 0;
+    o->relax_sweeps = 30;
+}
+
+typedef struct {
+    char   name[96];
+    int    k0, k1;
+    double v0, v1;
+    size_t W, H, valid, multi, conflict;
+    double origin_u, origin_v;
+    double bbox_lo[3], bbox_hi[3];
+} PieceRec;
+
+static int cmp_float(const void *pa, const void *pb)
+{
+    float a = *(const float *)pa, b = *(const float *)pb;
+    return a < b ? -1 : (a > b ? 1 : 0);
+}
+
+int Atlas_lift_polar_u(Arena_T arena, const PieceSet *ps,
+                       const ScaffoldCalib *c, float **out_uv,
+                       AtlasPolarStats *stats)
+{
+    if (arena == NULL || ps == NULL || c == NULL || out_uv == NULL
+        || ps->nv == 0 || ps->verts == NULL || ps->uv == NULL
+        || ps->phi == NULL)
+        return -1;
+    AtlasPolarStats st;
+    memset(&st, 0, sizeof(st));
+    AxisWarp axis;
+    AxisWarp_init(&axis);
+    if (c->axis_table[0] != '\0'
+        && AxisWarp_load_csv(&axis, c->axis_table) == 0)
+        st.curved_axis = 1;
+
+    double *theta = (double *)ARENA_ALLOC(
+        arena, (size_t)(ps->nv * sizeof(double)));
+    double cp = 0.0, sp = 0.0, cm = 0.0, sm = 0.0;
+    size_t np = 0;
+    for (size_t v = 0; v < ps->nv; v++) {
+        double cy = (double)c->axis_point[1];
+        double cx = (double)c->axis_point[2];
+        if (AxisWarp_valid(&axis))
+            AxisWarp_eval(&axis, (double)ps->verts[v * 3 + 0], &cy, &cx);
+        theta[v] = atan2((double)ps->verts[v * 3 + 1] - cy,
+                         (double)ps->verts[v * 3 + 2] - cx);
+        if (ps->gid != NULL && ps->gid[v] < 0) continue;
+        double phi = (double)ps->phi[v];
+        cp += cos(phi - theta[v]); sp += sin(phi - theta[v]);
+        cm += cos(phi + theta[v]); sm += sin(phi + theta[v]);
+        np++;
+    }
+    double coh_p = np ? sqrt(cp * cp + sp * sp) / (double)np : 0.0;
+    double coh_m = np ? sqrt(cm * cm + sm * sm) / (double)np : 0.0;
+    st.sign = coh_p >= coh_m ? 1 : -1;
+    st.offset = st.sign > 0 ? atan2(sp, cp) : atan2(sm, cm);
+    st.coherence = st.sign > 0 ? coh_p : coh_m;
+
+    float *uv = (float *)ARENA_ALLOC(
+        arena, (size_t)(ps->nv * 2 * sizeof(float)));
+    for (size_t v = 0; v < ps->nv; v++)
+        theta[v] = (double)st.sign * theta[v] + st.offset;
+
+    for (size_t v = 0; v < ps->nv; v++) {
+        double lifted = theta[v] + SCAFFOLD_2PI
+                      * nearbyint(((double)ps->phi[v] - theta[v])
+                                  / SCAFFOLD_2PI);
+        uv[v * 2 + 0] = (float)(
+            c->spiral_a * lifted
+            + c->spiral_b * lifted * lifted
+              / (2.0 * SCAFFOLD_2PI));
+        uv[v * 2 + 1] = ps->uv[v * 2 + 1];
+    }
+    AxisWarp_dispose(&axis);
+    *out_uv = uv;
+    if (stats != NULL) *stats = st;
+    return 0;
+}
+
+int ExportAtlas_run(Arena_T arena, const PieceSet *ps, const ScaffoldCalib *c,
+                    const char *seg_root, const char *prefix,
+                    const AtlasOpts *opts_in, AtlasStats *out)
+{
+    assert(arena && ps && c && seg_root && prefix && out);
+    memset(out, 0, sizeof(*out));
+    if (ps->nf == 0 || ps->nv == 0 || ps->phi == NULL) return -1;
+
+    AtlasOpts opts;
+    if (opts_in) opts = *opts_in; else AtlasOpts_default(&opts);
+    if (opts.piece_wraps < 1) opts.piece_wraps = 1;
+    if (opts.du <= 0.0) opts.du = 1.0;
+    if (opts.dv <= 0.0) opts.dv = 1.0;
+    if (opts.slab_v <= 0.0) opts.slab_v = 4096.0;
+    if (opts.input_polar_u) {
+        out->polar_sign = opts.input_polar_stats.sign;
+        out->polar_offset = opts.input_polar_stats.offset;
+        out->polar_coherence = opts.input_polar_stats.coherence;
+        out->polar_curved_axis = opts.input_polar_stats.curved_axis;
+        out->polar_groups = opts.input_polar_stats.groups;
+        out->polar_ambiguous_groups = opts.input_polar_stats.ambiguous_groups;
+        out->polar_cycle_conflicts = opts.input_polar_stats.cycle_conflicts;
+        out->polar_isolated_vertices = opts.input_polar_stats.isolated_vertices;
+    }
+
+    double t_start = ves_clock_sec();
+
+    Arena_Mark mark = Arena_save(arena);
+
+    PieceSet phase_ps;
+    if (opts.polar_u || opts.phase_u) {
+        phase_ps = *ps;
+        float *phase_uv = NULL;
+        if (opts.polar_u) {
+            AtlasPolarStats pst;
+            if (Atlas_lift_polar_u(arena, ps, c, &phase_uv, &pst) != 0) {
+                Arena_restore(arena, mark);
+                return -1;
+            }
+            out->polar_sign = pst.sign;
+            out->polar_offset = pst.offset;
+            out->polar_coherence = pst.coherence;
+            out->polar_curved_axis = pst.curved_axis;
+            out->polar_groups = pst.groups;
+            out->polar_ambiguous_groups = pst.ambiguous_groups;
+            out->polar_cycle_conflicts = pst.cycle_conflicts;
+            out->polar_isolated_vertices = pst.isolated_vertices;
+        } else {
+            phase_uv = (float *)ARENA_ALLOC(
+                arena, (size_t)(ps->nv * 2 * sizeof(float)));
+            for (size_t v = 0; v < ps->nv; v++) {
+                double phi = (double)ps->phi[v];
+                phase_uv[v * 2 + 0] = (float)(
+                    c->spiral_a * phi
+                    + c->spiral_b * phi * phi / (2.0 * SCAFFOLD_2PI));
+                phase_uv[v * 2 + 1] = ps->uv[v * 2 + 1];
+            }
+        }
+        phase_ps.uv = phase_uv;
+        ps = &phase_ps;
+    }
+
+    double *w = (double *)ARENA_ALLOC(arena, (size_t)(ps->nv * sizeof(double)));
+    for (size_t v = 0; v < ps->nv; v++) w[v] = Scaffold_unwound(c, (double)ps->phi[v]);
+
+    int32_t *facek = (int32_t *)ARENA_ALLOC(arena, (size_t)(ps->nf * sizeof(int32_t)));
+    float   *facev = (float *)ARENA_ALLOC(arena, (size_t)(ps->nf * sizeof(float)));
+    float   *facecu = (float *)ARENA_ALLOC(arena, (size_t)(ps->nf * sizeof(float)));
+    uint8_t *fquar = (uint8_t *)ARENA_CALLOC(arena, (size_t)ps->nf, 1L);
+
+    int kmin = INT_MAX, kmax = INT_MIN;
+    double vmin = 1e300, vmax = -1e300;
+    size_t nquar = 0;
+    for (size_t f = 0; f < ps->nf; f++) {
+        int32_t a = ps->faces[f*3+0], b = ps->faces[f*3+1], cc = ps->faces[f*3+2];
+        double wa = w[a], wb = w[b], wc = w[cc];
+        double lo = wa < wb ? (wa < wc ? wa : wc) : (wb < wc ? wb : wc);
+        double hi = wa > wb ? (wa > wc ? wa : wc) : (wb > wc ? wb : wc);
+        int klo = (int)floor(lo / SCAFFOLD_2PI), khi = (int)floor(hi / SCAFFOLD_2PI);
+        if (khi - klo >= 2) { fquar[f] = 1; nquar++; continue; }
+        double wc_mean = (wa + wb + wc) / 3.0;
+        int kf = (int)floor(wc_mean / SCAFFOLD_2PI);
+        double vf = ((double)ps->uv[a*2+1] + (double)ps->uv[b*2+1]
+                     + (double)ps->uv[cc*2+1]) / 3.0;
+        double uf = ((double)ps->uv[a*2+0] + (double)ps->uv[b*2+0]
+                     + (double)ps->uv[cc*2+0]) / 3.0;
+        facek[f] = kf; facev[f] = (float)vf; facecu[f] = (float)uf;
+        if (kf < kmin) kmin = kf;
+        if (kf > kmax) kmax = kf;
+        if (vf < vmin) vmin = vf;
+        if (vf > vmax) vmax = vf;
+    }
+    out->n_phase_quarantine_faces = nquar;
+    out->n_quarantine_faces = nquar;
+    if (kmin > kmax) { Arena_restore(arena, mark); return -1; }
+
+    int nslab = (int)ceil((vmax - vmin + 1.0) / opts.slab_v);
+    if (nslab < 1) nslab = 1;
+    int n_kpieces = (kmax - kmin) / opts.piece_wraps + 1;
+    size_t max_pieces = (size_t)n_kpieces * (size_t)nslab;
+
+    PieceRec *recs = (PieceRec *)ARENA_ALLOC(arena,
+                        (size_t)((max_pieces > 0 ? max_pieces : 1) * sizeof(PieceRec)));
+    size_t nrec = 0;
+
+    uint8_t *keep = (uint8_t *)ARENA_ALLOC(arena, (size_t)ps->nf);
+    float   *us = (float *)ARENA_ALLOC(arena, (size_t)(ps->nf * sizeof(float)));
+    size_t total_uoutliers = 0;
+
+    for (int slab = 0; slab < nslab; slab++) {
+        double v0 = vmin + (double)slab * opts.slab_v;
+        double v1 = v0 + opts.slab_v;
+        if (slab == nslab - 1) v1 = vmax + 1.0;
+
+        for (int k0 = kmin; k0 <= kmax; k0 += opts.piece_wraps) {
+            int k1 = k0 + opts.piece_wraps;
+
+            size_t nkept = 0;
+            memset(keep, 0, ps->nf);
+            for (size_t f = 0; f < ps->nf; f++) {
+                if (fquar[f]) continue;
+                if (facek[f] < k0 || facek[f] >= k1) continue;
+                if (facev[f] < v0 || facev[f] >= v1) continue;
+                keep[f] = 1; us[nkept++] = facecu[f];
+            }
+            if (nkept == 0) { out->n_empty++; continue; }
+
+            qsort(us, nkept, sizeof(float), cmp_float);
+            double med_u = (double)us[nkept / 2];
+            double r_k = fabs(c->spiral_a + c->pitch * (double)k0);
+            double u_half = SCAFFOLD_2PI * r_k * 1.6;
+            if (u_half < 256.0) u_half = 256.0;
+
+            double wu0 = 1e300, wu1 = -1e300, wv0 = 1e300, wv1 = -1e300;
+            size_t kept2 = 0, uout = 0;
+            for (size_t f = 0; f < ps->nf; f++) {
+                if (!keep[f]) continue;
+                if (fabs((double)facecu[f] - med_u) > u_half) {
+                    keep[f] = 0; uout++; continue;
+                }
+                kept2++;
+                for (int e = 0; e < 3; e++) {
+                    int32_t vi = ps->faces[f*3+e];
+                    double uu = (double)ps->uv[vi*2+0], vv = (double)ps->uv[vi*2+1];
+                    if (uu < wu0) wu0 = uu; if (uu > wu1) wu1 = uu;
+                    if (vv < wv0) wv0 = vv; if (vv > wv1) wv1 = vv;
+                }
+            }
+            total_uoutliers += uout;
+            nkept = kept2;
+            if (nkept == 0) { out->n_empty++; continue; }
+
+            {
+                long Wp = (long)floor(wu1 / opts.du + 0.5)
+                        - (long)floor(wu0 / opts.du + 0.5) + 1;
+                long Hp = (long)floor(wv1 / opts.dv + 0.5)
+                        - (long)floor(wv0 / opts.dv + 0.5) + 1;
+                if (Wp < 1 || Hp < 1 ||
+                    (double)Wp * (double)Hp > 950000000.0) {
+                    out->n_over_cap++;
+                    if (opts.verbose)
+                        fprintf(stderr, "  [atlas] w%03d z%05ld over cap "
+                                "(%ldx%ld px) -- skipped\n",
+                                k0, (long)floor(v0 + 0.5), Wp, Hp);
+                    continue;
+                }
+            }
+            out->n_pieces++;
+
+            PieceRec *pr = &recs[nrec];
+            snprintf(pr->name, sizeof(pr->name), "%s_w%03d_z%05ld",
+                     prefix, k0, (long)floor(v0 + 0.5));
+            pr->k0 = k0; pr->k1 = k1; pr->v0 = v0; pr->v1 = v1;
+
+            char seg_dir[1024];
+            snprintf(seg_dir, sizeof(seg_dir), "%s/%s", seg_root, pr->name);
+
+            TifxyzOpts to; TifxyzOpts_default(&to);
+            to.du = opts.du; to.dv = opts.dv;
+            to.max_edge3d = opts.max_edge3d;
+            to.stretch_ratio = opts.stretch_ratio;
+            to.stretch_floor = opts.stretch_floor;
+            to.conflict_dist = opts.conflict_dist;
+            to.write_winding = opts.write_winding;
+            to.face_keep = keep;
+            to.have_window = 1;
+            to.win_u0 = wu0; to.win_u1 = wu1;
+            to.win_v0 = wv0; to.win_v1 = wv1;
+
+            TifxyzStats tst;
+            int rc = TifxyzExport_run(arena, ps, seg_dir, pr->name, &to, &tst);
+            if (rc != 0) {
+                out->n_empty++;
+                out->n_pieces--;
+                if (opts.verbose)
+                    fprintf(stderr, "  [atlas] piece %s empty after gating\n",
+                            pr->name);
+                continue;
+            }
+            out->n_written++;
+            out->total_valid_px += tst.valid;
+            out->total_multi_px += tst.multi;
+            out->total_conflict_px += tst.conflicts;
+            out->total_conflict_same_cube_px += tst.conflict_same_cube;
+            out->total_conflict_cross_cube_px += tst.conflict_cross_cube;
+            out->total_conflict_unknown_cube_px += tst.conflict_unknown_cube;
+            out->total_conflict_d_le4 += tst.conflict_d_le4;
+            out->total_conflict_d_le8 += tst.conflict_d_le8;
+            out->total_conflict_d_le16 += tst.conflict_d_le16;
+            out->total_conflict_d_le32 += tst.conflict_d_le32;
+            out->total_conflict_d_gt32 += tst.conflict_d_gt32;
+            out->total_conflict_d_sum += tst.conflict_d_sum;
+            if (tst.conflict_d_max > out->max_conflict_d)
+                out->max_conflict_d = tst.conflict_d_max;
+            out->total_conflict_turn_known += tst.conflict_turn_known;
+            out->total_conflict_turn_le025 += tst.conflict_turn_le025;
+            out->total_conflict_turn_le05 += tst.conflict_turn_le05;
+            out->total_conflict_turn_le1 += tst.conflict_turn_le1;
+            out->total_conflict_turn_gt1 += tst.conflict_turn_gt1;
+            out->total_conflict_face_shared_edge +=
+                tst.conflict_face_shared_edge;
+            out->total_conflict_face_shared_vertex +=
+                tst.conflict_face_shared_vertex;
+            out->total_conflict_face_disjoint += tst.conflict_face_disjoint;
+            out->total_conflict_centroid_d_le8 += tst.conflict_centroid_d_le8;
+            out->total_conflict_centroid_d_gt8 += tst.conflict_centroid_d_gt8;
+            out->total_conflict_centroid_du_le2 += tst.conflict_centroid_du_le2;
+            out->total_conflict_centroid_du_le4 += tst.conflict_centroid_du_le4;
+            out->total_conflict_centroid_du_le8 += tst.conflict_centroid_du_le8;
+            out->total_conflict_centroid_du_gt8 += tst.conflict_centroid_du_gt8;
+            out->total_conflict_centroid_dv_le2 += tst.conflict_centroid_dv_le2;
+            out->total_conflict_centroid_dv_le4 += tst.conflict_centroid_dv_le4;
+            out->total_conflict_centroid_dv_le8 += tst.conflict_centroid_dv_le8;
+            out->total_conflict_centroid_dv_gt8 += tst.conflict_centroid_dv_gt8;
+            pr->W = tst.W; pr->H = tst.H;
+            pr->valid = tst.valid; pr->multi = tst.multi; pr->conflict = tst.conflicts;
+            pr->origin_u = tst.u0; pr->origin_v = tst.v0;
+            memcpy(pr->bbox_lo, tst.bbox_lo, sizeof pr->bbox_lo);
+            memcpy(pr->bbox_hi, tst.bbox_hi, sizeof pr->bbox_hi);
+            nrec++;
+
+            if (opts.verbose)
+                fprintf(stderr, "  [atlas] %s: %zux%zu valid=%zu multi=%zu "
+                        "conflict=%zu\n", pr->name, tst.W, tst.H,
+                        tst.valid, tst.multi, tst.conflicts);
+        }
+    }
+
+    out->n_phase_quarantine_faces = nquar;
+    out->n_u_outlier_faces = total_uoutliers;
+    out->n_quarantine_faces = nquar + total_uoutliers;
+    out->conflict_frac = out->total_valid_px > 0
+        ? (double)out->total_conflict_px / (double)out->total_valid_px : 0.0;
+
+    {
+        char path[1024];
+        snprintf(path, sizeof(path), "%s/atlas.json", seg_root);
+        if (ves_ensure_parent_dir(path) == 0) {
+            FILE *mf = fopen(path, "w");
+            if (mf != NULL) {
+                fprintf(mf,
+                    "{\n"
+                    "  \"format\": \"scrollfiesta-atlas\", \"version\": 1,\n"
+                    "  \"prefix\": \"%s\",\n"
+                    "  \"du\": %.6f, \"dv\": %.6f,\n"
+                    "  \"calibration\": { \"spiral_a\": %.6f, \"spiral_b\": %.6f, "
+                    "\"pitch\": %.6f, \"sense\": %d,\n"
+                    "    \"axis_point_zyx\": [%.3f, %.3f, %.3f] },\n"
+                    "  \"piece_wraps\": %d, \"slab_v\": %.1f,\n"
+                    "  \"u_coordinate\": \"%s\",\n"
+                    "  \"polar_lift\": { \"sign\": %d, \"offset\": %.9f, "
+                    "\"coherence\": %.9f, \"curved_axis\": %d, "
+                    "\"components\": %zu, \"inconsistent_components\": %zu, "
+                    "\"cycle_conflicts\": %zu, \"isolated_vertices\": %zu },\n"
+                    "  \"k_range\": [%d, %d], \"n_pieces\": %zu, "
+                    "\"n_quarantine_faces\": %zu,\n"
+                    "  \"n_phase_quarantine_faces\": %zu, "
+                    "\"n_u_outlier_faces\": %zu,\n"
+                    "  \"total_valid_px\": %zu, \"total_conflict_px\": %zu,\n"
+                    "  \"conflict_diagnostics\": {\n"
+                    "    \"provenance_px\": {\"same_cube\": %zu, "
+                    "\"cross_cube\": %zu, \"unknown_cube\": %zu},\n"
+                    "    \"distance_px\": {\"le4\": %zu, \"le8\": %zu, "
+                    "\"le16\": %zu, \"le32\": %zu, \"gt32\": %zu, "
+                    "\"mean\": %.6f, \"max\": %.6f},\n"
+                    "    \"turn_delta_px\": {\"known\": %zu, "
+                    "\"le0.25\": %zu, \"le0.5\": %zu, \"le1\": %zu, "
+                    "\"gt1\": %zu},\n"
+                    "    \"face_relation_px\": {\"shared_edge\": %zu, "
+                    "\"shared_vertex\": %zu, \"disjoint\": %zu},\n"
+                    "    \"centroid_distance_px\": {\"le8\": %zu, "
+                    "\"gt8\": %zu},\n"
+                    "    \"centroid_du_px\": {\"le2\": %zu, \"le4\": %zu, "
+                    "\"le8\": %zu, \"gt8\": %zu},\n"
+                    "    \"centroid_dv_px\": {\"le2\": %zu, \"le4\": %zu, "
+                    "\"le8\": %zu, \"gt8\": %zu}\n"
+                    "  },\n"
+                    "  \"pieces\": [\n",
+                    prefix, opts.du, opts.dv,
+                    c->spiral_a, c->spiral_b, c->pitch, c->sense,
+                    (double)c->axis_point[0], (double)c->axis_point[1],
+                    (double)c->axis_point[2],
+                    opts.piece_wraps, opts.slab_v,
+                    (opts.polar_u || opts.input_polar_u) ? "lifted_polar" :
+                    opts.phase_u ? "spiral_phase" : "registered",
+                    out->polar_sign, out->polar_offset,
+                    out->polar_coherence, out->polar_curved_axis,
+                    out->polar_groups, out->polar_ambiguous_groups,
+                    out->polar_cycle_conflicts,
+                    out->polar_isolated_vertices,
+                    kmin, kmax, nrec,
+                    out->n_quarantine_faces,
+                    out->n_phase_quarantine_faces,
+                    out->n_u_outlier_faces,
+                    out->total_valid_px, out->total_conflict_px,
+                    out->total_conflict_same_cube_px,
+                    out->total_conflict_cross_cube_px,
+                    out->total_conflict_unknown_cube_px,
+                    out->total_conflict_d_le4, out->total_conflict_d_le8,
+                    out->total_conflict_d_le16, out->total_conflict_d_le32,
+                    out->total_conflict_d_gt32,
+                    out->total_conflict_px
+                        ? out->total_conflict_d_sum
+                          / (double)out->total_conflict_px : 0.0,
+                    out->max_conflict_d,
+                    out->total_conflict_turn_known,
+                    out->total_conflict_turn_le025,
+                    out->total_conflict_turn_le05,
+                    out->total_conflict_turn_le1,
+                    out->total_conflict_turn_gt1,
+                    out->total_conflict_face_shared_edge,
+                    out->total_conflict_face_shared_vertex,
+                    out->total_conflict_face_disjoint,
+                    out->total_conflict_centroid_d_le8,
+                    out->total_conflict_centroid_d_gt8,
+                    out->total_conflict_centroid_du_le2,
+                    out->total_conflict_centroid_du_le4,
+                    out->total_conflict_centroid_du_le8,
+                    out->total_conflict_centroid_du_gt8,
+                    out->total_conflict_centroid_dv_le2,
+                    out->total_conflict_centroid_dv_le4,
+                    out->total_conflict_centroid_dv_le8,
+                    out->total_conflict_centroid_dv_gt8);
+                for (size_t i = 0; i < nrec; i++) {
+                    PieceRec *pr = &recs[i];
+                    fprintf(mf,
+                        "    { \"uuid\": \"%s\", \"k\": [%d, %d], "
+                        "\"v\": [%.1f, %.1f], \"W\": %zu, \"H\": %zu,\n"
+                        "      \"valid_px\": %zu, \"multi_px\": %zu, "
+                        "\"conflict_px\": %zu, \"origin_uv\": [%.3f, %.3f],\n"
+                        "      \"bbox\": [[%.3f, %.3f, %.3f], [%.3f, %.3f, %.3f]] }%s\n",
+                        pr->name, pr->k0, pr->k1, pr->v0, pr->v1, pr->W, pr->H,
+                        pr->valid, pr->multi, pr->conflict, pr->origin_u, pr->origin_v,
+                        pr->bbox_lo[0], pr->bbox_lo[1], pr->bbox_lo[2],
+                        pr->bbox_hi[0], pr->bbox_hi[1], pr->bbox_hi[2],
+                        i + 1 < nrec ? "," : "");
+                }
+                fprintf(mf, "  ]\n}\n");
+                fclose(mf);
+            }
+        }
+    }
+
+    out->seconds = ves_clock_sec() - t_start;
+    Arena_restore(arena, mark);
+    return 0;
+}
+
+int ExportAtlas_selftest(void)
+{
+    int fails = 0;
+    Arena_T ar = Arena_new();
+    ScaffoldCalib c; Scaffold_calib_default(&c);
+
+    int NT = 240, WROWS = 2;
+    double turns = 3.95;
+    size_t nv = (size_t)NT * (size_t)WROWS;
+    size_t nf = (size_t)(NT - 1) * (size_t)(WROWS - 1) * 2;
+    PieceSet ps; memset(&ps, 0, sizeof ps);
+    ps.verts = (float *)ARENA_ALLOC(ar, (size_t)(nv * 3 * sizeof(float)));
+    ps.uv    = (float *)ARENA_ALLOC(ar, (size_t)(nv * 2 * sizeof(float)));
+    ps.phi   = (float *)ARENA_ALLOC(ar, (size_t)(nv * sizeof(float)));
+    ps.normals = (float *)ARENA_CALLOC(ar, (size_t)(nv * 3), (size_t)sizeof(float));
+    ps.gid   = (int32_t *)ARENA_ALLOC(ar, (size_t)(nv * sizeof(int32_t)));
+    ps.faces = (int32_t *)ARENA_ALLOC(ar, (size_t)(nf * 3 * sizeof(int32_t)));
+    ps.face_cube = (int32_t *)ARENA_CALLOC(ar, (size_t)nf, (size_t)sizeof(int32_t));
+    ps.ids = (char (*)[48])ARENA_ALLOC(ar, (size_t)(1 * 48));
+    memcpy(ps.ids[0], "z00000_y00000_x00000", 21);
+    ps.cube_voff = (size_t *)ARENA_ALLOC(ar, (size_t)(2 * sizeof(size_t)));
+    ps.cube_voff[0] = 0; ps.cube_voff[1] = nv;
+    ps.cube_org = (long (*)[3])ARENA_ALLOC(ar, (size_t)(3 * sizeof(long)));
+    ps.cube_org[0][0] = 0; ps.cube_org[0][1] = 0; ps.cube_org[0][2] = 0;
+    ps.n_cubes = 1; ps.nv = nv; ps.nf = nf;
+
+    double umin = 1e9, umax = -1e9;
+    for (int i = 0; i < NT; i++) {
+        double t = (double)i / (double)(NT - 1) * turns;
+        double theta = SCAFFOLD_2PI * t;
+        double r = c.spiral_a + (-c.spiral_b) * t;
+        double u = r * theta;
+        if (u < umin) umin = u; if (u > umax) umax = u;
+        for (int row = 0; row < WROWS; row++) {
+            size_t v = (size_t)i * (size_t)WROWS + (size_t)row;
+            ps.verts[v*3+0] = (float)row;
+            ps.verts[v*3+1] = (float)(3405.0 + r * sin(theta));
+            ps.verts[v*3+2] = (float)(2878.0 + r * cos(theta));
+            ps.phi[v] = (float)(-theta);
+            ps.uv[v*2+0] = (float)u; ps.uv[v*2+1] = (float)row;
+            ps.gid[v] = (int32_t)floor(t);
+        }
+    }
+    size_t fi = 0;
+    for (int i = 0; i < NT - 1; i++)
+        for (int row = 0; row < WROWS - 1; row++) {
+            int32_t a = (int32_t)(i * WROWS + row);
+            int32_t b = (int32_t)((i + 1) * WROWS + row);
+            int32_t cc = (int32_t)(i * WROWS + row + 1);
+            int32_t d = (int32_t)((i + 1) * WROWS + row + 1);
+            ps.faces[fi*3+0]=a; ps.faces[fi*3+1]=b; ps.faces[fi*3+2]=cc; fi++;
+            ps.faces[fi*3+0]=b; ps.faces[fi*3+1]=d; ps.faces[fi*3+2]=cc; fi++;
+        }
+    ps.u_min = umin; ps.u_max = umax; ps.v_min = 0; ps.v_max = WROWS;
+
+    char root[1024];
+    { char tmp[512]; ves_temp_dir(tmp, sizeof tmp);
+      snprintf(root, sizeof root, "%s_selftest_export_atlas", tmp); }
+
+    AtlasOpts o; AtlasOpts_default(&o);
+    o.piece_wraps = 1; o.slab_v = 4096.0; o.write_winding = 1;
+    AtlasStats st;
+    if (ExportAtlas_run(ar, &ps, &c, root, "seg", &o, &st) != 0) {
+        fprintf(stderr, "[export_atlas] run failed\n"); fails++;
+    } else {
+        if (st.n_written != 4) { fprintf(stderr, "[export_atlas] wrote %zu want 4\n", st.n_written); fails++; }
+        if (st.n_over_cap != 0) { fprintf(stderr, "[export_atlas] %zu over cap\n", st.n_over_cap); fails++; }
+        if (st.conflict_frac > 0.02) { fprintf(stderr, "[export_atlas] conflict_frac %.4f > 0.02\n", st.conflict_frac); fails++; }
+        char meta[1200];
+        snprintf(meta, sizeof meta, "%s/seg_w000_z00000/meta.json", root);
+        FILE *m = fopen(meta, "r");
+        if (m == NULL) { fprintf(stderr, "[export_atlas] missing %s\n", meta); fails++; }
+        else fclose(m);
+    }
+
+    Arena_dispose(&ar);
+    if (fails == 0) fprintf(stderr, "[export_atlas] selftest PASSED\n");
+    else fprintf(stderr, "[export_atlas] selftest FAILED (%d)\n", fails);
+    return fails;
+}

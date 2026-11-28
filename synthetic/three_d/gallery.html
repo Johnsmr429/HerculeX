@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>HerculeX · synthetic</title>
+        <style>
+        * {
+            box-sizing: border-box;
+        }
+        html,
+        body {
+            margin: 0;
+            background: #000;
+            color: #8a8a8a;
+            font:
+                10pt Calibri,
+                Carlito,
+                sans-serif;
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 5;
+            display: flex;
+            gap: 20px;
+            padding: 8px 14px;
+            background: #000;
+        }
+        nav a:hover,
+        nav a.here {
+            color: #fff;
+        }
+        nav span {
+            margin-left: auto;
+            font-variant-numeric: tabular-nums;
+        }
+        header {
+            padding: 28px 14px 10px;
+            max-width: 980px;
+        }
+        header h1 {
+            margin: 0 0 6px;
+            font-weight: normal;
+            font-size: 18pt;
+            color: #e8e8e8;
+            letter-spacing: 0.01em;
+        }
+        header p {
+            margin: 0;
+            line-height: 1.5;
+        }
+        section {
+            padding: 22px 14px 8px;
+        }
+        section h2 {
+            margin: 0 0 8px;
+            font-weight: normal;
+            font-size: 10pt;
+            color: #cfcfcf;
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+        }
+        section h2 b {
+            font-weight: normal;
+            color: #fff;
+        }
+        section h2 i {
+            font-style: normal;
+        }
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2px;
+        }
+        .panel {
+            position: relative;
+            aspect-ratio: 1 / 1;
+            overflow: hidden;
+            background: #000;
+            touch-action: none;
+            user-select: none;
+        }
+        footer img {
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+            float: left;
+            margin: 0 14px 8px 0;
+        }
+        .panel img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            image-rendering: auto;
+            pointer-events: none;
+        }
+        .panel .top {
+            clip-path: inset(0 50% 0 0);
+        }
+        .panel .truth {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .panel.with-truth .truth {
+            opacity: 0.85;
+        }
+        .panel .divider {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 1px;
+            background: #fff;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+        .tag {
+            position: absolute;
+            top: 0;
+            padding: 2px 10px;
+            background: #000;
+            color: #cfcfcf;
+        }
+        .tag.left {
+            left: 0;
+        }
+        .tag.right {
+            right: 0;
+        }
+        .bar {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            display: flex;
+            gap: 0;
+            background: #000;
+        }
+        .bar button {
+            font: inherit;
+            color: #8a8a8a;
+            background: #000;
+            border: 0;
+            padding: 2px 10px;
+            cursor: pointer;
+        }
+        .bar button:hover {
+            color: #fff;
+        }
+        .bar button.on {
+            color: #fff;
+        }
+        canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }
+        canvas:active {
+            cursor: grabbing;
+        }
+        .cut .panel {
+            aspect-ratio: 2 / 1;
+        }
+        .strip {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2px;
+            margin-top: 2px;
+        }
+        footer {
+            padding: 22px 14px 40px;
+            max-width: 980px;
+            line-height: 1.5;
+        }
+        @media (max-width: 800px) {
+            .row,
+            .strip {
+                grid-template-columns: 1fr;
+            }
+        }
+        </style>
+    </head>
+    <body>
+        <nav>
+            <a href="../index.html">HerculeX</a><a class="here" href="index.html">Synthetic</a
+            ><span id="meta"></span>
+        </nav>
+        <header>
+            <h1>Synthetic scrolls with real CT</h1>
+            <p id="intro"></p>
+        </header>
+        <div id="cases"></div>
+        <footer>
+            <img src="slab.png" alt="">
+            <p id="about"></p>
+        </footer>
+        <script>
+        const M = __MANIFEST__;
+        const nf = new Intl.NumberFormat("en-US", { maximumFractionDigits: 1 });
+        document.getElementById("meta").textContent =
+            `${M.look} texture · ${M.slabs} real slabs · ${M.made}`;
+        document.getElementById("intro").textContent =
+            "Each scroll below is a synthetic geometry whose windings are known at every voxel, dressed in real " +
+            M.look +
+            " CT: real papyrus cut along trusted sheets, laid over real air from the same scan. Drag across a slice to swipe " +
+            "between the injected scroll and the real one; show the truth to see every sheet coloured by its winding.";
+        document.getElementById("about").textContent =
+            "The texture: one of " +
+            M.slabs +
+            " real slabs, the centre of a " +
+            M.look +
+            " sheet seen face on, recto and verso " +
+            "fibres crossing. Slabs are sampled along published segments one voxel apart and moved onto the sheet’s ridge; " +
+            "the injected scroll takes them at its own sheets’ places, thickness and gaps, and contacts add up as blurred " +
+            "densities do. White in the truth marks a kollesis, where the next sheet of the roll overlaps the last.";
+
+        function compare(panel, injected, real, truth) {
+            panel.innerHTML = "";
+            const back = new Image();
+            back.src = real;
+            panel.append(back);
+            const top = new Image();
+            top.src = injected;
+            top.className = "top";
+            panel.append(top);
+            const over = new Image();
+            over.src = truth;
+            over.className = "truth top";
+            panel.append(over);
+            const line = document.createElement("div");
+            line.className = "divider";
+            panel.append(line);
+            const l = document.createElement("div");
+            l.className = "tag left";
+            l.textContent = "injected";
+            panel.append(l);
+            const r = document.createElement("div");
+            r.className = "tag right";
+            r.textContent = `real ${M.look}`;
+            panel.append(r);
+            const set = (x) => {
+                const f = Math.min(Math.max(x, 0), 1) * 100;
+                top.style.clipPath = over.style.clipPath = `inset(0 ${100 - f}% 0 0)`;
+                line.style.left = `${f}%`;
+            };
+            set(0.5);
+            const move = (e) => {
+                const b = panel.getBoundingClientRect();
+                set((e.clientX - b.left) / b.width);
+            };
+            panel.addEventListener("pointerdown", (e) => {
+                panel.setPointerCapture(e.pointerId);
+                move(e);
+            });
+            panel.addEventListener("pointermove", (e) => {
+                if (e.buttons) {
+                    move(e);
+                }
+            });
+        }
+
+        const VS = `#version 300 es
+in vec2 p; out vec2 uv; void main(){ uv = p; gl_Position = vec4(p, 0, 1); }`;
+        const FS = `#version 300 es
+precision highp float; precision highp sampler3D; precision highp usampler3D;
+uniform sampler3D ct; uniform usampler3D lab; uniform mat3 rot; uniform float dist, aspect; uniform int mode;
+in vec2 uv; out vec4 color;
+vec3 hue(float h){ vec3 k = clamp(abs(mod(h * 6.0 + vec3(0, 4, 2), 6.0) - 3.0) - 1.0, 0.0, 1.0); return k; }
+void main(){
+  vec3 ro = rot * vec3(0, 0, dist);
+  vec3 rd = rot * normalize(vec3(uv.x * aspect * 0.5, uv.y * 0.5, -1.0));
+  vec3 inv = 1.0 / rd, t0 = (-0.5 - ro) * inv, t1 = (0.5 - ro) * inv;
+  vec3 lo = min(t0, t1), hi = max(t0, t1);
+  float a = max(max(lo.x, lo.y), lo.z), b = min(min(hi.x, hi.y), hi.z);
+  if (b <= max(a, 0.0)) { color = vec4(0, 0, 0, 1); return; }
+  a = max(a, 0.0);
+  float step = 1.0 / 220.0; vec4 acc = vec4(0);
+  for (float t = a; t < b; t += step) {
+    vec3 q = ro + rd * t + 0.5;
+    float v = texture(ct, q).r;
+    float alpha = smoothstep(0.30, 0.62, v) * 0.11;
+    if (alpha <= 0.0) continue;
+    vec3 c;
+    if (mode == 1) {
+      uint k = texture(lab, q).r & 63u;
+      c = k == 0u ? vec3(0.4) : mix(vec3(0.15), hue(fract(float(k) * 0.6180339887)), 0.85) * (0.55 + 0.7 * v);
+    } else {
+      c = mix(vec3(0.36, 0.23, 0.13), vec3(1.0, 0.93, 0.80), smoothstep(0.3, 0.85, v));
+    }
+    acc.rgb += (1.0 - acc.a) * alpha * c; acc.a += (1.0 - acc.a) * alpha;
+    if (acc.a > 0.97) break;
+  }
+  color = vec4(acc.rgb, 1.0);
+}`;
+
+        function volume(canvas, folder, n) {
+            const gl = canvas.getContext("webgl2", { antialias: false });
+            if (!gl) {
+                return null;
+            }
+            const sh = (type, src) => {
+                const s = gl.createShader(type);
+                gl.shaderSource(s, src);
+                gl.compileShader(s);
+                if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+                    console.error(gl.getShaderInfoLog(s));
+                }
+                return s;
+            };
+            const prog = gl.createProgram();
+            gl.attachShader(prog, sh(gl.VERTEX_SHADER, VS));
+            gl.attachShader(prog, sh(gl.FRAGMENT_SHADER, FS));
+            gl.linkProgram(prog);
+            gl.useProgram(prog);
+            const buf = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]),
+                gl.STATIC_DRAW,
+            );
+            const loc = gl.getAttribLocation(prog, "p");
+            gl.enableVertexAttribArray(loc);
+            gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+            const state = { yaw: 0.6, pitch: 0.35, dist: 1.9, mode: 0, spin: true, ready: false };
+            const upload = (unit, data, integer) => {
+                const tex = gl.createTexture();
+                gl.activeTexture(gl.TEXTURE0 + unit);
+                gl.bindTexture(gl.TEXTURE_3D, tex);
+                gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+                gl.texImage3D(
+                    gl.TEXTURE_3D,
+                    0,
+                    integer ? gl.R8UI : gl.R8,
+                    n,
+                    n,
+                    n,
+                    0,
+                    integer ? gl.RED_INTEGER : gl.RED,
+                    gl.UNSIGNED_BYTE,
+                    data,
+                );
+                const f = integer ? gl.NEAREST : gl.LINEAR;
+                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MIN_FILTER, f);
+                gl.texParameteri(gl.TEXTURE_3D, gl.TEXTURE_MAG_FILTER, f);
+                for (const w of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) {
+                    gl.texParameteri(gl.TEXTURE_3D, w, gl.CLAMP_TO_EDGE);
+                }
+            };
+            Promise.all(
+                [fetch(`${folder}/cube.u8`), fetch(`${folder}/cube_label.u8`)].map((p) =>
+                    p.then((r) => r.arrayBuffer()),
+                ),
+            ).then(([a, b]) => {
+                upload(0, new Uint8Array(a), false);
+                upload(1, new Uint8Array(b), true);
+                gl.uniform1i(gl.getUniformLocation(prog, "ct"), 0);
+                gl.uniform1i(gl.getUniformLocation(prog, "lab"), 1);
+                state.ready = true;
+            });
+            const draw = () => {
+                const w = canvas.clientWidth * devicePixelRatio,
+                    h = canvas.clientHeight * devicePixelRatio;
+                if (canvas.width !== w || canvas.height !== h) {
+                    canvas.width = w;
+                    canvas.height = h;
+                }
+                gl.viewport(0, 0, canvas.width, canvas.height);
+                if (state.spin) {
+                    state.yaw += 0.0035;
+                }
+                const cy = Math.cos(state.yaw),
+                    sy = Math.sin(state.yaw),
+                    cp = Math.cos(state.pitch),
+                    sp = Math.sin(state.pitch);
+                const rot = [cy, 0, -sy, sy * sp, cp, cy * sp, sy * cp, -sp, cy * cp];
+                gl.uniformMatrix3fv(gl.getUniformLocation(prog, "rot"), false, rot);
+                gl.uniform1f(gl.getUniformLocation(prog, "dist"), state.dist);
+                gl.uniform1f(gl.getUniformLocation(prog, "aspect"), canvas.width / canvas.height);
+                gl.uniform1i(gl.getUniformLocation(prog, "mode"), state.mode);
+                if (state.ready) {
+                    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+                }
+                requestAnimationFrame(draw);
+            };
+            requestAnimationFrame(draw);
+            let last = null;
+            canvas.addEventListener("pointerdown", (e) => {
+                state.spin = false;
+                last = [e.clientX, e.clientY];
+                canvas.setPointerCapture(e.pointerId);
+            });
+            canvas.addEventListener("pointermove", (e) => {
+                if (!last) {
+                    return;
+                }
+                state.yaw += (e.clientX - last[0]) * 0.01;
+                state.pitch = Math.max(
+                    -1.4,
+                    Math.min(1.4, state.pitch + (e.clientY - last[1]) * 0.01),
+                );
+                last = [e.clientX, e.clientY];
+            });
+            canvas.addEventListener("pointerup", () => {
+                last = null;
+            });
+            canvas.addEventListener(
+                "wheel",
+                (e) => {
+                    e.preventDefault();
+                    state.dist = Math.max(0.9, Math.min(4, state.dist * (1 + e.deltaY * 0.001)));
+                },
+                { passive: false },
+            );
+            return state;
+        }
+
+        const host = document.getElementById("cases");
+        for (const c of M.cases) {
+            const [shape, condition] = c.family.split("/");
+            const s = document.createElement("section");
+            s.innerHTML =
+                "<h2><b>" +
+                shape +
+                " · " +
+                condition +
+                "</b><i>seed " +
+                c.seed +
+                "</i><i>" +
+                nf.format(c.side_mm) +
+                " mm slice across the axis</i><i>" +
+                c.turns_in_slice +
+                " turns</i><i>" +
+                nf.format(c.voxel_um) +
+                " µm voxels</i><i>" +
+                nf.format(c.voxels / Math.max(c.gpu_seconds, 1e-6) / 1e6) +
+                " M voxels/s on the GPU</i></h2>";
+            const row = document.createElement("div");
+            row.className = "row";
+            const slice = document.createElement("div");
+            slice.className = "panel";
+            compare(slice, `${c.folder}/ct.png`, `${c.folder}/real.png`, `${c.folder}/truth.png`);
+            const bar = document.createElement("div");
+            bar.className = "bar";
+            const tb = document.createElement("button");
+            tb.textContent = "truth";
+            tb.onclick = () => {
+                slice.classList.toggle("with-truth");
+                cut.classList.toggle("with-truth");
+                tb.classList.toggle("on");
+            };
+            bar.append(tb);
+            slice.append(bar);
+            const view = document.createElement("div");
+            view.className = "panel";
+            const canvas = document.createElement("canvas");
+            view.append(canvas);
+            const vt = document.createElement("div");
+            vt.className = "tag left";
+            vt.textContent = `${nf.format(c.cube_mm)} mm injected cube`;
+            view.append(vt);
+            const vb = document.createElement("div");
+            vb.className = "bar";
+            const ctb = document.createElement("button");
+            ctb.textContent = "papyrus";
+            ctb.className = "on";
+            const trb = document.createElement("button");
+            trb.textContent = "windings";
+            vb.append(ctb, trb);
+            view.append(vb);
+            row.append(slice, view);
+            s.append(row);
+            const strip = document.createElement("div");
+            strip.className = "strip cut";
+            const cut = document.createElement("div");
+            cut.className = "panel";
+            compare(
+                cut,
+                `${c.folder}/cut.png`,
+                `${c.folder}/real_cut.png`,
+                `${c.folder}/cut_truth.png`,
+            );
+            const cl = document.createElement("div");
+            cl.className = "tag left";
+            cl.style.top = "auto";
+            cl.style.bottom = "0";
+            cl.textContent = "along the axis";
+            cut.append(cl);
+            strip.append(cut);
+            s.append(strip);
+            host.append(s);
+            const st = volume(canvas, c.folder, c.cube);
+            if (st) {
+                ctb.onclick = () => {
+                    st.mode = 0;
+                    ctb.className = "on";
+                    trb.className = "";
+                };
+                trb.onclick = () => {
+                    st.mode = 1;
+                    trb.className = "on";
+                    ctb.className = "";
+                };
+            }
+        }
+        </script>
+    </body>
+</html>

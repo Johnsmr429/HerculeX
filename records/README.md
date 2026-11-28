@@ -1,11 +1,8 @@
 # records
 
-The `records` folder keeps measured results as JSON files beside the code. The calibration studies write them, and
-reports read them back.
+Stores committed calibration measurements as JSON beside the code. Record a number here only together with the control it was measured against; place large artifacts in `data/library/calibration/STUDY/`.
 
-| Folder | Contents |
+| Path | Contents |
 | --- | --- |
-| `surface/` | Results of the unwrapping controls: the wrap studies, the per-piece truth of a control band, and a survey of every band against the published meshes. |
-
-Add a number here only together with the control that it was measured against. Large study outputs belong in the
-library's `calibration/STUDY/` folder, not here.
+| `surface/` | Unwrapping control measurements, per-piece band truth, and band surveys against published meshes. |
+| `umbilici/` *(optional, not bundled in OSS release)* | Local centerline overrides (`chosen.json`) and community centerlines (`vesuvius-center-lines/`). |

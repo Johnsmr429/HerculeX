@@ -1,33 +1,38 @@
 # tests
 
-The tests run each stage or tool on synthetic inputs with known truth, and check fast paths against trusted
-references.
-
-| Files | What they test |
-| --- | --- |
-| `*_e2e.py` | A stage or tool run whole on synthetic inputs with known truth, such as a crushed scroll of known windings, a spiral, a small HTTP server, or a job board of its own. |
-| `*_golden.py` | A fast path against a trusted reference: the lane's GPU sheet-node kernel against the C kernel, the network simplex against a general LP solver, and every level kernel built with both lanes' `parallel_blocks.h`. |
-| `test_reflatten.py` | The near-isometric flattening in `spots.reflatten`. |
-| `test_lint_e2e.py` | Committed files against the pinned linters of their language, as `./run.sh check lint` runs them. |
+The native suite runs C and shell end-to-end tests and goldens. These tests build small
+fixtures or compare results with a saved reference. `./run.sh check` runs them one at a
+time by default. Use `--workers N` to set concurrency.
 
 ```sh
-./run.sh board room 6 && ./run.sh check    # every test, once 6 GB fits beside the running jobs
-./run.sh check cpu                         # only the tests that need neither the GPU nor the Neural Engine
-./run.sh check ports                       # the native ports in ports/, which the pipeline does not call
+./run.sh setup spots
+./run.sh board room 3
+./run.sh check cpu
+./run.sh test-source tests/layout_golden.c
+./run.sh test-source tests/unroll_pipeline_e2e.c
+./run.sh check lint
 ```
 
-Tests marked `apple` or `cuda` run only on that lane's machines (`tests/conftest.py`). `test_reader_apple_e2e.py` and
-`test_reader_cuda_e2e.py` need Reader v3; they skip their tests until you run `./run.sh setup`.
+`setup spots` installs the DuckDB CLI used by the spot fixtures. Set
+`HERCULEX_DUCKDB` to use a DuckDB executable you already have.
 
-`./run.sh check` runs each test file in a fresh process (`runner/check.py`), three at a time for `cpu`, and ends with
-the slowest files and their peak memory. While you work on a module, run only its test files:
-`runtime/python/bin/python -m pytest -q tests/test_NAME.py`. Run the whole CPU suite once, before you commit, as a
-board job:
+The unroll pipeline fixture checks trace failures, queue dependencies, saved settings, resuming reads, publication
+and per-model face backups with stub stages. It needs no CT downloads or GPU.
+
+On Apple silicon, use the job board for the GPU and reader tests.
 
 ```sh
-./run.sh board add cpu-check --memory 3 --cores 3 -- ./run.sh check cpu
-./run.sh board add full-check --gpu --engine --memory 10 --cores 2 -- ./run.sh check    # GPU memory counts too
+./run.sh board room 3
+./run.sh board add full-check --gpu --engine --memory 3 --cores 2 -- ./run.sh check all
 ```
 
-A test reads data from the library or the outputs only when it can't be made synthetic, and then skips with the
-path it needs. A new test builds its inputs itself and finishes in seconds.
+The reader end-to-end test reads two generated layer stacks with Reader v3. It checks the
+value range, that two reads are identical, and that the read isn't flat. The sheet-stage
+end-to-end test reads three PHerc0211 pieces of `rows-0000-0012`. It fetches their CT into a
+temporary directory, checks every output, and checks that a second read skips finished pieces.
+It needs the scan's pieces, layout and axis under the outputs root, the network, and `jq`, and
+it skips without them.
+
+The sheet viewer end-to-end test serves a synthetic tile pack, checks the tile map and decoded
+batches, and then drives headless Chrome over the DevTools pipe to draw, erase and restyle the
+sheet. It runs the browser checks only when Chrome is at its usual macOS path or at `CHROME`.
