@@ -1271,6 +1271,7 @@ Piece *sample_piece(Stage *g, Job *j, const Bricks *store) {
                 (Read){.stack = face, .height = h, .width = w, .measure = 1, .seen = 0};
         }
         unlink(record);
+        unlink(kept);
         write_png(a, layer0, central, w, h);
         write_png(a, j->out, sheet, w, h);
         if (strcmp(env("HERCULEX_KEEP_STACKS", "1"), "0") != 0) {

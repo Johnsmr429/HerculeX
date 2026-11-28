@@ -584,50 +584,6 @@ static int surface_normals(float *surface, int h, int w, double sigma, float *wo
     return ok;
 }
 
-static int layout_normals_raw(
-    const float *mesh, int h, int w, double x, double y, double spacing, float *result) {
-    int rows = h + 4, columns = w + 4;
-    size_t cells = (size_t)h * w, expanded = (size_t)rows * columns;
-    float *surface = malloc(6 * expanded * sizeof(*surface));
-    float *work = malloc(4 * expanded * sizeof(*work));
-    if (!surface || !work) {
-        free(work);
-        free(surface);
-        return 0;
-    }
-    for (size_t i = 0; i < 3 * expanded; i++)
-        surface[i] = -1;
-    size_t known = 0;
-    for (int row = 0; row < h; row++) {
-        for (int col = 0; col < w; col++) {
-            size_t i = (size_t)row * w + col;
-            if (mesh[i] > 0) {
-                size_t at = (size_t)(row + 2) * columns + col + 2;
-                for (int a = 0; a < 3; a++)
-                    surface[a * expanded + at] = mesh[a * cells + i];
-                known++;
-            }
-        }
-    }
-    int ok = 1;
-    if (known) {
-        extend_surface(surface, work, rows, columns);
-        ok = surface_normals(surface, rows, columns, 225. / spacing, work);
-        float *n = surface + 3 * expanded;
-        double vote = 0;
-        for (size_t i = 0; ok && i < expanded; i++)
-            if (surface[i] > 0)
-                vote += n[i] * (x - work[i]) + n[i + expanded] * (y - work[i + expanded]);
-        for (size_t i = 0; ok && i < 3 * expanded; i++)
-            result[i] = vote < 0 ? -n[i] : n[i];
-    } else {
-        memset(result, 0, 3 * expanded * sizeof(*result));
-    }
-    free(work);
-    free(surface);
-    return ok;
-}
-
 float *hx_readable_surface(const char *folder, int stride, double voxel, int *height, int *width) {
     TIFF *first = open_axis(folder, 0);
     if (!first) {
